@@ -12,13 +12,13 @@ RUN apt-get update \
 WORKDIR /src
 
 # Add and install Python modules
-ADD requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-ADD . .
+COPY . .
 
 # Expose
-EXPOSE 8000
+EXPOSE 5000
 
 # Gunicorn configured for single-core machine, if more cores available increase workers using formula ((cores x 2) + 1))
-CMD gunicorn -b 0.0.0.0:8000 -w 3 --timeout 179 manage:application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "179", "manage:application"]
