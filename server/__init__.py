@@ -1,7 +1,8 @@
 # flake8: noqa
 import logging
 import os
-from logging.handlers import RotatingFileHandler
+import sys
+from logging import StreamHandler
 
 from flask import Flask
 from flask_cors import CORS
@@ -68,22 +69,17 @@ def init_counters(app):
 
 def initialise_logger(app):
     """
-    Read environment config then initialise a 2MB rotating log.  Prod Log Level can be reduced to help diagnose Prod
-    only issues.
+    Write log to stdout to be compatible with Docker best practices.
     """
 
-    log_dir = app.config['LOG_DIR']
     log_level = app.config['LOG_LEVEL']
 
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-
-    file_handler = RotatingFileHandler(log_dir + '/tasking-manager.log', 'a', 2 * 1024 * 1024, 3)
-    file_handler.setLevel(log_level)
-    file_handler.setFormatter(logging.Formatter(
+    stream_handler = StreamHandler(sys.stdout)
+    stream_handler.setLevel(log_level)
+    stream_handler.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
 
-    app.logger.addHandler(file_handler)
+    app.logger.addHandler(stream_handler)
     app.logger.setLevel(log_level)
 
 
