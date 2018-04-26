@@ -8,6 +8,7 @@ class EnvironmentConfig:
     # This is the address we'll use as the sender on all auto generated emails
     EMAIL_FROM_ADDRESS = 'ian@openstreetmap.us'
     LOG_LEVEL = logging.ERROR
+    ENABLE_PROXYFIX = os.environ.get('ENABLE_PROXYFIX', 'false') == 'true'
     # Mapper Level values represent number of OSM changesets
     MAPPER_LEVEL_INTERMEDIATE = 250
     MAPPER_LEVEL_ADVANCED = 500

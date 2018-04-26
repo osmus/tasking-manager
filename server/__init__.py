@@ -55,6 +55,8 @@ def create_app(env=None):
     app.secret_key = app.config['SECRET_KEY']  # Required by itsdangeroud, Flask-OAuthlib for creating entropy
     oauth.init_app(app)
 
+    initialise_proxyfix(app)
+
     return app
 
 
@@ -81,6 +83,15 @@ def initialise_logger(app):
 
     app.logger.addHandler(stream_handler)
     app.logger.setLevel(log_level)
+
+
+def initialise_proxyfix(app):
+    """
+    Wrap the app in a ProxyFix if requested via config.
+    """
+    if app.config['ENABLE_PROXYFIX']:
+        from werkzeug.contrib.fixers import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 def init_flask_restful_routes(app):
