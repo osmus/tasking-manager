@@ -1,10 +1,11 @@
-FROM python:3.6
+FROM python:3.6-jessie
 
 # Install dependencies for shapely
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y libgeos-c1 libgeos-dev \
+ && apt-get install -y libgeos-dev \
  && rm -rf /var/lib/apt/lists/*
+
 
 # Uncomment and set with valid connection string for use locally
 #ENV TM_DB=postgresql://user:pass@host/db
