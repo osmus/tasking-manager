@@ -10,9 +10,9 @@ shippable/
 client/app/taskingmanager.config.js
 client/package-lock.json
 
-# Ignore dist folder as this contains the minimized build for deploy
-server/web/static/dist
-server/web/static/dist/
+# Don't ignore dist folder as this contains the minimized build for deploy
+#server/web/static/dist
+#server/web/static/dist/
 
 # Ignore local logs
 logs/
