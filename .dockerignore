@@ -5,4 +5,7 @@
 **/npm-debug.log
 logs/
 docs/
-scripts/
+scripts/aws
+scripts/database
+scripts/install
+scripts/profiler
