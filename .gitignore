@@ -1,6 +1,6 @@
 
 # Configuration files #
-tasking-manager*.env
+#tasking-manager*.env
 
 # Generated frontend #
 frontend/node_modules/
@@ -13,8 +13,8 @@ frontend/.eslintcache
 frontend/coverage/
 
 # Ignore dist folder as this contains the minimized build for deploy
-backend/web/static/dist
-backend/web/static/dist/
+#backend/web/static/dist
+#backend/web/static/dist/
 
 # Ignore local logs
 logs/
