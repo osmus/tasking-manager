@@ -2,11 +2,12 @@ FROM tiangolo/node-frontend:10 as build
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
+COPY tasking-manager.env ..
 
 ## SETUP
 RUN npm install
 
-ARG TM_APP_API_URL=http://localhost/api
+ARG TM_APP_API_URL=https://tasks-backend.openstreetmap.us/api
 
 # SERVE
 RUN npm run build
