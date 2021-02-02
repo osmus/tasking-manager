@@ -8,6 +8,8 @@ COPY tasking-manager.env ..
 RUN npm install
 
 ARG TM_APP_API_URL=https://tasks-backend.openstreetmap.us/api
+ARG TM_CONSUMER_KEY=94tWwKDLwq6xlzEcR9OHWDz8XeHT7tNrPz7jjcS5
+ARG TM_CONSUMER_SECRET=wNQxVpkPogwVSZfjd4aUjcW03iPYU0WV0mcVtSKI
 
 # SERVE
 RUN npm run build
