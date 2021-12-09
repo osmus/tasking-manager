@@ -1,0 +1,8 @@
+Hi [USERNAME],<br />
+<br />
+Welcome to the [ORG_CODE] Tasking Manager, we hope you will enjoy being part of the community that is helping map the world.<br />
+<br />
+[HOT_WELCOME]
+In order to be notified on project updates and feedback on your mapping, please check if your email address is registered and verified on your [SETTINGS_LINK].<br />
+<br />
+Thank you very much!<br />

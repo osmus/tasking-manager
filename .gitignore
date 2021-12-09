@@ -1,14 +1,16 @@
-#Pycharm
-.idea/
 
-# Dev artifacts
-client/node_modules/
-client/assets/styles/css
-shippable/
+# Configuration files #
+tasking-manager*.env
 
-# Ignore generated config
-client/app/taskingmanager.config.js
-client/package-lock.json
+# Generated frontend #
+frontend/node_modules/
+frontend/build/
+frontend/public/static/
+frontend/assets/styles/
+frontend/package-lock.json
+frontend/.env
+frontend/.eslintcache
+frontend/coverage/
 
 # Don't ignore dist folder as this contains the minimized build for deploy
 #server/web/static/dist
@@ -16,14 +18,31 @@ client/package-lock.json
 
 # Ignore local logs
 logs/
+*.log
+
+# Ignore some translation stuff
+.tx/
 
 #python
 venv/
 *pyc
 
-# AWS
+# Editor generated files #
+.idea/
+.vscode/
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# OS generated files #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 .elasticbeanstalk/
 venv_aws/
-
-# Mac
-.DS_Store

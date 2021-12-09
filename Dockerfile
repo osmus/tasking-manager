@@ -1,25 +1,48 @@
-FROM python:3.6-jessie
+FROM quay.io/hotosm/base-python-image as base
+LABEL version=0.1
+LABEL maintainer="HOT Sysadmin <sysadmin@hotosm.org>"
+LABEL description="Builds backend docker image"
 
-# Install dependencies for shapely
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y libgeos-dev \
- && rm -rf /var/lib/apt/lists/*
+WORKDIR /usr/src/app
 
+FROM base as builder
 
-# Uncomment and set with valid connection string for use locally
-#ENV TM_DB=postgresql://user:pass@host/db
+# Setup backend build-time dependencies
+RUN apk update && \
+    apk add \
+        postgresql-dev \
+        gcc \
+        g++ \
+        python3-dev \
+        musl-dev \
+        libffi-dev \
+        geos-dev \
+        proj-util \
+        proj-dev \
+        make
 
-WORKDIR /src
-
-# Add and install Python modules
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+RUN pip install \
+    --prefix=/install \
+    --no-cache-dir \
+    --no-warn-script-location \
+    -r requirements.txt
 
-# Expose
+# Setup backend runtime dependencies
+FROM base
+
+RUN apk update && \
+    apk add \
+        postgresql-libs geos proj-util
+
+COPY --from=builder /install /usr/local
+COPY backend backend/
+COPY migrations migrations/
+COPY scripts/world scripts/world/
+COPY scripts/database scripts/database/
+COPY manage.py .
+
+ENV TZ UTC # Fix timezone (do not change - see issue #3638)
 EXPOSE 5000
-
-# Gunicorn configured for single-core machine, if more cores available increase workers using formula ((cores x 2) + 1))
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "3", "--timeout", "179", "manage:application"]
+CMD ["gunicorn", "-c", "python:backend.gunicorn", "manage:application"]
