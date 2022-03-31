@@ -3191,12 +3191,10 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@testing-library/user-event@^13.1.9":
-  version "13.1.9"
-  resolved "https://registry.yarnpkg.com/@testing-library/user-event/-/user-event-13.1.9.tgz#29e49a42659ac3c1023565ff56819e0153a82e99"
-  integrity sha512-NZr0zL2TMOs2qk+dNlqrAdbaRW5dAmYwd1yuQ4r7HpkVEOj0MWuUjDWwKhcLd/atdBy8ZSMHSKp+kXSQe47ezg==
-  dependencies:
-    "@babel/runtime" "^7.12.5"
+"@testing-library/user-event@^14.0.1":
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/@testing-library/user-event/-/user-event-14.0.1.tgz#26864fefd3ccee372f4d9c201d3469290e58fb97"
+  integrity sha512-HKI9UVLg31Y8uKRzZ/mFDPnuXTTWA9Zv/nGxtniOwS230QHyWaLmQUJdQT4mX1WlIM9Tn4hyrwfyKFqVvz9EeA==
 
 "@tmcw/togeojson@^4.4.1":
   version "4.4.1"
