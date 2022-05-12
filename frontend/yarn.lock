@@ -6380,10 +6380,10 @@ domhandler@^2.3.0:
   dependencies:
     domelementtype "1"
 
-dompurify@^2.2.9:
-  version "2.2.9"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.2.9.tgz#4b42e244238032d9286a0d2c87b51313581d9624"
-  integrity sha512-+9MqacuigMIZ+1+EwoEltogyWGFTJZWU3258Rupxs+2CGs4H914G9er6pZbsme/bvb5L67o2rade9n21e4RW/w==
+dompurify@^2.3.7:
+  version "2.3.7"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.7.tgz#30aa7feddc1420f3e554b1b3fe9e2f318a28066e"
+  integrity sha512-fsVZLywBd3awZIG3qU4JEdw7DCb0uUCajTfWRrLhsgKjTBd5CIIluPoAkNfco05GuNYQGj4/+bQIhlq96eT9eQ==
 
 domutils@1.3:
   version "1.3.0"
