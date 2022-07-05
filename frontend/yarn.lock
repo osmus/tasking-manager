@@ -2968,6 +2968,15 @@
     "@sentry/utils" "6.7.1"
     tslib "^1.9.3"
 
+"@sentry/hub@7.5.0":
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-7.5.0.tgz#30801accb9475cc3f155802a3fefd218d66fbfda"
+  integrity sha512-R3jGEOtRtZaYCswSNs/7SmjOj/Pp8BhRyXk4q0a5GXghbuVAdzZvlJH0XnD/6jOJAF0iSXFuyGSLqVUmjkY9Ow==
+  dependencies:
+    "@sentry/types" "7.5.0"
+    "@sentry/utils" "7.5.0"
+    tslib "^1.9.3"
+
 "@sentry/minimal@6.7.1":
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-6.7.1.tgz#babf85ee2f167e9dcf150d750d7a0b250c98449c"
@@ -2989,15 +2998,14 @@
     hoist-non-react-statics "^3.3.2"
     tslib "^1.9.3"
 
-"@sentry/tracing@^6.7.1":
-  version "6.7.1"
-  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-6.7.1.tgz#b11f0c17a6c5dc14ef44733e5436afb686683268"
-  integrity sha512-wyS3nWNl5mzaC1qZ2AIp1hjXnfO9EERjMIJjCihs2LWBz1r3efxrHxJHs8wXlNWvrT3KLhq/7vvF5CdU82uPeQ==
+"@sentry/tracing@^7.5.0":
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/@sentry/tracing/-/tracing-7.5.0.tgz#ad6da27563246e9d754c36a2a3d398cfb979117e"
+  integrity sha512-tSVnCJNImsWms4tBhJ2Xr+HI1i9zKg4eZ0dImi93/H3sf5hmK9r2E11Xs/8rTxqpGWzB8axVi2tcmqmfqXKGTg==
   dependencies:
-    "@sentry/hub" "6.7.1"
-    "@sentry/minimal" "6.7.1"
-    "@sentry/types" "6.7.1"
-    "@sentry/utils" "6.7.1"
+    "@sentry/hub" "7.5.0"
+    "@sentry/types" "7.5.0"
+    "@sentry/utils" "7.5.0"
     tslib "^1.9.3"
 
 "@sentry/types@6.7.1":
@@ -3005,12 +3013,25 @@
   resolved "https://registry.yarnpkg.com/@sentry/types/-/types-6.7.1.tgz#c8263e1886df5e815570c4668eb40a1cfaa1c88b"
   integrity sha512-9AO7HKoip2MBMNQJEd6+AKtjj2+q9Ze4ooWUdEvdOVSt5drg7BGpK221/p9JEOyJAZwEPEXdcMd3VAIMiOb4MA==
 
+"@sentry/types@7.5.0":
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-7.5.0.tgz#610f14c1219ba461ca84a3c89e06de8c0cf357bc"
+  integrity sha512-VPQ/53mLo5N8NQUB4k6R2GQBWoW8otFyhhPnC75gYXeBTItVCzJAylVyWy8b+gGqGst+pQN3wb2dl9xhrd69YQ==
+
 "@sentry/utils@6.7.1":
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-6.7.1.tgz#909184ad580f0f6375e1e4d4a6ffd33dfe64a4d1"
   integrity sha512-Tq2otdbWlHAkctD+EWTYKkEx6BL1Qn3Z/imkO06/PvzpWvVhJWQ5qHAzz5XnwwqNHyV03KVzYB6znq1Bea9HuA==
   dependencies:
     "@sentry/types" "6.7.1"
+    tslib "^1.9.3"
+
+"@sentry/utils@7.5.0":
+  version "7.5.0"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-7.5.0.tgz#64435ea094aa7d79d1dfe7586d2d5a2bff9e3839"
+  integrity sha512-DgHrkGgHplVMgMbU9hGBfGBV6LcOwNBrhHiVaFwo2NHiXnGwMkaILi5XTRjKm9Iu/m2choAFABA80HEtPKmjtA==
+  dependencies:
+    "@sentry/types" "7.5.0"
     tslib "^1.9.3"
 
 "@sindresorhus/is@^0.7.0":
