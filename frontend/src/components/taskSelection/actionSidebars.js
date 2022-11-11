@@ -4,6 +4,7 @@ import { navigate } from '@reach/router';
 import Popup from 'reactjs-popup';
 import ReactTooltip from 'react-tooltip';
 import { FormattedMessage } from 'react-intl';
+import { PDEDITOR_URL } from '../../config';
 
 import messages from './messages';
 import { CheckBoxInput } from '../formInputs';
@@ -683,10 +684,14 @@ function CompletionInstructions({ setVisibility }: Object) {
 }
 
 export function ReopenEditor({ project, action, editor, callEditor }: Object) {
-  const editorOptions = getEditors(
+  const editorOptions = project.databse === 'OSM' ? getEditors(
     action === 'MAPPING' ? project.mappingEditors : project.validationEditors,
     project.customEditor,
-  );
+  ) : [{
+    label: 'PD Editor',
+    value: 'ID', // we ignore this anyway just give it a valid value
+    url: PDEDITOR_URL,
+  }];
 
   return (
     <div className="dib w-50 fl tc pt3 pb2 pr3">

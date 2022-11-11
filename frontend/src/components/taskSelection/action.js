@@ -35,6 +35,7 @@ import { ActionTabsNav } from './actionTabsNav';
 import { LockedTaskModalContent } from './lockedTasks';
 const Editor = React.lazy(() => import('../editor'));
 const RapiDEditor = React.lazy(() => import('../rapidEditor'));
+const PDEditor = React.lazy(() => import('../pdEditor'));
 
 export function TaskMapAction({ project, projectIsReady, tasks, activeTasks, action, editor }) {
   const location = useLocation();
@@ -194,24 +195,35 @@ export function TaskMapAction({ project, projectIsReady, tasks, activeTasks, act
                   </div>
                 }
               >
-                {editor === 'ID' ? (
-                  <Editor
-                    setDisable={setDisable}
-                    comment={project.changesetComment}
-                    presets={project.idPresets}
-                    imagery={formatImageryUrlCallback(project.imagery)}
-                    gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                  />
+                {project.database === 'OSM' ? (
+                  editor === 'ID' ? (
+                    <Editor
+                      setDisable={setDisable}
+                      comment={project.changesetComment}
+                      presets={project.idPresets}
+                      imagery={formatImageryUrlCallback(project.imagery)}
+                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                    />
+                  ) : (
+                    <RapiDEditor
+                      setDisable={setDisable}
+                      comment={project.changesetComment}
+                      presets={project.idPresets}
+                      imagery={formatImageryUrlCallback(project.imagery)}
+                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                      powerUser={project.rapidPowerUser}
+                    />
+                  )
                 ) : (
-                  <RapiDEditor
+                  <PDEditor
                     setDisable={setDisable}
                     comment={project.changesetComment}
                     presets={project.idPresets}
-                    imagery={formatImageryUrlCallback(project.imagery)}
+                    //imagery={formatImageryUrlCallback(project.imagery)}
                     gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                    powerUser={project.rapidPowerUser}
                   />
-                )}
+                )
+              }
               </React.Suspense>
             ) : (
               <ReactPlaceholder
