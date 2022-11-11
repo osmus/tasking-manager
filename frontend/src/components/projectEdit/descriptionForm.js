@@ -37,6 +37,7 @@ export const DescriptionForm = ({ languages }) => {
         {projectDatabaseOptions.map((option) => (
           <label className="dib pr5" key={option.value}>
             <input
+              disabled
               value={option.value}
               checked={projectInfo.database === option.value}
               onChange={() =>
