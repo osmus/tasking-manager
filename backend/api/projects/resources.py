@@ -163,6 +163,9 @@ class ProjectsRestAPI(Resource):
                     projectName:
                         type: string
                         default: HOT Project
+                    database:
+                        type: string
+                        default: OSM
                     areaOfInterest:
                         schema:
                             properties:
@@ -310,6 +313,9 @@ class ProjectsRestAPI(Resource):
               description: JSON object for updating an existing project
               schema:
                 properties:
+                    projectDatabase:
+                        type: string
+                        default: OSM
                     projectStatus:
                         type: string
                         default: DRAFT

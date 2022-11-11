@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+class ProjectDatabase(Enum):
+    """ Enum to describes all possible databases of a Mapping Project """
+
+    OSM = 0
+    PDMAP = 1
+
 class ProjectStatus(Enum):
     """ Enum to describes all possible states of a Mapping Project """
 

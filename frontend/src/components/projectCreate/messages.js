@@ -52,6 +52,18 @@ export default defineMessages({
     id: 'management.projects.create.review_tasks.organization',
     defaultMessage: 'Organization',
   },
+  database: {
+    id: 'management.projects.create.review_tasks.',
+    defaultMessage: 'Database',
+  },
+  databaseOSM: {
+    id: 'project.formInputs.database.options.osm',
+    defaultMessage: 'OpenStreetMap',
+  },
+  databasePDMAP: {
+    id: 'project.formInputs.database.options.pdmap',
+    defaultMessage: 'Public Domain Map',
+  },
   creationFailed: {
     id: 'management.projects.create.review_tasks.failure.message',
     defaultMessage: 'It was not possible to save your project due to an error: {error}',

@@ -131,6 +131,7 @@ const ProjectCreate = (props) => {
   const [step, setStep] = useState(1);
   const [cloneProjectName, setCloneProjectName] = useState(null);
   const [cloneProjectOrg, setCloneProjectOrg] = useState(null);
+  const [cloneProjectDatabase, setCloneProjectDatabase] = useState('OSM');
   const [err, setErr] = useState({ error: false, message: null });
 
   const fetchCloneProjectInfo = useCallback(
@@ -138,8 +139,9 @@ const ProjectCreate = (props) => {
       const res = await fetchLocalJSONAPI(`projects/${cloneFromId}/`, token);
       setCloneProjectName(res.projectInfo.name);
       setCloneProjectOrg(res.organisation);
+      setCloneProjectDatabase(res.database);
     },
-    [setCloneProjectName, setCloneProjectOrg, token],
+    [setCloneProjectName, setCloneProjectOrg, setCloneProjectDatabase, token],
   );
 
   useLayoutEffect(() => {
@@ -152,6 +154,7 @@ const ProjectCreate = (props) => {
     id: cloneFromId,
     name: cloneProjectName,
     organisation: cloneProjectOrg,
+    database: cloneProjectDatabase,
   };
 
   // Project information.
@@ -165,6 +168,7 @@ const ProjectCreate = (props) => {
     tempTaskGrid: null,
     arbitraryTasks: false,
     organisation: '',
+    database: 'OSM',
   });
 
   useLayoutEffect(() => {
@@ -202,6 +206,7 @@ const ProjectCreate = (props) => {
         areaOfInterest: truncate(metadata.geom, { precision: 6 }),
         projectName: metadata.projectName,
         organisation: metadata.organisation || cloneProjectData.organisation,
+        database: metadata.database,
         tasks: truncate(metadata.taskGrid, { precision: 6 }),
         arbitraryTasks: metadata.arbitraryTasks,
       };

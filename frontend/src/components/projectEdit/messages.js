@@ -308,6 +308,10 @@ export default defineMessages({
     id: 'projects.actions.task_reset.confirmation',
     defaultMessage: 'Are you sure you want to reset all tasks? You cannot undo this.',
   },
+  database: {
+    id: 'projects.formInputs.database',
+    defaultMessage: 'Database',
+  },
   status: {
     id: 'projects.formInputs.status',
     defaultMessage: 'Status',
@@ -500,6 +504,14 @@ export default defineMessages({
   projectPriorityLOW: {
     id: 'project.formInputs.priority.options.low',
     defaultMessage: 'Low',
+  },
+  databaseOSM: {
+    id: 'project.formInputs.database.options.osm',
+    defaultMessage: 'OpenStreetMap',
+  },
+  databasePDMAP: {
+    id: 'project.formInputs.database.options.pdmap',
+    defaultMessage: 'Public Domain Map',
   },
   statusDRAFT: {
     id: 'project.formInputs.status.options.draft',

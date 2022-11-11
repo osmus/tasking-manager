@@ -16,6 +16,7 @@ from backend.models.dtos.stats_dto import Pagination
 from backend.models.dtos.team_dto import ProjectTeamDTO
 from backend.models.dtos.interests_dto import InterestDTO
 from backend.models.postgis.statuses import (
+    ProjectDatabase,
     ProjectStatus,
     ProjectPriority,
     MappingTypes,
@@ -25,6 +26,19 @@ from backend.models.postgis.statuses import (
     ValidationPermission,
 )
 from backend.models.dtos.campaign_dto import CampaignDTO
+
+def is_known_project_database(value):
+    """ Validates that Project Database is known value """
+    if type(value) == list:
+        return  # Don't validate the entire list, just the individual values
+
+    try:
+        ProjectDatabase[value.upper()]
+    except KeyError:
+        raise ValidationError(
+            f"Unknown projectDatabase: {value} Valid values are {ProjectDatabase.OSM.name}, "
+            f"{ProjectDatabase.PDMAP.name}"
+        )
 
 
 def is_known_project_status(value):
@@ -124,6 +138,12 @@ class DraftProjectDTO(Model):
     cloneFromProjectId = IntType(serialized_name="cloneFromProjectId")
     project_name = StringType(required=True, serialized_name="projectName")
     organisation = IntType(required=True)
+    database = StringType(
+        required=True,
+        serialized_name="database",
+        validators=[is_known_project_database],
+        serialize_when_none=False,
+    )
     area_of_interest = BaseType(required=True, serialized_name="areaOfInterest")
     tasks = BaseType(required=False)
     has_arbitrary_tasks = BooleanType(required=True, serialized_name="arbitraryTasks")
@@ -155,6 +175,12 @@ class ProjectDTO(Model):
     """ Describes JSON model for a tasking manager project """
 
     project_id = IntType(serialized_name="projectId")
+    database = StringType(
+        required=True,
+        serialized_name="database",
+        validators=[is_known_project_database],
+        serialize_when_none=False,
+    )
     project_status = StringType(
         required=True,
         serialized_name="status",
@@ -378,6 +404,7 @@ class ListSearchResultDTO(Model):
     campaigns = ListType(ModelType(CampaignDTO), default=[])
     percent_mapped = IntType(serialized_name="percentMapped")
     percent_validated = IntType(serialized_name="percentValidated")
+    database = StringType(serialized_name="database")
     status = StringType(serialized_name="status")
     active_mappers = IntType(serialized_name="activeMappers")
     last_updated = UTCDateTimeType(serialized_name="lastUpdated")
@@ -501,6 +528,7 @@ class ProjectSummary(Model):
         ProjectInfoDTO, serialized_name="projectInfo", serialize_when_none=False
     )
     short_description = StringType(serialized_name="shortDescription")
+    database = StringType()
     status = StringType()
     imagery = StringType()
     license_id = IntType(serialized_name="licenseId")

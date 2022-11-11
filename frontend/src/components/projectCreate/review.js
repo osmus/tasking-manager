@@ -9,6 +9,11 @@ import { OrganisationSelect } from '../formInputs';
 export default function Review({ metadata, updateMetadata, token, projectId, cloneProjectData }) {
   const [error, setError] = useState(null);
 
+  const projectDatabaseOptions = [
+    { value: 'OSM', label: 'OSM' },
+    { value: 'PDMAP', label: 'PDMAP' },
+  ];
+
   const setProjectName = (event) => {
     event.preventDefault();
     updateMetadata({ ...metadata, projectName: event.target.value });
@@ -55,6 +60,29 @@ export default function Review({ metadata, updateMetadata, token, projectId, clo
           />
         </>
       ) : null}
+
+      <>
+        <label className="f5 fw6 db mb2 pt3">
+          <FormattedMessage {...messages.database} />
+        </label>
+        {projectDatabaseOptions.map((option) => (
+          <label className="dib pr5" key={option.value}>
+            <input
+              value={option.value}
+              checked={metadata.database === option.value}
+              onChange={() =>
+                updateMetadata({
+                  ...metadata,
+                  database: option.value,
+                })
+              }
+              type="radio"
+              className={`radio-input input-reset pointer v-mid dib h2 w2 mr2 br-100 ba b--blue-light`}
+            />
+            <FormattedMessage {...messages[`database${option.label}`]} />
+          </label>
+        ))}
+      </>
 
       {error && (
         <Alert type="error">
