@@ -40,6 +40,8 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           ))}
         </select>
       </div>
+      {projectInfo.database === 'OSM' ? (
+      <>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.mappingEditors} />
@@ -108,6 +110,8 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           </div>
         )}
       </div>
+      </>)
+      : ''}
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.randomTaskSelection} />
