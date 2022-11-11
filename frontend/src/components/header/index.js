@@ -258,7 +258,7 @@ class Header extends React.Component {
       // Validate that user has set is email.
       <header className="w-100 bb b--grey-light">
         <UpdateDialog />
-        {this.checkUserEmail()}
+        {/*this.checkUserEmail()*/}
         {this.props.showOrgBar && (
           <div className="cf ph2 red pt3 pb2 bb b--grey-light">
             <div className="fl w-50">
