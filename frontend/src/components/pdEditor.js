@@ -3,9 +3,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as iD from '@publicdomainmap/editor';
 import '@publicdomainmap/editor/dist/iD.css';
 
-import { OSM_CONSUMER_KEY, OSM_CONSUMER_SECRET, OSM_SERVER_URL } from '../config';
+import { PD_CONSUMER_KEY, PD_CONSUMER_SECRET, PD_SERVER_URL } from '../config';
 
 export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gpxUrl }) {
+
   const dispatch = useDispatch();
   const session = useSelector((state) => state.auth.get('session'));
   const iDContext = useSelector((state) => state.editor.context);
@@ -57,6 +58,7 @@ export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gp
   }, [comment, iDContext]);
 
   useEffect(() => {
+
     if (session && locale && iD && iDContext) {
       // if presets is not a populated list we need to set it as null
       try {
@@ -86,18 +88,13 @@ export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gp
         iDContext.layers().layer('data').url(gpxUrl, '.gpx');
       }
 
-      iDContext.apiConnections([
-        { // production database
-          url: 'https://www.publicdomainmap.org',
-          client_id: '##ID_CONSUMER_KEY##',
-          client_secret: '##ID_CONSUMER_SECRET##'
-        }/*,
-        { // local database
-          url: location.protocol + '//' + location.host,
-          client_id: '##ID_CONSUMER_KEY##',
-          client_secret: '##ID_CONSUMER_SECRET##'
-        }*/
-      ]);
+      iDContext.connection().switch({
+        urlroot: PD_SERVER_URL,
+        oauth_consumer_key: PD_CONSUMER_KEY,
+        oauth_secret: PD_CONSUMER_SECRET,
+      //  oauth_token: session.osm_oauth_token,
+      //  oauth_token_secret: session.osm_oauth_token_secret,
+      });
 
       const thereAreChanges = (changes) =>
         changes.modified.length || changes.created.length || changes.deleted.length;
