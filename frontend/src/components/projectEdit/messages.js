@@ -506,14 +506,6 @@ export default defineMessages({
     id: 'project.formInputs.priority.options.low',
     defaultMessage: 'Low',
   },
-  databaseOSM: {
-    id: 'project.formInputs.database.options.osm',
-    defaultMessage: 'OpenStreetMap',
-  },
-  databasePDMAP: {
-    id: 'project.formInputs.database.options.pdmap',
-    defaultMessage: 'Public Domain Map',
-  },
   statusDRAFT: {
     id: 'project.formInputs.status.options.draft',
     defaultMessage: 'Draft',

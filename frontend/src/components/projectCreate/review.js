@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
+import { MapDatabaseMessage } from '../mapDatabase';
 import { Alert } from '../alert';
 
 import { OrganisationSelect } from '../formInputs';
@@ -79,7 +80,7 @@ export default function Review({ metadata, updateMetadata, token, projectId, clo
               type="radio"
               className={`radio-input input-reset pointer v-mid dib h2 w2 mr2 br-100 ba b--blue-light`}
             />
-            <FormattedMessage {...messages[`database${option.label}`]} />
+            <MapDatabaseMessage db={option.label} />
           </label>
         ))}
       </>
