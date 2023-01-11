@@ -11,6 +11,7 @@ import { PROJECTCARD_CONTRIBUTION_SHOWN_THRESHOLD } from '../../config/index';
 import { PriorityBox } from './priorityBox';
 import { DueDateBox } from './dueDateBox';
 import './styles.scss';
+import { MapDatabaseMessage } from '../mapDatabase';
 
 export function ProjectTeaser({
   lastUpdated,
@@ -58,6 +59,7 @@ export function ProjectCard({
   priority,
   status,
   difficulty,
+  database,
   campaignTag,
   percentMapped,
   percentValidated,
@@ -93,7 +95,7 @@ export function ProjectCard({
     >
       <Link className="no-underline color-inherit" to={`/projects/${projectId}`}>
         <div
-          className={`${bottomButtonSpacer} ba br1 bg-white shadow-hover h-100 flex flex-column justify-between b--card ${bottomButtonMargin}`}
+          className={`${bottomButtonSpacer} ba br1 bg-white shadow-hover h-100 flex flex-column justify-between b--card ${bottomButtonMargin} db-${database}`}
         >
           <div>
             <div className="flex justify-between items-center">
@@ -118,7 +120,13 @@ export function ProjectCard({
               </div>
             </div>
             <div className="mt4 w-100">
-              <div className="f7 blue-grey">#{projectId}</div>
+            <div className="pt2 truncate flex justify-between items-center">
+                <div className="f7 blue-grey">#{projectId}</div>
+                <MapDatabaseMessage
+                  db={database}
+                  className="blue-grey db-label f7 ttc fw5 truncate"
+                />
+              </div>
               <h3
                 title={name}
                 className="mt3 f125 fw7 lh-title overflow-y-hidden pr4 project-title"
