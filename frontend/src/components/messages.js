@@ -55,6 +55,22 @@ export default defineMessages({
     id: 'mapping.level.beginner',
     defaultMessage: 'Beginner mapper',
   },
+  database: {
+    id: 'projects.formInputs.database',
+    defaultMessage: 'Database',
+  },
+  databaseALL: {
+    id: 'project.formInputs.database.options.all',
+    defaultMessage: 'All',
+  },
+  databaseOSM: {
+    id: 'project.formInputs.database.options.osm',
+    defaultMessage: 'OpenStreetMap',
+  },
+  databasePDMAP: {
+    id: 'project.formInputs.database.options.pdmap',
+    defaultMessage: 'Public Domain Map',
+  },
   difficultyALL: {
     id: 'mapping.difficulty.all',
     defaultMessage: 'All',
