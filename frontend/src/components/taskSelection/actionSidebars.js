@@ -45,7 +45,7 @@ export function CompletionTabForMapping({
   selectedStatus,
   setSelectedStatus,
 }: Object) {
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [showHelp, setShowHelp] = useState(false);
   const [showMapChangesModal, setShowMapChangesModal] = useState(false);
   const [splitTaskError, setSplitTaskError] = useState(false);
@@ -247,6 +247,7 @@ export function CompletionTabForMapping({
             setComment={setTaskComment}
             contributors={contributors}
             enableHashtagPaste={true}
+            enableContributorsHashtag
           />
         </p>
       </div>
@@ -319,7 +320,7 @@ export function CompletionTabForValidation({
   validationComments,
   setValidationComments,
 }: Object) {
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [showMapChangesModal, setShowMapChangesModal] = useState(false);
   const [redirectToPreviousProject, setRedirectToPreviousProject] = useState(true);
   const fetchLockedTasks = useFetchLockedTasks();
@@ -531,7 +532,7 @@ const TaskValidationSelector = ({
   copyCommentToTasks,
   isValidatingMultipleTasks,
 }) => {
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
+  const userDetails = useSelector((state) => state.auth.userDetails);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [enableCopy, setEnableCopy] = useState(false);
   const setComment = (newComment) => updateComment(id, newComment);
@@ -603,8 +604,9 @@ const TaskValidationSelector = ({
               comment={comment}
               setComment={setComment}
               contributors={contributors.length ? contributors : contributorsList}
-              enableHashtagPaste={false}
-              autoFocus={true}
+              enableHashtagPaste
+              autoFocus
+              enableContributorsHashtag
             />
           </div>
           {isValidatingMultipleTasks && comment && (

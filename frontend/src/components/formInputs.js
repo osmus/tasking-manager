@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Field } from 'react-final-form';
 import Select from 'react-select';
@@ -7,9 +7,9 @@ import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 import { formatCountryList } from '../utils/countries';
 import { fetchLocalJSONAPI } from '../network/genericJSONRequest';
-import { CheckIcon } from './svgIcons';
+import { CheckIcon, SearchIcon, CloseIcon } from './svgIcons';
 
-export const RadioField = ({ name, value, className }: Object) => (
+export const RadioField = ({ name, value, className, required = false }: Object) => (
   <Field
     name={name}
     component="input"
@@ -18,6 +18,7 @@ export const RadioField = ({ name, value, className }: Object) => (
     className={`radio-input input-reset pointer v-mid dib h2 w2 mr2 br-100 ba b--blue-light ${
       className || ''
     }`}
+    required={required}
   />
 );
 
@@ -56,8 +57,8 @@ export const SwitchToggle = ({
 );
 
 export const OrganisationSelect = ({ className, orgId, onChange }) => {
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
-  const token = useSelector((state) => state.auth.get('token'));
+  const userDetails = useSelector((state) => state.auth.userDetails);
+  const token = useSelector((state) => state.auth.token);
   const [organisations, setOrganisations] = useState([]);
 
   useEffect(() => {
@@ -212,3 +213,51 @@ export const InterestsList = ({ interests, field, changeSelect }) => (
     ))}
   </ul>
 );
+
+// Used as a generic search box for input fields in the management section
+export const TextField = ({ value, placeholderMsg, onChange, onCloseIconClick }) => {
+  const inputRef = useRef(null);
+
+  return (
+    <div className="db w-100">
+      <FormattedMessage {...placeholderMsg}>
+        {(msg) => {
+          return (
+            <form
+              className="relative"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <div>
+                <SearchIcon
+                  onClick={() => inputRef.current.focus()}
+                  className={`absolute ${!value ? 'blue-grey' : 'red'}`}
+                  style={{ top: 11, left: 16 }}
+                />
+              </div>
+              <input
+                id="name"
+                ref={inputRef}
+                autoComplete="off"
+                value={value}
+                onChange={onChange}
+                placeholder={msg}
+                className={'input-reset ba b--card pa1 lh-title db w-100 f6 br1'}
+                style={{ textIndent: '36px', height: '36px' }}
+                type="text"
+                aria-describedby="name-desc"
+              />
+              <CloseIcon
+                onClick={onCloseIconClick}
+                className={`absolute w1 h1 top-0 pt2 pointer pr2 right-0 red ${
+                  !value ? 'pr2 right-0 dn ' : 'pr2 right-0'
+                }`}
+              />
+            </form>
+          );
+        }}
+      </FormattedMessage>
+    </div>
+  );
+};

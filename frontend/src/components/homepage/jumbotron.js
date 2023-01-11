@@ -12,7 +12,7 @@ import bannerLR from '../../assets/img/banner_824.jpg';
 import { HOMEPAGE_VIDEO_URL, HOMEPAGE_IMG_HIGH, HOMEPAGE_IMG_LOW } from '../../config';
 
 function JumbotronButtons() {
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   return (
     <div className="buttons">
       <Link to={'explore'}>
@@ -58,13 +58,7 @@ export function Jumbotron() {
     <div id="jumbotron" className="white relative jumbotron-primary">
       <div className="truncate relative h-100">
         {HOMEPAGE_VIDEO_URL && width > 824 ? (
-          <video
-            className="w-100 h-100 object-fit-cover"
-            style={{ zIndex: 0 }}
-            muted
-            loop
-            autoPlay
-          >
+          <video className="w-100 h-100 object-fit-cover" style={{ zIndex: 0 }} muted loop autoPlay>
             <source src={HOMEPAGE_VIDEO_URL} type="video/mp4"></source>
           </video>
         ) : (

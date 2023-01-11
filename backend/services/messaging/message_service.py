@@ -228,7 +228,12 @@ class MessageService:
         comment_from: int, comment: str, task_id: int, project_id: int
     ):
         """Will send a canned message to anyone @'d in a comment"""
-        usernames = MessageService._parse_message_for_username(comment, project_id)
+        comment_from_user = UserService.get_user_by_id(comment_from)
+        usernames = MessageService._parse_message_for_username(
+            comment, project_id, task_id
+        )
+        if comment_from_user.username in usernames:
+            usernames.remove(comment_from_user.username)
         project = Project.get(project_id)
         default_locale = project.default_locale if project else "en"
         project_name = ProjectInfo.get_dto_for_locale(project_id, default_locale).name
@@ -373,15 +378,11 @@ class MessageService:
         message.message_type = MessageType.REQUEST_TEAM_NOTIFICATION.value
         message.from_user_id = from_user
         message.to_user_id = to_user
-        message.subject = "{} requested to join {}".format(
-            MessageService.get_user_link(from_username),
-            MessageService.get_team_link(team_name, team_id, True),
-        )
-        message.message = "{} has requested to join the {} team.\
-            Access the team management page to accept or reject that request.".format(
-            MessageService.get_user_link(from_username),
-            MessageService.get_team_link(team_name, team_id, True),
-        )
+        user_link = MessageService.get_user_link(from_username)
+        team_link = MessageService.get_team_link(team_name, team_id, True)
+        message.subject = f"{user_link} requested to join {team_link}"
+        message.message = f"{user_link} has requested to join the {team_link} team.\
+            Access the team management page to accept or reject that request."
         MessageService._push_messages(
             [dict(message=message, user=User.query.get(to_user))]
         )
@@ -399,13 +400,11 @@ class MessageService:
         message.message_type = MessageType.REQUEST_TEAM_NOTIFICATION.value
         message.from_user_id = from_user
         message.to_user_id = to_user
-        message.subject = "Request to join {} was {}ed".format(
-            MessageService.get_team_link(team_name, team_id, False), response
-        )
-        message.message = "{} has {}ed your request to join the {} team.".format(
-            MessageService.get_user_link(from_username),
-            response,
-            MessageService.get_team_link(team_name, team_id, False),
+        team_link = MessageService.get_team_link(team_name, team_id, False)
+        user_link = MessageService.get_user_link(from_username)
+        message.subject = f"Your request to join team {team_link} has been {response}ed"
+        message.message = (
+            f"{user_link} has {response}ed your request to join the {team_link} team."
         )
         message.add_message()
         message.save()
@@ -439,22 +438,24 @@ class MessageService:
         message.save()
 
     @staticmethod
-    def send_invite_to_join_team(
-        from_user: int, from_username: str, to_user: int, team_name: str, team_id: int
+    def send_team_join_notification(
+        from_user: int,
+        from_username: str,
+        to_user: int,
+        team_name: str,
+        team_id: int,
+        role: str,
     ):
         message = Message()
         message.message_type = MessageType.INVITATION_NOTIFICATION.value
         message.from_user_id = from_user
         message.to_user_id = to_user
-        message.subject = "Invitation to join {}".format(
-            MessageService.get_team_link(team_name, team_id, False)
-        )
-        message.message = "{} has invited you to join the {} team.\
-            Access the {}'s page to accept or reject that invitation.".format(
-            MessageService.get_user_link(from_username),
-            MessageService.get_team_link(team_name, team_id, False),
-            MessageService.get_team_link(team_name, team_id, False),
-        )
+        team_link = MessageService.get_team_link(team_name, team_id, False)
+        user_link = MessageService.get_user_link(from_username)
+        message.subject = f"You have been added to team {team_link}"
+        message.message = f"You have been added  to the team {team_link} as {role} by {user_link}.\
+            Access the {team_link}'s page to view more info about this team."
+
         message.add_message()
         message.save()
 
@@ -604,35 +605,42 @@ class MessageService:
         SMTPService.send_verification_email(user.email_address, user.username)
 
     @staticmethod
-    def _get_managers(message: str, project_id: int) -> List[str]:
+    def _parse_message_for_bulk_mentions(
+        message: str, project_id: int, task_id: int = None
+    ) -> List[str]:
         parser = re.compile(r"((?<=#)\w+|\[.+?\])")
         parsed = parser.findall(message)
 
-        project = None
-        if "author" in parsed or "managers" in parsed:
-            project = Project.query.get(project_id)
+        usernames = []
+        project = Project.query.get(project_id)
 
         if project is None:
-            return []
+            return usernames
+        if "author" in parsed or "managers" in parsed:
+            usernames.append(project.author.username)
+            if "managers" in parsed:
+                teams = [
+                    t
+                    for t in project.teams
+                    if t.role == TeamRoles.PROJECT_MANAGER.value
+                ]
+                team_members = [
+                    [u.member.username for u in t.team.members if u.active is True]
+                    for t in teams
+                ]
 
-        project_managers = [project.author.username]
+                team_members = [item for sublist in team_members for item in sublist]
+                usernames.extend(team_members)
 
-        if "managers" not in parsed:
-            return project_managers
-
-        teams = [t for t in project.teams if t.role == TeamRoles.PROJECT_MANAGER.value]
-        team_members = [
-            [u.member.username for u in t.team.members if u.active is True]
-            for t in teams
-        ]
-
-        team_members = [item for sublist in team_members for item in sublist]
-        project_managers.extend(team_members)
-
-        return project_managers
+        if task_id and "contributors" in parsed:
+            contributors = Message.get_all_tasks_contributors(project_id, task_id)
+            usernames.extend(contributors)
+        return usernames
 
     @staticmethod
-    def _parse_message_for_username(message: str, project_id: int) -> List[str]:
+    def _parse_message_for_username(
+        message: str, project_id: int, task_id: int = None
+    ) -> List[str]:
         """Extracts all usernames from a comment looks for format @[user name]"""
 
         parser = re.compile(r"((?<=@)\w+|\[.+?\])")
@@ -644,8 +652,11 @@ class MessageService:
             username = username.replace("]", "", index)
             usernames.append(username)
 
-        usernames.extend(MessageService._get_managers(message, project_id))
-
+        usernames.extend(
+            MessageService._parse_message_for_bulk_mentions(
+                message, project_id, task_id
+            )
+        )
         usernames = list(set(usernames))
         return usernames
 

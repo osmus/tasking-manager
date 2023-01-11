@@ -25,7 +25,7 @@ export function Members({
   managerJoinTeamError,
   setManagerJoinTeamError,
 }: Object) {
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [editMode, setEditMode] = useState(false);
   const [membersBackup, setMembersBackup] = useState(null);
   const selectPlaceHolder = <FormattedMessage {...messages.searchUsers} />;
@@ -65,14 +65,16 @@ export function Members({
     members.some((member) => member.username === username);
 
   const formatOptionLabel = (member, menu) => (
-    <>
+    <div className="flex justify-between">
       <div>{member.username}</div>
-      {doesMemberExistInTeam(member.username) && menu.context === 'menu' && (
+      {doesMemberExistInTeam(member.username) && menu.context === 'menu' ? (
         <div className="f7 lh-copy gray">
           <FormattedMessage {...messages.alreadyInTeam} />
         </div>
+      ) : (
+        menu.context !== 'value' && <button className="bg-red white br2 pointer bn f7">Add</button>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -163,13 +165,13 @@ export function JoinRequests({
   updateRequests,
   managers,
   updateTeam,
-  isTeamInviteOnly,
+  joinMethod,
+  members,
 }: Object) {
-  const token = useSelector((state) => state.auth.get('token'));
-  const { username: loggedInUsername } = useSelector((state) => state.auth.get('userDetails'));
-
+  const token = useSelector((state) => state.auth.token);
+  const { username: loggedInUsername } = useSelector((state) => state.auth.userDetails);
   const showJoinRequestSwitch =
-    isTeamInviteOnly &&
+    joinMethod === 'BY_REQUEST' &&
     managers?.filter(
       (manager) => manager.username === loggedInUsername && manager.function === 'MANAGER',
     ).length > 0;
@@ -204,12 +206,13 @@ export function JoinRequests({
     const { checked } = e.target;
     setIsChecked(checked);
     let member = managers.find((member) => member.username === loggedInUsername);
-
     Object.assign(member, {
       joinRequestNotifications: checked,
-      active: checked.toString(),
+      active: checked,
     });
-    updateTeam({ members: [member] });
+    updateTeam({
+      members: [member, ...members.filter((member) => member.username !== loggedInUsername)],
+    });
   };
 
   return (

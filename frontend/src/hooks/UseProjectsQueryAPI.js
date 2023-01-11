@@ -9,6 +9,7 @@ import {
 } from 'use-query-params';
 import { stringify as stringifyUQP } from 'query-string';
 import axios from 'axios';
+import { subMonths, format } from 'date-fns';
 
 import { CommaArrayParam } from '../utils/CommaArrayParam';
 import { useThrottle } from '../hooks/UseThrottle';
@@ -23,7 +24,7 @@ const projectQueryAllSpecification = {
   location: StringParam,
   types: CommaArrayParam,
   exactTypes: BooleanParam,
-  interests: CommaArrayParam,
+  interests: NumberParam,
   page: NumberParam,
   text: StringParam,
   orderBy: StringParam,
@@ -34,6 +35,8 @@ const projectQueryAllSpecification = {
   mappedByMe: BooleanParam,
   status: StringParam,
   action: StringParam,
+  stale: BooleanParam,
+  createdFrom: StringParam,
 };
 
 /* This can be passed into project API or used independently */
@@ -45,7 +48,7 @@ export const useExploreProjectsQueryParams = () => {
    this fn takes an object with queryparam keys and outputs JSON keys
    while maintaining the same values */
 const backendToQueryConversion = {
-  difficulty: 'mapperLevel',
+  difficulty: 'difficulty',
   campaign: 'campaign',
   team: 'teamId',
   organisation: 'organisationName',
@@ -63,6 +66,8 @@ const backendToQueryConversion = {
   mappedByMe: 'mappedByMe',
   status: 'projectStatuses',
   action: 'action',
+  stale: 'lastUpdatedTo',
+  createdFrom: 'createdFrom',
 };
 
 const dataFetchReducer = (state, action) => {
@@ -111,7 +116,7 @@ export const useProjectsQueryAPI = (
   const throttledExternalQueryParamsState = useThrottle(ExternalQueryParamsState, 1500);
 
   /* Get the user bearer token from the Redux store */
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const locale = useSelector((state) => state.preferences['locale']);
   const action = useSelector((state) => state.preferences['action']);
 
@@ -148,6 +153,10 @@ export const useProjectsQueryAPI = (
       // it's needed in order to query by action when the user goes to /explore page
       if (paramsRemapped.action === undefined && action) {
         paramsRemapped.action = action;
+      }
+
+      if (paramsRemapped.lastUpdatedTo) {
+        paramsRemapped.lastUpdatedTo = format(subMonths(Date.now(), 6), 'yyyy-MM-dd');
       }
 
       try {

@@ -13,10 +13,9 @@ import { MessageStatus } from '../comments/status';
 import { CurrentUserAvatar, UserAvatar } from '../user/avatar';
 import { htmlFromMarkdown, formatUserNamesToLink } from '../../utils/htmlFromMarkdown';
 import { pushToLocalJSONAPI, fetchLocalJSONAPI } from '../../network/genericJSONRequest';
-import '@webscopeio/react-textarea-autocomplete/style.css';
 
-export const PostProjectComment = ({ projectId, updateComments }) => {
-  const token = useSelector((state) => state.auth.get('token'));
+export const PostProjectComment = ({ projectId, updateComments, contributors }) => {
+  const token = useSelector((state) => state.auth.token);
   const [comment, setComment] = useState('');
   const [isShowPreview, setIsShowPreview] = useState(false);
 
@@ -36,7 +35,7 @@ export const PostProjectComment = ({ projectId, updateComments }) => {
     <div className="w-90-ns w-100 cf pv4 bg-white center ph3">
       <div className="cf w-100 flex mb3">
         <CurrentUserAvatar className="w3 h3 fr ph2 br-100" />
-        <div className="cf pt3-ns ph3 ph3-m bg-grey-light dib">
+        <div className="cf pt3-ns ph3 ph3-m ml3 bg-grey-light dib">
           <span
             role="button"
             className={`pointer db dib-ns ${!isShowPreview && 'bb b--blue-dark bw1 pb1'}`}
@@ -60,6 +59,7 @@ export const PostProjectComment = ({ projectId, updateComments }) => {
           enableHashtagPaste={true}
           isShowPreview={isShowPreview}
           isProjectDetailCommentSection={true}
+          contributors={contributors?.userContributions?.map((user) => user.username)}
         />
       </div>
 
@@ -73,15 +73,15 @@ export const PostProjectComment = ({ projectId, updateComments }) => {
           <FormattedMessage {...messages.post} />
         </Button>
       </div>
-      <div className="cf w-100 fr tr pr2">
+      <div className="cf w-100 fr tr pr2 mt3">
         <MessageStatus status={saveCommentAsync.status} comment={comment} />
       </div>
     </div>
   );
 };
 
-export const QuestionsAndComments = ({ projectId }) => {
-  const token = useSelector((state) => state.auth.get('token'));
+export const QuestionsAndComments = ({ projectId, contributors }) => {
+  const token = useSelector((state) => state.auth.token);
   const [comments, setComments] = useState(null);
   const [page, setPage] = useState(1);
 
@@ -117,7 +117,11 @@ export const QuestionsAndComments = ({ projectId }) => {
           />
         )}
         {token ? (
-          <PostProjectComment projectId={projectId} updateComments={setComments} />
+          <PostProjectComment
+            projectId={projectId}
+            updateComments={setComments}
+            contributors={contributors}
+          />
         ) : (
           <div className="w-90 center pa3">
             <Alert type="info">

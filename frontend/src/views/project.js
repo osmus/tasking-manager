@@ -20,6 +20,7 @@ import useForceUpdate from '../hooks/UseForceUpdate';
 import { useFetch } from '../hooks/UseFetch';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
 import { NotFound } from './notFound';
+import { ProjectDetailPlaceholder } from '../components/projectDetail/projectDetailPlaceholder';
 
 const ProjectCreate = React.lazy(() => import('../components/projectCreate/index'));
 
@@ -84,7 +85,7 @@ export const ProjectsPage = (props) => {
 
 export const UserProjectsPage = (props) => {
   useSetTitleTag(props.management ? 'Manage projects' : 'My projects');
-  const userToken = useSelector((state) => state.auth.get('token'));
+  const userToken = useSelector((state) => state.auth.token);
 
   const initialData = {
     mapResults: {
@@ -119,7 +120,7 @@ export const UserProjectsPage = (props) => {
   }
 
   return (
-    <div className="pull-center bg-tan">
+    <div className="pull-center">
       <MyProjectNav
         location={props.location}
         orgAPIState={orgAPIState}
@@ -133,7 +134,7 @@ export const UserProjectsPage = (props) => {
         }
       </MyProjectNav>
       <section className={`${searchResultWidth} explore-projects-container`}>
-        <div className=''>
+        <div className="">
           <ProjectSearchResults
             state={state}
             retryFn={forceUpdate}
@@ -184,7 +185,12 @@ export const ProjectDetailPage = (props) => {
   const [error, loading, data] = useFetch(`projects/${props.id}/`, props.id);
 
   return (
-    <ReactPlaceholder showLoadingAnimation={true} rows={30} delay={1000} ready={loading === false}>
+    <ReactPlaceholder
+      showLoadingAnimation={true}
+      customPlaceholder={<ProjectDetailPlaceholder />}
+      delay={1000}
+      ready={loading === false}
+    >
       {!error && (
         <ProjectDetail
           project={data}

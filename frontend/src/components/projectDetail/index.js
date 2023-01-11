@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from '@reach/router';
 import ReactPlaceholder from 'react-placeholder';
 import centroid from '@turf/centroid';
@@ -28,7 +27,7 @@ const ProjectTimeline = React.lazy(() => import('./timeline' /* webpackChunkName
 const ProjectDetailMap = (props) => {
   const [taskBordersOnly, setTaskBordersOnly] = useState(true);
 
-  var taskBordersGeoJSON = props.project.areaOfInterest && {
+  const taskBordersGeoJSON = props.project.areaOfInterest && {
     type: 'FeatureCollection',
     features: [
       {
@@ -38,10 +37,12 @@ const ProjectDetailMap = (props) => {
       },
     ],
   };
-  var centroidGeoJSON = props.project.areaOfInterest && {
+
+  const centroidGeoJSON = props.project.areaOfInterest && {
     type: 'FeatureCollection',
     features: [centroid(props.project.areaOfInterest)],
   };
+
   return (
     <div className="relative">
       {
@@ -119,7 +120,6 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }: Ob
 
 export const ProjectDetail = (props) => {
   useSetProjectPageTitleTag(props.project);
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
   /* eslint-disable-next-line */
   const [visualError, visualLoading, visualData] = useFetch(
     `projects/${props.project.projectId}/contributions/queries/day/`,
@@ -257,7 +257,7 @@ export const ProjectDetail = (props) => {
       <h3 className={`${h2Classes} mv0 pv4 bg-tan`}>
         <FormattedMessage {...messages.questionsAndComments} />
       </h3>
-      <QuestionsAndComments projectId={props.project.projectId} />
+      <QuestionsAndComments projectId={props.project.projectId} contributors={contributors} />
 
       <a href="#contributions" name="contributions" style={{ visibility: 'hidden' }}>
         <FormattedMessage {...messages.contributors} />
@@ -321,20 +321,14 @@ export const ProjectDetail = (props) => {
               className="bg-white blue-dark ba b--grey-light pa3"
             />
           </span>
-          {userDetails && userDetails.isExpert ? (
-            <>
-              <DownloadAOIButton
-                projectId={props.project.projectId}
-                className="bg-white blue-dark ba b--grey-light pa3"
-              />
-              <DownloadTaskGridButton
-                projectId={props.project.projectId}
-                className="bg-white blue-dark ba b--grey-light pa3"
-              />
-            </>
-          ) : (
-            ''
-          )}
+          <DownloadAOIButton
+            projectId={props.project.projectId}
+            className="bg-white blue-dark ba b--grey-light pa3"
+          />
+          <DownloadTaskGridButton
+            projectId={props.project.projectId}
+            className="bg-white blue-dark ba b--grey-light pa3"
+          />
         </ReactPlaceholder>
       </div>
     </div>

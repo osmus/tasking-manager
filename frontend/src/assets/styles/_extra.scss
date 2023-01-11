@@ -22,6 +22,10 @@ html {
     background-color: $blue-dark;
     opacity: 0.8;
   }
+
+  .vh-minus-122 {
+    height: calc(100vh - 122px);
+  }
 }
 
 @media screen and (min-width: 30em) {
@@ -194,6 +198,8 @@ https://codepen.io/nielsenramon/pen/mLMeLY
 }
 
 .markdown-content {
+  line-height: 1.44;
+
   h1 {
     font-size: 1.25rem;
   }
@@ -233,11 +239,13 @@ textarea:disabled {
 }
 
 div.messageSubjectLinks,
-strong.messageSubjectLinks {
+p.messageSubjectLinks {
+  letter-spacing: -0.0857513px;
   & > a {
     color: $blue-dark;
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 500;
+    letter-spacing: normal;
   }
 
   & > a:hover {
@@ -393,16 +401,10 @@ a[href="https://www.mapbox.com/map-feedback/"]
   }
 }
 
-.comment-textarea {
-  box-sizing: border-box;
-
-  &:focus-within {
-    outline: -webkit-focus-ring-color auto 1px;
-
-    .textareaDetail {
-      border-bottom-color: transparent;
-    }
-  }
+.textareaDetail {
+  border-radius: 0px 0px 3px 3px;
+  border-width: 0;
+  box-shadow: 0 1px 0 1px #d0d7de, 0 0 0 #d0d7de, 0 1px 1px #d0d7de;
 }
 
 .sticky-top {
@@ -450,4 +452,63 @@ a[href="https://www.mapbox.com/map-feedback/"]
   position: sticky;
   top: 0;
   align-self: flex-start;
+}
+
+// Box Shadow Overrides Starts
+
+.shadow-1 {
+  box-shadow: 0px 4px 10px rgb(0 0 0 / 10%);
+}
+
+.shadow-2 {
+  box-shadow: 0px 1px 2px rgba(150, 156, 160, 0.158033);
+}
+
+.shadow-3 {
+  box-shadow: 0px 7px 64px rgba(0, 0, 0, 0.07);
+}
+
+.shadow-6 {
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.w-md-editor {
+  border-radius: 3px 3px 0px 0px !important;
+}
+
+.w-md-editor-toolbar li > button:hover,
+.w-md-editor-toolbar li > button:focus {
+  color: $red !important;
+}
+
+.task-list:hover {
+  box-shadow: 0px 7px 20px rgba(0, 0, 0, 0.08);
+}
+
+.project-edit-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @media screen and (max-width: 60em) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media screen and (max-width: 30em) {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+// Styles for reactjs-popup
+.popup-overlay {
+  background: rgba(44, 48, 56, 0.7);
+}
+
+.popup-content {
+  font-family: 'Archivo', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  max-height: calc(100vh - 10em);
+  overflow-y: auto;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.105469), 0px 15px 14px rgba(0, 0, 0, 0.270041),
+    0px 34px 24px rgba(0, 0, 0, 0.37534);
+  padding: 0 !important;
 }

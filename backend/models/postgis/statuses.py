@@ -52,6 +52,12 @@ class MappingLevel(Enum):
     ADVANCED = 3
 
 
+class ProjectDifficulty(Enum):
+    EASY = 1
+    MODERATE = 2
+    CHALLENGING = 3
+
+
 class MappingTypes(Enum):
     """ Enum describing types of mapping a project may specify"""
 
@@ -122,6 +128,14 @@ class TeamVisibility(Enum):
 
     PUBLIC = 0
     PRIVATE = 1
+
+
+class TeamJoinMethod(Enum):
+    """ Describes the visibility associated with an Team """
+
+    ANY = 0
+    BY_REQUEST = 1
+    BY_INVITE = 2
 
 
 class TeamRoles(Enum):

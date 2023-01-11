@@ -42,7 +42,7 @@ export function APIKeyCard({ token }) {
 }
 
 export function OSMCard({ username }: Object) {
-  const osmUserInfo = useSelector((state) => state.auth.get('osm'));
+  const osmUserInfo = useSelector((state) => state.auth.osm);
   const { value, unit } = selectUnit(
     osmUserInfo ? new Date(osmUserInfo.accountCreated) : new Date(),
   );
@@ -97,7 +97,7 @@ export function OSMCard({ username }: Object) {
         <div className="w-100 w-50-ns fl">
           <a
             className="link red pb2"
-            href={`https://osmcha.mapbox.com/?filters={"users":[{"label":"${username}","value":"${username}"}]}`}
+            href={`https://osmcha.org/?filters={"users":[{"label":"${username}","value":"${username}"}]}`}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -115,10 +115,7 @@ export function WelcomeCard() {
       <h3 className="f2 mt0 fw6">
         <FormattedMessage {...messages.welcomeTitle} />
       </h3>
-      <p>
-        <FormattedMessage {...messages.interestsLead} />
-        <UserInterestsForm />
-      </p>
+      <UserInterestsForm />
     </div>
   );
 }

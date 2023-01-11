@@ -277,7 +277,16 @@ class Header extends React.Component {
         <div className="mt3 pb1 pb2-ns ph2 dib w-100">
           <div className="cf fl pt1 dib">
             <Link to={'/'} className="link mv-1">
-              <img src={ORG_LOGO || logo} alt={`${ORG_NAME} logo`} className="h2 ml2 v-mid pb2" />
+              <img
+                src={ORG_LOGO || logo}
+                alt={`${ORG_NAME} logo`}
+                className="h2 ml2 v-mid pb2"
+                onError={({ currentTarget }) => {
+                  // fallback to HOT logo if ORG_LOGO is broken
+                  currentTarget.onerror = null;
+                  currentTarget.src = logo;
+                }}
+              />
               <span className="barlow-condensed f3 fw6 ml2 blue-dark">Tasking Manager</span>
             </Link>
           </div>
@@ -309,9 +318,9 @@ class Header extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-  userDetails: state.auth.get('userDetails'),
-  organisations: state.auth.get('organisations'),
-  token: state.auth.get('token'),
+  userDetails: state.auth.userDetails,
+  organisations: state.auth.organisations,
+  token: state.auth.token,
   showOrgBar: state.orgBarVisibility.isVisible,
 });
 

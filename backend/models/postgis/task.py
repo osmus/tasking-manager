@@ -42,6 +42,8 @@ class TaskAction(Enum):
     COMMENT = 4
     AUTO_UNLOCKED_FOR_MAPPING = 5
     AUTO_UNLOCKED_FOR_VALIDATION = 6
+    EXTENDED_FOR_MAPPING = 7
+    EXTENDED_FOR_VALIDATION = 8
 
 
 class TaskInvalidationHistory(db.Model):
@@ -217,6 +219,15 @@ class TaskHistory(db.Model):
         self.project_id = project_id
         self.user_id = user_id
 
+    def set_task_extend_action(self, task_action: TaskAction):
+        if task_action not in [
+            TaskAction.EXTENDED_FOR_MAPPING,
+            TaskAction.EXTENDED_FOR_VALIDATION,
+        ]:
+            raise ValueError("Invalid Action")
+
+        self.action = task_action.name
+
     def set_task_locked_action(self, task_action: TaskAction):
         if task_action not in [
             TaskAction.LOCKED_FOR_MAPPING,
@@ -247,7 +258,7 @@ class TaskHistory(db.Model):
 
     @staticmethod
     def update_task_locked_with_duration(
-        task_id: int, project_id: int, lock_action: TaskStatus, user_id: int
+        task_id: int, project_id: int, lock_action, user_id: int
     ):
         """
         Calculates the duration a task was locked for and sets it on the history record
@@ -334,6 +345,8 @@ class TaskHistory(db.Model):
                 [
                     TaskAction.LOCKED_FOR_VALIDATION.name,
                     TaskAction.LOCKED_FOR_MAPPING.name,
+                    TaskAction.EXTENDED_FOR_MAPPING.name,
+                    TaskAction.EXTENDED_FOR_VALIDATION.name,
                 ]
             ),
             TaskHistory.action_date <= expiry_date,
@@ -342,7 +355,7 @@ class TaskHistory(db.Model):
         for task_history in all_expired:
             unlock_action = (
                 TaskAction.AUTO_UNLOCKED_FOR_MAPPING
-                if task_history.action == "LOCKED_FOR_MAPPING"
+                if task_history.action in ["LOCKED_FOR_MAPPING", "EXTENDED_FOR_MAPPING"]
                 else TaskAction.AUTO_UNLOCKED_FOR_VALIDATION
             )
 
@@ -447,7 +460,10 @@ class TaskHistory(db.Model):
         return TaskHistory.get_last_action_of_type(
             project_id,
             task_id,
-            [TaskAction.LOCKED_FOR_MAPPING.name, TaskAction.LOCKED_FOR_VALIDATION.name],
+            [
+                TaskAction.LOCKED_FOR_MAPPING.name,
+                TaskAction.LOCKED_FOR_VALIDATION.name,
+            ],
         )
 
     @staticmethod
@@ -598,6 +614,13 @@ class Task(db.Model):
         return Task.query.filter(Task.project_id == project_id).all()
 
     @staticmethod
+    def get_tasks_by_status(project_id: int, status: str):
+        "Returns all tasks filtered by status in a project"
+        return Task.query.filter(
+            Task.project_id == project_id, Task.task_status == TaskStatus[status].value
+        ).all()
+
+    @staticmethod
     def auto_unlock_delta():
         return parse_duration(current_app.config["TASK_AUTOUNLOCK_AFTER"])
 
@@ -614,7 +637,14 @@ class Task(db.Model):
             .filter(Task.project_id == TaskHistory.project_id)
             .filter(Task.task_status.in_([1, 3]))
             .filter(
-                TaskHistory.action.in_(["LOCKED_FOR_VALIDATION", "LOCKED_FOR_MAPPING"])
+                TaskHistory.action.in_(
+                    [
+                        "EXTENDED_FOR_MAPPING",
+                        "EXTENDED_FOR_VALIDATION",
+                        "LOCKED_FOR_VALIDATION",
+                        "LOCKED_FOR_MAPPING",
+                    ]
+                )
             )
             .filter(TaskHistory.action_text.is_(None))
             .filter(Task.project_id == project_id)
@@ -670,6 +700,11 @@ class Task(db.Model):
 
         if action in [TaskAction.LOCKED_FOR_MAPPING, TaskAction.LOCKED_FOR_VALIDATION]:
             history.set_task_locked_action(action)
+        elif action in [
+            TaskAction.EXTENDED_FOR_MAPPING,
+            TaskAction.EXTENDED_FOR_VALIDATION,
+        ]:
+            history.set_task_extend_action(action)
         elif action == TaskAction.COMMENT:
             history.set_comment_action(comment)
         elif action == TaskAction.STATE_CHANGE:
@@ -844,6 +879,7 @@ class Task(db.Model):
             Task.task_status,
             Task.geometry.ST_AsGeoJSON().label("geojson"),
             Task.locked_by,
+            Task.mapped_by,
             # subquery,
         )
 
@@ -904,6 +940,7 @@ class Task(db.Model):
                 taskIsSquare=task.is_square,
                 taskStatus=TaskStatus(task.task_status).name,
                 lockedBy=task.locked_by,
+                mappedBy=task.mapped_by,
             )
 
             feature = geojson.Feature(

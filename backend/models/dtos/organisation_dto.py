@@ -9,6 +9,7 @@ from schematics.types import (
     DictType,
 )
 
+from backend.models.dtos.stats_dto import OrganizationStatsDTO
 from backend.models.postgis.statuses import OrganisationType
 
 
@@ -36,7 +37,7 @@ class OrganisationTeamsDTO(Model):
     team_id = IntType(serialized_name="teamId")
     name = StringType(required=True)
     description = StringType()
-    invite_only = BooleanType(default=False, serialized_name="inviteOnly")
+    join_method = StringType(required=True, serialized_name="joinMethod")
     visibility = StringType()
     members = ListType(DictType(StringType, serialize_when_none=False))
 
@@ -55,6 +56,7 @@ class OrganisationDTO(Model):
     projects = ListType(StringType, serialize_when_none=False)
     teams = ListType(ModelType(OrganisationTeamsDTO))
     campaigns = ListType(ListType(StringType))
+    stats = ModelType(OrganizationStatsDTO, serialize_when_none=False)
     type = StringType(validators=[is_known_organisation_type])
     subscription_tier = IntType(serialized_name="subscriptionTier")
 
