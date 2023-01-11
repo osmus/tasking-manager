@@ -3,13 +3,6 @@ $pdmap: #5451C5;
 .db-OSM {
     border-top: 4px solid $red;
 }
-.db-OSM:hover .db-label {
-    color: $red;
-}
 .db-PDMAP {
     border-top: 4px solid $pdmap;
-    
-}
-.db-PDMAP:hover .db-label {
-    color: $pdmap;
 }
