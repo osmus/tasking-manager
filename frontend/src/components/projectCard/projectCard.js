@@ -120,12 +120,15 @@ export function ProjectCard({
               </div>
             </div>
             <div className="mt4 w-100">
-            <div className="pt2 truncate flex justify-between items-center">
+              <div className="pt2 truncate flex justify-between items-center">
                 <div className="f7 blue-grey">#{projectId}</div>
-                <MapDatabaseMessage
-                  db={database}
-                  className="blue-grey db-label f7 ttc fw5 truncate"
-                />
+                <span>
+                  <img src={database === 'OSM' ? ("/osm-logo-mono.svg") : ("/pdmap-logo-mono.svg")} className="h1 v-mid mr1"/>
+                  <MapDatabaseMessage
+                    db={database}
+                    className="blue-grey db-label f7 ttc fw5 truncate"
+                  />
+                </span>
               </div>
               <h3
                 title={name}
