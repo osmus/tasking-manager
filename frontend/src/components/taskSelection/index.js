@@ -279,7 +279,7 @@ export function TaskSelection({ project, type, loading }: Object) {
   }
 
   return (
-    <div>
+    <div className={`cf vh-minus-200-ns db-${project.database}`}>
       <div className="cf vh-minus-200-ns">
         {!userTeamsLoading && ['mappingIsComplete', 'selectAnotherProject'].includes(taskAction) && (
           <Popup modal open closeOnEscape={true} closeOnDocumentClick={true}>

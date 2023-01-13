@@ -21,10 +21,16 @@ $pdmap: #5451C5;
     .b--red {
         border-color: $pdmap;
     }
-    a:not(.bg-red):not(.blue-dark), .red {
+    a:not(.bg-red):not(.blue-dark), .red:not(.white) {
         color: $pdmap;
     }
     .bg-red {
         background-color: $pdmap;
     }
+    .radio-input:checked {
+        background-color: $pdmap;
+    }
+}
+.radio-input:checked[value="PDMAP"] {
+    background-color: $pdmap;
 }

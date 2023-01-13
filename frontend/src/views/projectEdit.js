@@ -264,7 +264,7 @@ export default function ProjectEdit({ id }) {
   };
 
   return (
-    <div className="cf pv3 blue-dark">
+    <div className={`cf pv3 blue-dark db-${projectInfo.database}`}>
       <h2 className="pb2 f2 fw6 mt2 mb3 ttu barlow-condensed blue-dark">
         <FormattedMessage {...messages.editProject} />
       </h2>
