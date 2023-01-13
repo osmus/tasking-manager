@@ -21,7 +21,7 @@ $pdmap: #5451C5;
     .b--red {
         border-color: $pdmap;
     }
-    a:not(.bg-red), .red {
+    a:not(.bg-red):not(.blue-dark), .red {
         color: $pdmap;
     }
     .bg-red {
