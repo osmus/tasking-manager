@@ -280,7 +280,7 @@ class Header extends React.Component {
               <img
                 src={ORG_LOGO || logo}
                 alt={`${ORG_NAME} logo`}
-                className="h2 ml2 v-mid"
+                className="main-logo ml2 v-mid"
                 onError={({ currentTarget }) => {
                   // fallback to HOT logo if ORG_LOGO is broken
                   currentTarget.onerror = null;
