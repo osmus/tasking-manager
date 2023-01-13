@@ -283,7 +283,7 @@ export function TaskMapAction({
             )}
           </div>
           {showSidebar ? (
-            <div className="w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white">
+            <div className={`w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white db-${project.database}`}>
               <ReactPlaceholder
                 showLoadingAnimation={true}
                 rows={3}
