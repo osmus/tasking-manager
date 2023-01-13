@@ -312,6 +312,10 @@ export default defineMessages({
     id: 'projects.formInputs.database',
     defaultMessage: 'Database',
   },
+  databaseInfo: {
+    id: 'projects.formInputs.database_info',
+    defaultMessage: 'The database cannot be changed after creating a project.',
+  },
   status: {
     id: 'projects.formInputs.status',
     defaultMessage: 'Status',

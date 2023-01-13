@@ -53,6 +53,9 @@ export const DescriptionForm = ({ languages }) => {
             <MapDatabaseMessage db={option.label} />
           </label>
         ))}
+        <p className="pt2">
+          <FormattedMessage {...messages.databaseInfo} />
+        </p>
       </div>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
