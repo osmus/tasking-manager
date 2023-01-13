@@ -1,8 +1,26 @@
 $pdmap: #5451C5;
 
-.db-OSM {
+.wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    vertical-align: middle;
+}
+
+.project-card.db-OSM, .project-card-with-btn.db-OSM {
     border-top: 4px solid $red;
 }
-.db-PDMAP {
+.project-card.db-PDMAP, .project-card-with-btn.db-PDMAP {
     border-top: 4px solid $pdmap;
+}
+
+.db-PDMAP {
+    .b--red {
+        border-color: $pdmap;
+    }
+    a:not(.bg-red), .red {
+        color: $pdmap;
+    }
+    .bg-red {
+        background-color: $pdmap;
+    }
 }
