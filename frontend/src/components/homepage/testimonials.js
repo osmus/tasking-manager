@@ -7,7 +7,7 @@ import messages from './messages';
 export function Testimonials() {
   const testimonials = [
     {
-      name: 'Lauren Bateman',
+      name: 'Kiri Carini',
       bio: messages.ifrcBio,
       citation: messages.ifrcCitation,
       cssCode: 'ifrc',
