@@ -274,7 +274,7 @@ class Header extends React.Component {
             </div>
           </div>
         )}
-        <div className="mt2 pb1 pb1-ns ph2 dib w-100">
+        <div className="mt2 pb2 pb2-ns ph2 dib w-100">
           <div className="cf fl dib">
             <Link to={'/'} className="link mv-1 dib">
               <img
@@ -295,7 +295,7 @@ class Header extends React.Component {
           </div>
           <nav className="dn dib-l pl4-l pl6-xl pt1 mt2">{this.renderMenuItems()}</nav>
 
-          <div className="fr dib tr mb1">
+          <div className="fr dib tr">
             {this.renderAuthenticationButtons()}
             <div className="dib v-mid dn-l">
               <Popup trigger={(open) => <BurgerMenu open={open} />} modal closeOnDocumentClick>
