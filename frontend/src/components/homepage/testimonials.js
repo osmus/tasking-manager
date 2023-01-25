@@ -1,6 +1,8 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import imgSrc from '../../assets/img/testimonials/ifrc.jpg';
+
 import messages from './messages';
 // import {RightIcon, LeftIcon} from '../../svgIcons';
 
@@ -32,8 +34,7 @@ export function Testimonials() {
           <div className="testimonial-image-parent">
             <img
               className="testimonial-image"
-              src={require('../../assets/img/testimonials/ifrc.jpg').default}
-              alt={person.name}
+              src={imgSrc}
             />
           </div>
           <div className="citation-ctr">
