@@ -259,7 +259,7 @@ class Header extends React.Component {
       <header className="w-100 bb b--grey-light">
         <UpdateDialog />
         {/*this.checkUserEmail()*/}
-        {this.props.showOrgBar && (
+        {/*this.props.showOrgBar && (
           <div className="cf ph2 red pt3 pb2 bb b--grey-light">
             <div className="fl w-50">
               <span className="barlow-condensed f5 ml2 ">
@@ -273,7 +273,7 @@ class Header extends React.Component {
               </a>
             </div>
           </div>
-        )}
+        )*/}
         <div className="mt2 pb2 pb2-ns ph2 dib w-100">
           <div className="cf fl dib">
             <Link to={'/'} className="link mv-1 dib">
