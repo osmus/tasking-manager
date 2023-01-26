@@ -23,7 +23,7 @@ if (SENTRY_FRONTEND_DSN) {
 
 WebFont.load({
   google: {
-    families: ['Barlow Condensed:400,500,600,700', 'Archivo:400,500,600,700', 'sans-serif'],
+    families: ['Zilla Slab:400,500,600,700', 'Source Sans Pro:400,500,600,700', 'sans-serif'],
   },
 });
 

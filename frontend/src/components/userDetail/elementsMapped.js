@@ -73,7 +73,7 @@ export const TaskStats = ({ userStats, username }) => {
           <div className="w-75 w-25-ns h-100 pa2 pa0-m red tc">{stat.icon}</div>
           <div className="w-75 mt3 tc f6 b">
             <div className=" w-100">
-              <p className="mb1 mt3 mt1-ns f3 fw6" style={{ letterSpacing: '1.25px' }}>
+              <p className="mb1 mt3 mt1-ns f3 fw6">
                 <FormattedMessage
                   {...stat.title}
                   values={{ user: username ? username : <FormattedMessage {...messages.you} /> }}

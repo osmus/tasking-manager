@@ -17,7 +17,7 @@ export function ProjectTeaser({
   lastUpdated,
   totalContributors,
   className,
-  littleFont = 'f7',
+  littleFont = 'f6',
   bigFont = 'f6',
 }: Object) {
   /* outerDivStyles must have f6 even if sub-divs have f7 to fix grid issues*/
@@ -121,12 +121,12 @@ export function ProjectCard({
             </div>
             <div className="mt4 w-100">
               <div className="pt2 truncate flex justify-between items-center">
-                <div className="f7 blue-grey">#{projectId}</div>
+                <div className="f6 blue-grey">#{projectId}</div>
                 <span>
                   <img src={database === 'OSM' ? ("/osm-logo-mono.svg") : ("/pdmap-logo-mono.svg")} className="h1 v-mid mr1"/>
                   <MapDatabaseMessage
                     db={database}
-                    className="blue-grey db-label f7 ttc fw5 truncate"
+                    className="blue-grey db-label f6 ttc fw5 truncate"
                   />
                 </span>
               </div>
@@ -137,7 +137,7 @@ export function ProjectCard({
                 {name}
               </h3>
               <div className="tc f6">
-                <div className="w-100 tl pr2 f7 blue-grey dib mb2 project-desc">
+                <div className="w-100 tl pr2 f6 blue-grey dib mb2 project-desc">
                   {shortDescription} {campaignTag ? ' · ' + campaignTag : ''}
                 </div>
               </div>
@@ -149,7 +149,7 @@ export function ProjectCard({
             <div className="pt2 truncate flex justify-between items-center">
               <DifficultyMessage
                 level={difficulty}
-                className="fl f7 pv2 ttc fw5 blue-grey truncate"
+                className="fl f6 pv2 ttc fw5 blue-grey truncate"
               />
               <DueDateBox dueDate={dueDate} />
             </div>
