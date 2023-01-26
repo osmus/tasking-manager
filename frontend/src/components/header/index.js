@@ -115,7 +115,7 @@ const PopupItems = (props) => {
                 href={item.link}
                 target="_blank"
                 rel="noreferrer"
-                className="link mh3 blue-dark f4 ttu"
+                className="link mh3 blue-dark f5 ttu"
               >
                 <FormattedMessage {...item.label} />
                 <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
@@ -165,7 +165,7 @@ const PopupItems = (props) => {
 };
 
 class Header extends React.Component {
-  linkCombo = 'link mh3 blue-dark f4';
+  linkCombo = 'link mh3 blue-dark f5 fw6';
   isActive = ({ isPartiallyCurrent }) => {
     return isPartiallyCurrent
       ? { className: `${this.linkCombo} bb b--blue-dark bw1 pv1` }
@@ -195,7 +195,7 @@ class Header extends React.Component {
                 href={item.link}
                 target="_blank"
                 rel="noreferrer"
-                className="link mh3 blue-dark f4 ttu"
+                className="link mh3 blue-dark f5 ttu"
               >
                 <FormattedMessage {...item.label} />
                 <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
