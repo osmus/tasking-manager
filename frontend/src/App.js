@@ -154,7 +154,6 @@ let App = (props) => {
               </QueryParamProvider>
             </Suspense>
           </main>
-          <ArchivalNotificationBanner />
           {MATOMO_ID && <Banner />}
           <Router primary={false}>
             <Footer path="/*" />
