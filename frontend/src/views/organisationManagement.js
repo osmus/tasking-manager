@@ -234,6 +234,7 @@ export function EditOrganisation(props) {
                 description: organisation.description,
                 type: organisation.type,
                 subscriptionTier: organisation.subscriptionTier,
+                databases: organisation.databases,
               }}
               updateOrg={updateOrg}
               disabledForm={error || loading}

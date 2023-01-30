@@ -12,7 +12,10 @@ from backend.services.organisation_service import (
     OrganisationServiceError,
     NotFound,
 )
-from backend.models.postgis.statuses import OrganisationType
+from backend.models.postgis.statuses import (
+    OrganisationType,
+    ProjectDatabase,
+)
 from backend.services.users.authentication_service import token_auth
 
 
@@ -313,6 +316,13 @@ class OrganisationsRestAPI(Resource):
                             user_1,
                             user_2
                         ]
+                    databases:
+                        type: array
+                        items:
+                            type: string
+                        default: [
+                            OSM
+                        ]
         responses:
             201:
                 description: Organisation updated successfully
@@ -340,6 +350,10 @@ class OrganisationsRestAPI(Resource):
                 org = OrganisationService.get_organisation_by_id(organisation_id)
                 organisation_dto.type = OrganisationType(org.type).name
                 organisation_dto.subscription_tier = org.subscription_tier
+                db_array = []
+                for db in org.databases:
+                    db_array.append(ProjectDatabase(db).name)
+                organisation_dto.databases = db_array
             organisation_dto.validate()
         except DataError as e:
             current_app.logger.error(f"error validating request: {str(e)}")

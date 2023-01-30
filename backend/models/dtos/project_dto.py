@@ -23,7 +23,6 @@ from backend.models.postgis.statuses import (
     Editors,
     MappingPermission,
     ValidationPermission,
-    ProjectDatabase,
     ProjectDifficulty,
 )
 from backend.models.dtos.campaign_dto import CampaignDTO
