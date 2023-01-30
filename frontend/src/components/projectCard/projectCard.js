@@ -91,11 +91,11 @@ export function ProjectCard({
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative blue-dark`}
+      className={`relative blue-dark db-${database}`}
     >
       <Link className="no-underline color-inherit" to={`/projects/${projectId}`}>
         <div
-          className={`${bottomButtonSpacer} ba br1 bg-white shadow-hover h-100 flex flex-column justify-between b--card ${bottomButtonMargin} db-${database}`}
+          className={`${bottomButtonSpacer} ba br1 bg-white shadow-hover h-100 flex flex-column justify-between b--card ${bottomButtonMargin}`}
         >
           <div>
             <div className="flex justify-between items-center">

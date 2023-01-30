@@ -10,18 +10,23 @@ $pdmap: #5451C5;
     vertical-align: middle;
 }
 
-.project-card.db-OSM, .project-card-with-btn.db-OSM {
-    border-top: 4px solid $red;
-}
-.project-card.db-PDMAP, .project-card-with-btn.db-PDMAP {
-    border-top: 4px solid $pdmap;
+.db-OSM {
+    .project-card,
+    .project-card-with-btn {
+        border-top: 4px solid $red;
+    }
 }
 
 .db-PDMAP {
+    .project-card,
+    .project-card-with-btn {
+        border-top: 4px solid $pdmap;
+    }
     .b--red {
         border-color: $pdmap;
     }
-    a:not(.bg-red):not(.blue-dark), .red:not(.white) {
+    a:not(.bg-red):not(.blue-dark):not(.blue-grey):not(.color-inherit),
+    .red:not(.white) {
         color: $pdmap;
     }
     .bg-red {
