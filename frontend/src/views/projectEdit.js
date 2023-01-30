@@ -192,7 +192,7 @@ export default function ProjectEdit({ id }) {
 
   const renderList = () => {
     const checkSelected = (optionSelected) => {
-      let liClass = 'w-90 link barlow-condensed f4 fw5 pv3 pl2 pointer';
+      let liClass = 'w-90 link f4 fw5 pv3 pl2 pointer';
       if (option === optionSelected) {
         liClass = liClass.concat(' fw6 bg-grey-light');
       }
@@ -213,7 +213,7 @@ export default function ProjectEdit({ id }) {
 
     return (
       <div>
-        <ul className="list pl0 mt0 ttu">
+        <ul className="list pl0 mt0">
           {elements.map((elm, n) => (
             <li key={n} className={checkSelected(elm.value)} onClick={() => setOption(elm.value)}>
               <FormattedMessage {...messages[`projectEditSection_${elm.value}`]} />
