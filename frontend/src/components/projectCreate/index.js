@@ -168,8 +168,10 @@ const ProjectCreate = (props) => {
     tempTaskGrid: null,
     arbitraryTasks: false,
     organisation: '',
-    database: 'OSM',
+    database: 'OSM'
   });
+
+  const [selectedOrgObj, updateSelectedOrgObj] = useState({});
 
   useLayoutEffect(() => {
     let err = { error: false, message: null };
@@ -255,6 +257,8 @@ const ProjectCreate = (props) => {
           <Review
             metadata={metadata}
             updateMetadata={updateMetadata}
+            selectedOrgObj={selectedOrgObj}
+            updateSelectedOrgObj={updateSelectedOrgObj}
             token={token}
             cloneProjectData={cloneProjectData}
           />
@@ -308,7 +312,7 @@ const ProjectCreate = (props) => {
                 handleCreate={() => handleCreate(cloneProjectData)}
               />
             </div>
-            <div className="cf absolute" style={{ bottom: '3.5rem', left: '0.6rem' }}>
+            <div className="cf absolute" style={{ bottom: '3.5rem', right: '0.6rem' }}>
               <p
                 className={`fl mr2 pa1 f7-ns white ${
                   metadata.area > MAX_AOI_AREA || metadata.area === 0 ? 'bg-red' : 'bg-green'
