@@ -39,6 +39,14 @@ $pdmap: #5451C5;
 .radio-input:checked[value="PDMAP"] {
     background-color: $pdmap;
 }
+[aria-labelledby="PDMAP"] {
+    .b--red[role="checkbox"] {
+        border-color: $pdmap;
+    }
+    [role="checkbox"] .bg-red {
+        background-color: $pdmap;
+    }
+}
 
 button.barlow-condensed {
     font-family: $sans-font-family;
