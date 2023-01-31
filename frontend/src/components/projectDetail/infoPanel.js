@@ -22,7 +22,7 @@ const ProjectDatabaseInfo = (props) => {
             <FormattedMessage {...messages.database} />
           </h3>
           <div className="db fl pt1">
-            <a target="_blank" href={ props.db === 'PDMAP' ? 'https://www.publicdomainmap.org/' : 'https://www.openstreetmap.org/about'}><MapDatabaseMessage db={props.db} /></a>
+            <a target="_blank" href={ props.db === 'PDMAP' ? 'https://publicdomainmap.org/' : 'https://www.openstreetmap.org/about'}><MapDatabaseMessage db={props.db} /></a>
           </div>
         </div>
       </div>
