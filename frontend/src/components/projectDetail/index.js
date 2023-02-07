@@ -65,7 +65,7 @@ const ProjectDetailMap = (props) => {
       />
       {taskBordersOnly && supported() && (
         <div className="cf left-1 top-1 absolute">
-          <div className="cf ttu bg-white barlow-condensed f4 pv2">
+          <div className="cf bg-white f4 pv2">
             <span onClick={(e) => setTaskBordersOnly(false)} className="pb2 mh2 pointer ph2">
               <FormattedMessage {...messages.zoomToTasks} />
             </span>
