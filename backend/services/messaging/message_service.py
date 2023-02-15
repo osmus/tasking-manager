@@ -18,10 +18,12 @@ from backend.models.postgis.task import TaskStatus, TaskAction, TaskHistory
 from backend.models.postgis.statuses import TeamRoles
 from backend.services.messaging.smtp_service import SMTPService
 from backend.services.messaging.template_service import (
+    get_template,
     get_txt_template,
     template_var_replacing,
     clean_html,
 )
+from backend.services.organisation_service import OrganisationService
 from backend.services.users.user_service import UserService, User
 
 
@@ -81,7 +83,9 @@ class MessageService:
         status_text = (
             "marked invalid" if status == TaskStatus.INVALIDATED else "validated"
         )
-        task_link = MessageService.get_task_link(project_id, task_id)
+        task_link = MessageService.get_task_link(project_id, task_id, highlight=True)
+        project_link = MessageService.get_project_link(project_id, project_name)
+
         replace_list = [
             ["[USERNAME]", user.username],
             ["[TASK_LINK]", task_link],
@@ -100,7 +104,10 @@ class MessageService:
         validation_message.task_id = task_id
         validation_message.from_user_id = validated_by
         validation_message.to_user_id = mapped_by
-        validation_message.subject = f"{task_link} mapped by you in project {project_name} has been {status_text}"
+        validation_message.subject = (
+            f"{task_link} mapped by you in Project "
+            + f"{project_link} has been {status_text}"
+        )
         validation_message.message = text_template
         messages.append(
             dict(message=validation_message, user=user, project_name=project_name)
@@ -125,7 +132,9 @@ class MessageService:
                 project_id, project.default_locale
             ).name
             message_dto.message = "A message from {} managers:<br/><br/>{}".format(
-                MessageService.get_project_link(project_id, project_name),
+                MessageService.get_project_link(
+                    project_id, project_name, highlight=True
+                ),
                 markdown(message_dto.message, output_format="html"),
             )
 
@@ -169,7 +178,7 @@ class MessageService:
             ):
                 continue
             if (
-                user.teams_notifications is False
+                user.teams_announcement_notifications is False
                 and obj.message_type == MessageType.TEAM_BROADCAST.value
             ):
                 messages_objs.append(obj)
@@ -219,13 +228,18 @@ class MessageService:
         comment_from: int, comment: str, task_id: int, project_id: int
     ):
         """Will send a canned message to anyone @'d in a comment"""
-        usernames = MessageService._parse_message_for_username(comment, project_id)
+        comment_from_user = UserService.get_user_by_id(comment_from)
+        usernames = MessageService._parse_message_for_username(
+            comment, project_id, task_id
+        )
+        if comment_from_user.username in usernames:
+            usernames.remove(comment_from_user.username)
         project = Project.get(project_id)
-        project_name = ProjectInfo.get_dto_for_locale(
-            project_id, project.default_locale
-        ).name
+        default_locale = project.default_locale if project else "en"
+        project_name = ProjectInfo.get_dto_for_locale(project_id, default_locale).name
         if len(usernames) != 0:
             task_link = MessageService.get_task_link(project_id, task_id)
+            project_link = MessageService.get_project_link(project_id, project_name)
 
             messages = []
             for username in usernames:
@@ -240,7 +254,10 @@ class MessageService:
                 message.task_id = task_id
                 message.from_user_id = comment_from
                 message.to_user_id = user.id
-                message.subject = f"You were mentioned in a comment in {task_link} of project {project_name}"
+                message.subject = (
+                    f"You were mentioned in a comment in {task_link} "
+                    + f"of Project {project_link}"
+                )
                 message.message = comment
                 messages.append(
                     dict(message=message, user=user, project_name=project_name)
@@ -266,6 +283,8 @@ class MessageService:
             user_link = MessageService.get_user_link(user_from.username)
 
             task_link = MessageService.get_task_link(project_id, task_id)
+            project_link = MessageService.get_project_link(project_id, project_name)
+
             messages = []
             for user_id in contributed_users:
                 try:
@@ -283,13 +302,60 @@ class MessageService:
                 message.from_user_id = comment_from
                 message.task_id = task_id
                 message.to_user_id = user.id
-                message.subject = f"{user_link} left a comment in {task_link} of project {project_name}"
+                message.subject = f"{user_link} left a comment in {task_link} of Project {project_link}"
                 message.message = comment
                 messages.append(
                     dict(message=message, user=user, project_name=project_name)
                 )
 
             MessageService._push_messages(messages)
+
+    @staticmethod
+    def send_project_transfer_message(
+        project_id: int,
+        transferred_to: str,
+        transferred_by: str,
+    ):
+        """Will send a message to the manager of the organization after a project is transferred"""
+        app = (
+            create_app()
+        )  # Because message-all run on background thread it needs it's own app context
+
+        with app.app_context():
+            project = Project.get(project_id)
+            project_name = project.get_project_title(project.default_locale)
+
+            message = Message()
+            message.message_type = MessageType.SYSTEM.value
+            message.subject = f"Project {project_name} #{project_id} was transferred to {transferred_to}"
+            message.message = (
+                f"Project {project_name} #{project_id} associated with your"
+                + f"organisation {project.organisation.name} was transferred to {transferred_to} by {transferred_by}."
+            )
+            values = {
+                "PROJECT_ORG_NAME": project.organisation.name,
+                "PROJECT_ORG_ID": project.organisation_id,
+                "PROJECT_NAME": project_name,
+                "PROJECT_ID": project_id,
+                "TRANSFERRED_TO": transferred_to,
+                "TRANSFERRED_BY": transferred_by,
+            }
+            html_template = get_template("project_transfer_alert_en.html", values)
+
+            managers = OrganisationService.get_organisation_by_id_as_dto(
+                project.organisation_id, User.get_by_username(transferred_by).id, False
+            ).managers
+            for manager in managers:
+                manager = UserService.get_user_by_username(manager.username)
+                message.to_user_id = manager.id
+                message.save()
+                if manager.email_address and manager.is_email_verified:
+                    SMTPService._send_message(
+                        manager.email_address,
+                        message.subject,
+                        html_template,
+                        message.message,
+                    )
 
     @staticmethod
     def get_user_link(username: str):
@@ -312,17 +378,14 @@ class MessageService:
         message.message_type = MessageType.REQUEST_TEAM_NOTIFICATION.value
         message.from_user_id = from_user
         message.to_user_id = to_user
-        message.subject = "{} requested to join {}".format(
-            MessageService.get_user_link(from_username),
-            MessageService.get_team_link(team_name, team_id, True),
+        user_link = MessageService.get_user_link(from_username)
+        team_link = MessageService.get_team_link(team_name, team_id, True)
+        message.subject = f"{user_link} requested to join {team_link}"
+        message.message = f"{user_link} has requested to join the {team_link} team.\
+            Access the team management page to accept or reject that request."
+        MessageService._push_messages(
+            [dict(message=message, user=User.query.get(to_user))]
         )
-        message.message = "{} has requested to join the {} team.\
-            Access the team management page to accept or reject that request.".format(
-            MessageService.get_user_link(from_username),
-            MessageService.get_team_link(team_name, team_id, True),
-        )
-        message.add_message()
-        message.save()
 
     @staticmethod
     def accept_reject_request_to_join_team(
@@ -337,13 +400,11 @@ class MessageService:
         message.message_type = MessageType.REQUEST_TEAM_NOTIFICATION.value
         message.from_user_id = from_user
         message.to_user_id = to_user
-        message.subject = "Request to join {} was {}ed".format(
-            MessageService.get_team_link(team_name, team_id, False), response
-        )
-        message.message = "{} has {}ed your request to join the {} team.".format(
-            MessageService.get_user_link(from_username),
-            response,
-            MessageService.get_team_link(team_name, team_id, False),
+        team_link = MessageService.get_team_link(team_name, team_id, False)
+        user_link = MessageService.get_user_link(from_username)
+        message.subject = f"Your request to join team {team_link} has been {response}ed"
+        message.message = (
+            f"{user_link} has {response}ed your request to join the {team_link} team."
         )
         message.add_message()
         message.save()
@@ -377,22 +438,24 @@ class MessageService:
         message.save()
 
     @staticmethod
-    def send_invite_to_join_team(
-        from_user: int, from_username: str, to_user: int, team_name: str, team_id: int
+    def send_team_join_notification(
+        from_user: int,
+        from_username: str,
+        to_user: int,
+        team_name: str,
+        team_id: int,
+        role: str,
     ):
         message = Message()
         message.message_type = MessageType.INVITATION_NOTIFICATION.value
         message.from_user_id = from_user
         message.to_user_id = to_user
-        message.subject = "Invitation to join {}".format(
-            MessageService.get_team_link(team_name, team_id, False)
-        )
-        message.message = "{} has invited you to join the {} team.\
-            Access the {}'s page to accept or reject that invitation.".format(
-            MessageService.get_user_link(from_username),
-            MessageService.get_team_link(team_name, team_id, False),
-            MessageService.get_team_link(team_name, team_id, False),
-        )
+        team_link = MessageService.get_team_link(team_name, team_id, False)
+        user_link = MessageService.get_user_link(from_username)
+        message.subject = f"You have been added to team {team_link}"
+        message.message = f"You have been added  to the team {team_link} as {role} by {user_link}.\
+            Access the {team_link}'s page to view more info about this team."
+
         message.add_message()
         message.save()
 
@@ -423,7 +486,7 @@ class MessageService:
                     message.project_id = project_id
                     message.from_user_id = chat_from
                     message.to_user_id = user.id
-                    message.subject = f"You were mentioned in project {link} chat"
+                    message.subject = f"You were mentioned in Project {link} chat"
                     message.message = chat
                     messages.append(
                         dict(message=message, user=user, project_name=project_name)
@@ -542,35 +605,42 @@ class MessageService:
         SMTPService.send_verification_email(user.email_address, user.username)
 
     @staticmethod
-    def _get_managers(message: str, project_id: int) -> List[str]:
+    def _parse_message_for_bulk_mentions(
+        message: str, project_id: int, task_id: int = None
+    ) -> List[str]:
         parser = re.compile(r"((?<=#)\w+|\[.+?\])")
         parsed = parser.findall(message)
 
-        project = None
-        if "author" in parsed or "managers" in parsed:
-            project = Project.query.get(project_id)
+        usernames = []
+        project = Project.query.get(project_id)
 
         if project is None:
-            return []
+            return usernames
+        if "author" in parsed or "managers" in parsed:
+            usernames.append(project.author.username)
+            if "managers" in parsed:
+                teams = [
+                    t
+                    for t in project.teams
+                    if t.role == TeamRoles.PROJECT_MANAGER.value
+                ]
+                team_members = [
+                    [u.member.username for u in t.team.members if u.active is True]
+                    for t in teams
+                ]
 
-        project_managers = [project.author.username]
+                team_members = [item for sublist in team_members for item in sublist]
+                usernames.extend(team_members)
 
-        if "managers" not in parsed:
-            return project_managers
-
-        teams = [t for t in project.teams if t.role == TeamRoles.PROJECT_MANAGER.value]
-        team_members = [
-            [u.member.username for u in t.team.members if u.active is True]
-            for t in teams
-        ]
-
-        team_members = [item for sublist in team_members for item in sublist]
-        project_managers.extend(team_members)
-
-        return project_managers
+        if task_id and "contributors" in parsed:
+            contributors = Message.get_all_tasks_contributors(project_id, task_id)
+            usernames.extend(contributors)
+        return usernames
 
     @staticmethod
-    def _parse_message_for_username(message: str, project_id: int) -> List[str]:
+    def _parse_message_for_username(
+        message: str, project_id: int, task_id: int = None
+    ) -> List[str]:
         """Extracts all usernames from a comment looks for format @[user name]"""
 
         parser = re.compile(r"((?<=@)\w+|\[.+?\])")
@@ -582,8 +652,11 @@ class MessageService:
             username = username.replace("]", "", index)
             usernames.append(username)
 
-        usernames.extend(MessageService._get_managers(message, project_id))
-
+        usernames.extend(
+            MessageService._parse_message_for_bulk_mentions(
+                message, project_id, task_id
+            )
+        )
         usernames = list(set(usernames))
         return usernames
 
@@ -698,16 +771,24 @@ class MessageService:
         Message.delete_multiple_messages(message_ids, user_id)
 
     @staticmethod
-    def get_task_link(project_id: int, task_id: int, base_url=None) -> str:
+    def get_task_link(
+        project_id: int, task_id: int, base_url=None, highlight=False
+    ) -> str:
         """Helper method that generates a link to the task"""
         if not base_url:
             base_url = current_app.config["APP_BASE_URL"]
-
-        return f'<a href="{base_url}/projects/{project_id}/tasks/?search={task_id}">Task {task_id}</a>'
+        style = ""
+        if highlight:
+            style = "color: #d73f3f"
+        return f'<a style="{style}" href="{base_url}/projects/{project_id}/tasks/?search={task_id}">Task {task_id}</a>'
 
     @staticmethod
     def get_project_link(
-        project_id: int, project_name: str, base_url=None, include_chat_section=False
+        project_id: int,
+        project_name: str,
+        base_url=None,
+        include_chat_section=False,
+        highlight=False,
     ) -> str:
         """Helper method to generate a link to project chat"""
         if not base_url:
@@ -716,8 +797,11 @@ class MessageService:
             section = "#questionsAndComments"
         else:
             section = ""
+        style = ""
+        if highlight:
+            style = "color: #d73f3f"
 
-        return f'<a href="{base_url}/projects/{project_id}{section}">{project_name}</a>'
+        return f'<a style="{style}" href="{base_url}/projects/{project_id}{section}">{project_name} #{project_id}</a>'
 
     @staticmethod
     def get_user_profile_link(user_name: str, base_url=None) -> str:
@@ -734,3 +818,13 @@ class MessageService:
             base_url = current_app.config["APP_BASE_URL"]
 
         return f'<a href="{base_url}/settings#{section}">User Settings</a>'
+
+    @staticmethod
+    def get_organisation_link(
+        organisation_id: int, organisation_name: str, base_url=None
+    ) -> str:
+        """Helper method to generate a link to a user profile"""
+        if not base_url:
+            base_url = current_app.config["APP_BASE_URL"]
+
+        return f'<a href="{base_url}/organisations/{organisation_id}">{organisation_name}</a>'

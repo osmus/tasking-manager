@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useLocation } from '@reach/router';
 import { Form, Field } from 'react-final-form';
@@ -8,6 +8,7 @@ import ReactPlaceholder from 'react-placeholder';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import messages from './messages';
+import viewsMessages from '../../views/messages';
 import { IMAGE_UPLOAD_SERVICE } from '../../config';
 import { useUploadImage } from '../../hooks/UseUploadImage';
 import { levels } from '../../hooks/UseOrganisationLevel';
@@ -16,6 +17,9 @@ import { InternalLinkIcon, ClipboardIcon } from '../svgIcons';
 import { Button } from '../button';
 import { UserAvatarList } from '../user/avatar';
 import { nCardPlaceholders } from './organisationsPlaceholder';
+import { Alert } from '../alert';
+import { CheckBox, TextField } from '../formInputs';
+import { MapDatabaseMessage } from '../mapDatabase';
 
 export function OrgsManagement({
   organisations,
@@ -25,6 +29,14 @@ export function OrgsManagement({
   setUserOrgsOnly,
   isOrganisationsFetched,
 }: Object) {
+  const [query, setQuery] = useState('');
+
+  const onSearchInputChange = (e) => setQuery(e.target.value);
+
+  const filteredOrganisations = organisations?.filter((organisation) =>
+    organisation.name.toLowerCase().includes(query.toLowerCase()),
+  );
+
   return (
     <Management
       title={
@@ -46,9 +58,17 @@ export function OrgsManagement({
         delay={10}
         ready={isOrganisationsFetched}
       >
+        <div className="w-20-l w-25-m">
+          <TextField
+            value={query}
+            placeholderMsg={messages.searchOrganisations}
+            onChange={onSearchInputChange}
+            onCloseIconClick={() => setQuery('')}
+          />
+        </div>
         {isOrgManager ? (
-          organisations?.length ? (
-            organisations.map((org, n) => <OrganisationCard details={org} key={n} />)
+          filteredOrganisations?.length ? (
+            filteredOrganisations.map((org, n) => <OrganisationCard details={org} key={n} />)
           ) : (
             <div className="pb5">
               <FormattedMessage {...messages.noOrganisationsFound} />
@@ -125,6 +145,19 @@ export function OrganisationForm(props) {
                   />
                 </fieldset>
               </form>
+              {props.errorMessage && (
+                <div className="mt2">
+                  <Alert type="error" compact>
+                    {viewsMessages[`orgCreation${props.errorMessage}Error`] ? (
+                      <FormattedMessage
+                        {...viewsMessages[`orgCreation${props.errorMessage}Error`]}
+                      />
+                    ) : (
+                      <FormattedMessage {...viewsMessages[`errorFallback`]} />
+                    )}
+                  </Alert>
+                </div>
+              )}
             </div>
             {dirtyForm && (
               <div className="cf pt0 h3">
@@ -162,8 +195,8 @@ const TIER_OPTIONS = levels.map((level) => ({
 }));
 
 export function OrgInformation({ hasSlug, formState }) {
-  const token = useSelector((state) => state.auth.get('token'));
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
+  const token = useSelector((state) => state.auth.token);
+  const userDetails = useSelector((state) => state.auth.userDetails);
   const [uploadError, uploading, uploadImg] = useUploadImage();
   const location = useLocation();
   const intl = useIntl();
@@ -181,6 +214,9 @@ export function OrgInformation({ hasSlug, formState }) {
     const selected = TIER_OPTIONS.filter((tier) => value === tier.value);
     return selected.length ? selected[0].label : <FormattedMessage {...messages.selectTier} />;
   };
+
+  const validateRequired = (value) =>
+    value ? undefined : <FormattedMessage {...messages.requiredField} />;
 
   return (
     <>
@@ -238,42 +274,79 @@ export function OrgInformation({ hasSlug, formState }) {
       {userDetails &&
         userDetails.role === 'ADMIN' && ( // only admin users can edit the org type and subscribed tier
           <>
+            {/* we don't need org type for OSMUS TM
             <div className="cf">
               <label className={labelClasses}>
                 <FormattedMessage {...messages.type} />
               </label>
-              <Field name="type" className={fieldClasses} required>
+              <Field name="type" className={fieldClasses} validate={validateRequired}>
                 {(props) => (
-                  <Select
-                    classNamePrefix="react-select"
-                    isClearable={false}
-                    options={TYPE_OPTIONS}
-                    placeholder={getTypePlaceholder(props.input.value)}
-                    onChange={(value) => props.input.onChange(value.value)}
-                    className="z-5"
-                  />
+                  <>
+                    <Select
+                      classNamePrefix="react-select"
+                      isClearable={false}
+                      options={TYPE_OPTIONS}
+                      placeholder={getTypePlaceholder(props.input.value)}
+                      onChange={(value) => props.input.onChange(value.value)}
+                      className="z-5"
+                    />
+                    {props.meta.error && props.meta.touched && (
+                      <span className="mt3 red">{props.meta.error}</span>
+                    )}
+                  </>
                 )}
               </Field>
             </div>
-            {['DISCOUNTED', 'FULL_FEE'].includes(formState.type) && (
+            */}
+            {/*['DISCOUNTED', 'FULL_FEE'].includes(formState.type) && (
               <div className="cf">
                 <label className={labelClasses}>
                   <FormattedMessage {...messages.subscribedTier} />
                 </label>
-                <Field name="subscriptionTier" className={fieldClasses} required>
+                <Field name="subscriptionTier" className={fieldClasses} validate={validateRequired}>
                   {(props) => (
-                    <Select
-                      classNamePrefix="react-select"
-                      isClearable={false}
-                      options={TIER_OPTIONS}
-                      placeholder={getTierPlaceholder(props.input.value)}
-                      onChange={(value) => props.input.onChange(value.value)}
-                      className="z-4"
-                    />
+                    <>
+                      <Select
+                        classNamePrefix="react-select"
+                        isClearable={false}
+                        options={TIER_OPTIONS}
+                        placeholder={getTierPlaceholder(props.input.value)}
+                        onChange={(value) => props.input.onChange(value.value)}
+                        className="z-4"
+                      />
+                      {props.meta.error && props.meta.touched && (
+                        <span className="mt3 red">{props.meta.error}</span>
+                      )}
+                    </>
                   )}
                 </Field>
               </div>
-            )}
+            )*/}
+            <div className="cf">
+              <label className={labelClasses}>
+                <FormattedMessage {...messages.databases} />
+              </label>
+              <Field name="databases" className={fieldClasses}>
+                {(props) => (
+                  <>
+                    {['OSM', 'PDMAP'].map((opt) => (
+                      <div className="pr3" aria-label="databases" key={opt}>
+                        <div className="ph0 pt1 fl" aria-labelledby={opt}>
+                          <CheckBox
+                            activeItems={formState.databases}
+                            toggleFn={(value) => props.input.onChange(value)}
+                            itemId={opt}
+                          />
+                        </div>
+                        <span className="fl pt2 mr1 ph2" id={opt}>
+                          <MapDatabaseMessage db={opt} />
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </Field>
+            </div>
           </>
         )}
       <div className="cf">
@@ -281,7 +354,7 @@ export function OrgInformation({ hasSlug, formState }) {
           <FormattedMessage {...messages.image} />
         </label>
         {IMAGE_UPLOAD_SERVICE ? (
-          <Field name="logo" className={fieldClasses} required>
+          <Field name="logo" className={fieldClasses}>
             {(fieldProps) => (
               <>
                 <input
@@ -308,7 +381,7 @@ export function OrgInformation({ hasSlug, formState }) {
             )}
           </Field>
         ) : (
-          <Field name="logo" component="input" type="text" className={fieldClasses} required />
+          <Field name="logo" component="input" type="text" className={fieldClasses} />
         )}
       </div>
     </>

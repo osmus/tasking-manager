@@ -8,6 +8,7 @@ import messages from './messages';
 import { UserAvatar } from '../user/avatar';
 import { EditModeControl } from './editMode';
 import { Button } from '../button';
+import { SwitchToggle } from '../formInputs';
 import { fetchLocalJSONAPI, pushToLocalJSONAPI } from '../../network/genericJSONRequest';
 import { Alert } from '../alert';
 import { useOnClickOutside } from '../../hooks/UseOnClickOutside';
@@ -24,7 +25,7 @@ export function Members({
   managerJoinTeamError,
   setManagerJoinTeamError,
 }: Object) {
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [editMode, setEditMode] = useState(false);
   const [membersBackup, setMembersBackup] = useState(null);
   const selectPlaceHolder = <FormattedMessage {...messages.searchUsers} />;
@@ -64,14 +65,16 @@ export function Members({
     members.some((member) => member.username === username);
 
   const formatOptionLabel = (member, menu) => (
-    <>
+    <div className="flex justify-between">
       <div>{member.username}</div>
-      {doesMemberExistInTeam(member.username) && menu.context === 'menu' && (
+      {doesMemberExistInTeam(member.username) && menu.context === 'menu' ? (
         <div className="f7 lh-copy gray">
           <FormattedMessage {...messages.alreadyInTeam} />
         </div>
+      ) : (
+        menu.context !== 'value' && <button className="bg-red white br2 pointer bn f7">Add</button>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -85,15 +88,18 @@ export function Members({
           {editMode && (
             <AsyncSelect
               classNamePrefix="react-select"
+              autoFocus
               isMulti
               cacheOptions
-              defaultOptions
               placeholder={selectPlaceHolder}
               isClearable={false}
               isOptionDisabled={(option) => doesMemberExistInTeam(option.username)}
               formatOptionLabel={(option, menu) => formatOptionLabel(option, menu)}
               getOptionLabel={(option) => option.username}
               getOptionValue={(option) => option.username}
+              noOptionsMessage={({ inputValue }) =>
+                inputValue ? <FormattedMessage {...messages.noOptions} /> : null
+              }
               loadOptions={promiseOptions}
               onChange={(values) => addMembers(values || [])}
               className="z-2"
@@ -152,8 +158,31 @@ export function Members({
   );
 }
 
-export function JoinRequests({ requests, teamId, addMembers, updateRequests }: Object) {
-  const token = useSelector((state) => state.auth.get('token'));
+export function JoinRequests({
+  requests,
+  teamId,
+  addMembers,
+  updateRequests,
+  managers,
+  updateTeam,
+  joinMethod,
+  members,
+}: Object) {
+  const token = useSelector((state) => state.auth.token);
+  const { username: loggedInUsername } = useSelector((state) => state.auth.userDetails);
+  const showJoinRequestSwitch =
+    joinMethod === 'BY_REQUEST' &&
+    managers?.filter(
+      (manager) => manager.username === loggedInUsername && manager.function === 'MANAGER',
+    ).length > 0;
+  const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
+    const isJoinRequestEnabled = managers.filter(
+      (manager) => manager.username === loggedInUsername,
+    )[0]?.joinRequestNotifications;
+    setIsChecked(isJoinRequestEnabled);
+  }, [loggedInUsername, managers]);
 
   const acceptRejectRequest = useCallback(
     (user, action) => {
@@ -173,6 +202,19 @@ export function JoinRequests({ requests, teamId, addMembers, updateRequests }: O
     [teamId, requests, updateRequests, addMembers, token],
   );
 
+  const handleJoinRequestNotificationsChange = (e) => {
+    const { checked } = e.target;
+    setIsChecked(checked);
+    let member = managers.find((member) => member.username === loggedInUsername);
+    Object.assign(member, {
+      joinRequestNotifications: checked,
+      active: checked,
+    });
+    updateTeam({
+      members: [member, ...members.filter((member) => member.username !== loggedInUsername)],
+    });
+  };
+
   return (
     <div className="bg-white b--grey-light pa4 ba blue-dark">
       <div className="cf db">
@@ -180,6 +222,18 @@ export function JoinRequests({ requests, teamId, addMembers, updateRequests }: O
           <FormattedMessage {...messages.joinRequests} />
         </h3>
       </div>
+      {showJoinRequestSwitch && (
+        <div className="flex justify-between blue-grey">
+          <FormattedMessage {...messages.newJoinRequestNotification} />
+          <div className="fl ml5">
+            <SwitchToggle
+              isChecked={isChecked}
+              onChange={(e) => handleJoinRequestNotificationsChange(e)}
+              labelPosition="right"
+            />
+          </div>
+        </div>
+      )}
       <div className="cf db mt3">
         {requests.map((user, n) => (
           <div className="cf db pt2" key={n}>
@@ -210,7 +264,7 @@ export function JoinRequests({ requests, teamId, addMembers, updateRequests }: O
           </div>
         ))}
         {requests.length === 0 && (
-          <div className="tc">
+          <div className="tc mt3">
             <FormattedMessage {...messages.noRequests} />
           </div>
         )}

@@ -36,9 +36,9 @@ from backend.models.postgis.priority_area import PriorityArea, project_priority_
 from backend.models.postgis.project_info import ProjectInfo
 from backend.models.postgis.project_chat import ProjectChat
 from backend.models.postgis.statuses import (
+    ProjectDatabase,
     ProjectStatus,
     ProjectPriority,
-    MappingLevel,
     TaskStatus,
     MappingTypes,
     TaskCreationMode,
@@ -46,6 +46,7 @@ from backend.models.postgis.statuses import (
     TeamRoles,
     MappingPermission,
     ValidationPermission,
+    ProjectDifficulty,
 )
 from backend.models.postgis.task import Task, TaskHistory
 from backend.models.postgis.team import Team
@@ -118,6 +119,7 @@ class Project(db.Model):
 
     # Columns
     id = db.Column(db.Integer, primary_key=True)
+    database = db.Column(db.Integer, default=ProjectDatabase.OSM.value, nullable=False)
     status = db.Column(db.Integer, default=ProjectStatus.DRAFT.value, nullable=False)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     priority = db.Column(db.Integer, default=ProjectPriority.MEDIUM.value)
@@ -127,7 +129,7 @@ class Project(db.Model):
     author_id = db.Column(
         db.BigInteger, db.ForeignKey("users.id", name="fk_users"), nullable=False
     )
-    mapper_level = db.Column(
+    difficulty = db.Column(
         db.Integer, default=2, nullable=False, index=True
     )  # Mapper level project is suitable for
     mapping_permission = db.Column(db.Integer, default=MappingPermission.ANY.value)
@@ -152,6 +154,7 @@ class Project(db.Model):
     extra_id_params = db.Column(db.String)
     rapid_power_user = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=timestamp)
+    progress_email_sent = db.Column(db.Boolean, default=False)
     license_id = db.Column(db.Integer, db.ForeignKey("licenses.id", name="fk_licenses"))
     geometry = db.Column(Geometry("MULTIPOLYGON", srid=4326), nullable=False)
     centroid = db.Column(Geometry("POINT", srid=4326), nullable=False)
@@ -211,7 +214,9 @@ class Project(db.Model):
         cascade="all, delete-orphan",
         single_parent=True,
     )
-    custom_editor = db.relationship(CustomEditor, uselist=False)
+    custom_editor = db.relationship(
+        CustomEditor, cascade="all, delete-orphan", uselist=False
+    )
     favorited = db.relationship(User, secondary=project_favorites, backref="favorites")
     organisation = db.relationship(Organisation, backref="projects")
     campaign = db.relationship(
@@ -231,6 +236,10 @@ class Project(db.Model):
             ProjectInfo.create_from_name(draft_project_dto.project_name)
         )
         self.organisation = draft_project_dto.organisation
+
+        if draft_project_dto.database is not None:
+            self.database = ProjectDatabase[draft_project_dto.database].value
+
         self.status = ProjectStatus.DRAFT.value
         self.author_id = draft_project_dto.user_id
         self.last_updated = timestamp()
@@ -345,7 +354,8 @@ class Project(db.Model):
         for field in ["interests", "campaign"]:
             value = getattr(orig, field)
             setattr(new_proj, field, value)
-        new_proj.custom_editor = orig.custom_editor
+        if orig.custom_editor:
+            new_proj.custom_editor = orig.custom_editor.clone_to_project(new_proj.id)
 
         return new_proj
 
@@ -362,6 +372,7 @@ class Project(db.Model):
 
     def update(self, project_dto: ProjectDTO):
         """Updates project from DTO"""
+        self.database = ProjectDatabase[project_dto.database].value
         self.status = ProjectStatus[project_dto.project_status].value
         self.priority = ProjectPriority[project_dto.project_priority].value
         locales = [i.locale for i in project_dto.project_info_locales]
@@ -372,7 +383,7 @@ class Project(db.Model):
         self.default_locale = project_dto.default_locale
         self.enforce_random_task_selection = project_dto.enforce_random_task_selection
         self.private = project_dto.private
-        self.mapper_level = MappingLevel[project_dto.mapper_level.upper()].value
+        self.difficulty = ProjectDifficulty[project_dto.difficulty.upper()].value
         self.changeset_comment = project_dto.changeset_comment
         self.due_date = project_dto.due_date
         self.imagery = project_dto.imagery
@@ -836,7 +847,7 @@ class Project(db.Model):
         summary.created = self.created
         summary.last_updated = self.last_updated
         summary.osmcha_filter_id = self.osmcha_filter_id
-        summary.mapper_level = MappingLevel(self.mapper_level).name
+        summary.difficulty = ProjectDifficulty(self.difficulty).name
         summary.mapping_permission = MappingPermission(self.mapping_permission).name
         summary.validation_permission = ValidationPermission(
             self.validation_permission
@@ -844,6 +855,7 @@ class Project(db.Model):
         summary.random_task_selection_enforced = self.enforce_random_task_selection
         summary.private = self.private
         summary.license_id = self.license_id
+        summary.database = ProjectDatabase(self.database).name
         summary.status = ProjectStatus(self.status).name
         summary.id_presets = self.id_presets
         summary.extra_id_params = self.extra_id_params
@@ -993,6 +1005,7 @@ class Project(db.Model):
         """Populates a project DTO with properties common to all roles"""
         base_dto = ProjectDTO()
         base_dto.project_id = self.id
+        base_dto.database= ProjectDatabase(self.database).name
         base_dto.project_status = ProjectStatus(self.status).name
         base_dto.default_locale = self.default_locale
         base_dto.project_priority = ProjectPriority(self.priority).name
@@ -1004,7 +1017,7 @@ class Project(db.Model):
         ).name
         base_dto.enforce_random_task_selection = self.enforce_random_task_selection
         base_dto.private = self.private
-        base_dto.mapper_level = MappingLevel(self.mapper_level).name
+        base_dto.difficulty = ProjectDifficulty(self.difficulty).name
         base_dto.changeset_comment = self.changeset_comment
         base_dto.osmcha_filter_id = self.osmcha_filter_id
         base_dto.due_date = self.due_date
@@ -1164,6 +1177,14 @@ class Project(db.Model):
                 return int(tasks_validated / (total_tasks - tasks_bad_imagery) * 100)
             elif target == "bad_imagery":
                 return int((tasks_bad_imagery / total_tasks) * 100)
+            elif target == "project_completion":
+                # To calculate project completion we assign 2 points to each task
+                # one for mapping and one for validation
+                return int(
+                    (tasks_mapped + (tasks_validated * 2))
+                    / ((total_tasks - tasks_bad_imagery) * 2)
+                    * 100
+                )
         except ZeroDivisionError:
             return 0
 

@@ -25,6 +25,8 @@ from backend.models.postgis.statuses import (
     TeamRoles,
     ValidationPermission,
     MappingPermission,
+    ProjectDifficulty,
+    ProjectDatabase,
 )
 from backend.models.postgis.campaign import Campaign
 from backend.models.postgis.organisation import Organisation
@@ -69,7 +71,8 @@ class ProjectSearchService:
         query = (
             db.session.query(
                 Project.id.label("id"),
-                Project.mapper_level,
+                Project.database,
+                Project.difficulty,
                 Project.priority,
                 Project.default_locale,
                 Project.centroid.ST_AsGeoJSON().label("centroid"),
@@ -124,7 +127,8 @@ class ProjectSearchService:
         list_dto.locale = project_info_dto.locale
         list_dto.name = project_info_dto.name
         list_dto.priority = ProjectPriority(project.priority).name
-        list_dto.mapper_level = MappingLevel(project.mapper_level).name
+        list_dto.database = ProjectDatabase(project.database).name
+        list_dto.difficulty = ProjectDifficulty(project.difficulty).name
         list_dto.short_description = project_info_dto.short_description
         list_dto.last_updated = project.last_updated
         list_dto.due_date = project.due_date
@@ -249,9 +253,13 @@ class ProjectSearchService:
             query = query.filter(
                 Project.id.in_([project.id for project in projects_favorited])
             )
-        if search_dto.mapper_level and search_dto.mapper_level.upper() != "ALL":
+        if search_dto.database and search_dto.database.upper() != "ALL":
             query = query.filter(
-                Project.mapper_level == MappingLevel[search_dto.mapper_level].value
+                Project.database == ProjectDatabase[search_dto.database].value
+            )
+        if search_dto.difficulty and search_dto.difficulty.upper() != "ALL":
+            query = query.filter(
+                Project.difficulty == ProjectDifficulty[search_dto.difficulty].value
             )
         if search_dto.action and search_dto.action != "any":
             if search_dto.action == "map":

@@ -12,7 +12,10 @@ from backend.services.organisation_service import (
     OrganisationServiceError,
     NotFound,
 )
-from backend.models.postgis.statuses import OrganisationType
+from backend.models.postgis.statuses import (
+    OrganisationType,
+    ProjectDatabase,
+)
 from backend.services.users.authentication_service import token_auth
 
 
@@ -313,6 +316,13 @@ class OrganisationsRestAPI(Resource):
                             user_1,
                             user_2
                         ]
+                    databases:
+                        type: array
+                        items:
+                            type: string
+                        default: [
+                            OSM
+                        ]
         responses:
             201:
                 description: Organisation updated successfully
@@ -340,6 +350,10 @@ class OrganisationsRestAPI(Resource):
                 org = OrganisationService.get_organisation_by_id(organisation_id)
                 organisation_dto.type = OrganisationType(org.type).name
                 organisation_dto.subscription_tier = org.subscription_tier
+                db_array = []
+                for db in org.databases:
+                    db_array.append(ProjectDatabase(db).name)
+                organisation_dto.databases = db_array
             organisation_dto.validate()
         except DataError as e:
             current_app.logger.error(f"error validating request: {str(e)}")
@@ -385,7 +399,7 @@ class OrganisationsStatsAPI(Resource):
         try:
             OrganisationService.get_organisation_by_id(organisation_id)
             organisation_dto = OrganisationService.get_organisation_stats(
-                organisation_id
+                organisation_id, None
             )
             return organisation_dto.to_primitive(), 200
         except NotFound:
@@ -422,6 +436,14 @@ class OrganisationsAllAPI(Resource):
               type: boolean
               description: Set it to true if you don't want the managers list on the response.
               default: False
+            - in: query
+              name: omitOrgStats
+              type: boolean
+              description: Set it to true if you don't want organisation stats on the response. \n
+                \n
+                Adds year to date organisation stats to response if set false.
+              default: True
+
         responses:
             200:
                 description: Organisations found
@@ -455,10 +477,14 @@ class OrganisationsAllAPI(Resource):
 
         # Validate abbreviated.
         omit_managers = strtobool(request.args.get("omitManagerList", "false"))
+        omit_stats = strtobool(request.args.get("omitOrgStats", "true"))
         # Obtain organisations
         try:
             results_dto = OrganisationService.get_organisations_as_dto(
-                manager_user_id, authenticated_user_id, omit_managers
+                manager_user_id,
+                authenticated_user_id,
+                omit_managers,
+                omit_stats,
             )
             return results_dto.to_primitive(), 200
         except NotFound:

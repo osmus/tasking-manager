@@ -38,7 +38,9 @@ class TestProject(BaseTestCase):
             self.test_project.id, None
         )
         self.assertIsInstance(feature_collection, geojson.FeatureCollection)
-        self.assertEqual(3, len(feature_collection.features))
+        self.assertEqual(
+            self.test_project.total_tasks, len(feature_collection.features)
+        )
 
     def test_project_can_be_generated_as_dto(self):
         self.test_project, self.test_user = create_canned_project()
@@ -85,7 +87,7 @@ class TestProject(BaseTestCase):
         test_dto.project_priority = ProjectPriority.MEDIUM.name
         test_dto.default_locale = "it"
         test_dto.project_info_locales = locales
-        test_dto.mapper_level = "BEGINNER"
+        test_dto.difficulty = "EASY"
         test_dto.mapping_types = ["ROADS", "BUILDINGS"]
         test_dto.mapping_editors = ["JOSM", "ID", "RAPID"]
         test_dto.validation_editors = ["JOSM", "ID"]

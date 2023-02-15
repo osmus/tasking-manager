@@ -1,5 +1,5 @@
 const initialState = {
-  isVisible: true,
+  isVisible: false, // hide top bar
 };
 
 export function orgBarVisibilityReducer(state = initialState, action) {

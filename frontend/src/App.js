@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Router, Redirect, globalHistory } from '@reach/router';
 import { QueryParamProvider } from 'use-query-params';
 import ReactPlaceholder from 'react-placeholder';
@@ -6,6 +6,8 @@ import { useMeta } from 'react-meta-elements';
 import { connect } from 'react-redux';
 import * as Sentry from '@sentry/react';
 
+import { getUserDetails } from './store/actions/auth';
+import { store } from './store';
 import './assets/styles/index.scss';
 import { ORG_NAME, MATOMO_ID } from './config';
 import { Header } from './components/header';
@@ -52,12 +54,9 @@ import { ProjectStats } from './views/projectStats';
 import { ContactPage } from './views/contact';
 import { SwaggerView } from './views/swagger';
 import { ContributionsPage, ContributionsPageIndex, UserStats } from './views/contributions';
-import {
-  NotificationsPage,
-  NotificationPageIndex,
-  NotificationDetail,
-} from './views/notifications';
+import { NotificationsPage, NotificationPageIndex } from './views/notifications';
 import { Banner, ArchivalNotificationBanner } from './components/banner/index';
+import TopBanner from './components/banner/TopBanner';
 
 const ProjectEdit = React.lazy(() =>
   import('./views/projectEdit' /* webpackChunkName: "projectEdit" */),
@@ -68,12 +67,20 @@ let App = (props) => {
   useMeta({ name: 'author', content: ORG_NAME });
   const { isLoading } = props;
 
+  useEffect(() => {
+    // fetch user details endpoint when the user is returning to a logged in session
+    store.dispatch(getUserDetails(store.getState()));
+  }, []);
+
   return (
     <Sentry.ErrorBoundary fallback={<FallbackComponent />}>
       {isLoading ? (
         <Preloader />
       ) : (
         <div className="w-100 base-font bg-white" lang={props.locale}>
+          <Router>
+            <TopBanner path="/" />
+          </Router>
           <Router>
             <Header path="/*" />
           </Router>
@@ -95,6 +102,7 @@ let App = (props) => {
                   <ProjectStats path="projects/:id/stats" />
                   <OrganisationStats path="organisations/:id/stats/" />
                   <OrganisationDetail path="organisations/:slug/" />
+                  <Redirect from="learn" to="map" noThrow />
                   <LearnPage path="learn/:type" />
                   <QuickstartPage path="learn/quickstart" />
                   <AboutPage path="about" />
@@ -108,7 +116,6 @@ let App = (props) => {
                   <UserDetail path="users/:username" />
                   <NotificationsPage path="inbox">
                     <NotificationPageIndex path="/" />
-                    <NotificationDetail path="message/:id" />
                   </NotificationsPage>
                   <Authorized path="authorized" />
                   <Login path="login" />
@@ -147,7 +154,6 @@ let App = (props) => {
               </QueryParamProvider>
             </Suspense>
           </main>
-          <ArchivalNotificationBanner />
           {MATOMO_ID && <Banner />}
           <Router primary={false}>
             <Footer path="/*" />

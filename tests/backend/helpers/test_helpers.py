@@ -1,8 +1,12 @@
 import geojson
+import base64
 import json
 import os
 from typing import Tuple
 import xml.etree.ElementTree as ET
+from backend.models.dtos.organisation_dto import (
+    UpdateOrganisationDTO,
+)
 from backend.models.dtos.project_dto import (
     DraftProjectDTO,
     ProjectDTO,
@@ -16,6 +20,7 @@ from backend.models.postgis.task import Task
 from backend.models.postgis.team import Team, TeamMembers
 from backend.models.postgis.user import User
 from backend.models.postgis.organisation import Organisation
+from backend.services.users.authentication_service import AuthenticationService
 
 TEST_USER_ID = 777777
 TEST_USERNAME = "Thinkwhere Test"
@@ -30,14 +35,14 @@ def get_canned_osm_user_details():
     """ Helper method to find test file, dependent on where tests are being run from """
 
     location = os.path.join(
-        os.path.dirname(__file__), "test_files", "osm_user_details.xml"
+        os.path.dirname(__file__), "test_files", "osm_user_details.json"
     )
-
+    print(location)
     try:
-        with open(location, "r"):
-            return ET.parse(location)
+        with open(location, "r") as x:
+            return json.load(x)
     except FileNotFoundError:
-        raise FileNotFoundError("osm_user_details.xml not found")
+        raise FileNotFoundError("osm_user_details.json not found")
 
 
 def get_canned_osm_user_json_details():
@@ -93,15 +98,23 @@ def get_canned_simplified_osm_user_details():
     return data
 
 
-def return_canned_user() -> User:
+def return_canned_user(username=TEST_USERNAME, id=TEST_USER_ID) -> User:
     """Returns a canned user"""
     test_user = User()
-    test_user.username = TEST_USERNAME
-    test_user.id = TEST_USER_ID
+    test_user.username = username
+    test_user.id = id
     test_user.mapping_level = MappingLevel.BEGINNER.value
     test_user.email_address = None
 
     return test_user
+
+
+def generate_encoded_token(user_id: int):
+    "Returns encoded session token along with token scheme"
+
+    session_token = AuthenticationService.generate_session_token_for_user(user_id)
+    session_token = base64.b64encode(session_token.encode("utf-8"))
+    return "Token " + session_token.decode("utf-8")
 
 
 def create_canned_user() -> User:
@@ -156,9 +169,20 @@ def create_canned_project() -> Tuple[Project, User]:
     test_task3.mapped_by = test_user.id
     test_task3.is_square = True
 
+    test_task4 = Task.from_geojson_feature(4, task_feature)
+    test_task4.task_status = TaskStatus.VALIDATED.value
+    test_task4.mapped_by = test_user.id
+    test_task4.validated_by = test_user.id
+    test_task4.is_square = True
+
     test_project.tasks.append(test_task)
     test_project.tasks.append(test_task2)
     test_project.tasks.append(test_task3)
+    test_project.tasks.append(test_task4)
+    test_project.total_tasks = 4
+    test_project.tasks_mapped = 1
+    test_project.tasks_validated = 1
+    test_project.tasks_bad_imagery = 1
     test_project.create()
     test_project.set_default_changeset_comment()
 
@@ -228,6 +252,14 @@ def add_user_to_team(team: Team, user: User, role: int, is_active: bool) -> Team
     return team_member
 
 
+def add_manager_to_organisation(organisation: Organisation, user: User):
+    org_dto = UpdateOrganisationDTO()
+    org_dto.managers = [user.username]
+    organisation.update(org_dto)
+    organisation.save()
+    return user.username
+
+
 def assign_team_to_project(project: Project, team: Team, role: int) -> ProjectTeams:
     project_team = ProjectTeams(project=project, team=team, role=role)
     project_team.create()
@@ -250,7 +282,7 @@ def update_project_with_info(test_project: Project) -> Project:
     test_dto.project_priority = ProjectPriority.MEDIUM.name
     test_dto.default_locale = "en"
     test_dto.project_info_locales = locales
-    test_dto.mapper_level = "BEGINNER"
+    test_dto.difficulty = "EASY"
     test_dto.mapping_types = ["ROADS"]
     test_dto.mapping_editors = ["JOSM", "ID"]
     test_dto.validation_editors = ["JOSM"]

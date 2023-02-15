@@ -5,6 +5,7 @@ import { FormattedMessage, FormattedNumber } from 'react-intl';
 
 import messages from './messages';
 import { NotificationCard, NotificationCardMini } from './notificationCard';
+import NotificationPlaceholder from './notificationPlaceholder';
 import { DeleteNotificationsButton } from './deleteNotificationsButton';
 import { RefreshIcon } from '../svgIcons';
 import { SelectAll } from '../formInputs';
@@ -22,10 +23,12 @@ export const NotificationResults = ({
   retryFn,
   useMiniCard,
   liveUnreadCount,
+  setPopoutFocus,
 }) => {
   const stateNotifications = !useMiniCard
     ? notifications.userMessages
     : state.unreadNotificationsMini;
+
   const showRefreshButton =
     useMiniCard &&
     !state.isError &&
@@ -36,7 +39,7 @@ export const NotificationResults = ({
     <div className={className || ''}>
       {!stateNotifications && <span>&nbsp;</span>}
       {notifications?.userMessages && !error && (
-        <p className="blue-grey ml3 pt2 f7">
+        <p className="blue-grey pt2 f7">
           <FormattedMessage
             {...messages.paginationCount}
             values={{
@@ -71,12 +74,18 @@ export const NotificationResults = ({
           </div>
         </div>
       ) : null}
-      <div className={`cf ${!useMiniCard ? 'ml1 db' : 'dib'}`}>
-        <ReactPlaceholder ready={!loading && stateNotifications} type="media" rows={10}>
+      <div className={`cf`}>
+        <ReactPlaceholder
+          ready={!loading && stateNotifications}
+          customPlaceholder={<NotificationPlaceholder />}
+          type="media"
+          rows={10}
+        >
           <NotificationCards
             pageOfCards={stateNotifications}
             useMiniCard={useMiniCard}
             retryFn={retryFn}
+            setPopoutFocus={setPopoutFocus}
           />
         </ReactPlaceholder>
       </div>
@@ -91,7 +100,7 @@ export const NotificationResults = ({
   );
 };
 
-const NotificationCards = ({ pageOfCards, useMiniCard, retryFn }) => {
+const NotificationCards = ({ pageOfCards, useMiniCard, retryFn, setPopoutFocus }) => {
   const [selected, setSelected] = useState([]);
 
   if (pageOfCards.length === 0) {
@@ -106,12 +115,12 @@ const NotificationCards = ({ pageOfCards, useMiniCard, retryFn }) => {
     <>
       {!useMiniCard && (
         <>
-          <div className="mb2">
+          <div className="mb2 ph3">
             <SelectAll
               allItems={pageOfCards.map((message) => message.messageId)}
               setSelected={setSelected}
               selected={selected}
-              className="dib v-mid mv3 ml3"
+              className="dib v-mid mv3 ml2"
             />
             <DeleteNotificationsButton
               selected={selected}
@@ -131,7 +140,16 @@ const NotificationCards = ({ pageOfCards, useMiniCard, retryFn }) => {
         </>
       )}
       {useMiniCard &&
-        pageOfCards.slice(0, 5).map((card, n) => <NotificationCardMini {...card} key={n} />)}
+        pageOfCards
+          .slice(0, 5)
+          .map((card, n) => (
+            <NotificationCardMini
+              {...card}
+              key={n}
+              setPopoutFocus={setPopoutFocus}
+              retryFn={retryFn}
+            />
+          ))}
     </>
   );
 };

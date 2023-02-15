@@ -76,6 +76,10 @@ export default defineMessages({
     id: 'teamsAndOrgs.management.organisation.creation',
     defaultMessage: 'Create new organization',
   },
+  orgCreationNameExistsError: {
+    id: 'teamsAndOrgs.management.organisation.orgCreationNameExistsError',
+    defaultMessage: 'Organisation name already exists',
+  },
   editOrganisation: {
     id: 'teamsAndOrgs.management.organisation.edit',
     defaultMessage: 'Edit organization',
@@ -136,6 +140,10 @@ export default defineMessages({
   remainingTasks: {
     id: 'teamsAndOrgs.management.organisation.remaining_tasks',
     defaultMessage: 'Total remaining',
+  },
+  orgProjectStats: {
+    id: 'teamsAndOrgs.management.organisation.project_stats',
+    defaultMessage: 'Projects Statistics',
   },
   tier: {
     id: 'teamsAndOrgs.management.organisation.usage_tier',

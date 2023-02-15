@@ -40,6 +40,8 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           ))}
         </select>
       </div>
+      {projectInfo.database === 'OSM' ? (
+      <>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.mappingEditors} />
@@ -108,6 +110,8 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           </div>
         )}
       </div>
+      </>)
+      : ''}
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.randomTaskSelection} />
@@ -127,11 +131,12 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           <FormattedMessage {...messages.randomTaskSelectionDescription} />
         </p>
       </div>
-      {(projectInfo.mappingEditors.includes('RAPID') || projectInfo.validationEditors.includes('RAPID')) && (
+      {(projectInfo.mappingEditors.includes('RAPID') ||
+        projectInfo.validationEditors.includes('RAPID')) && (
         <div className={styleClasses.divClass}>
-          <label className={styleClasses.labelClass} >
+          <label className={styleClasses.labelClass}>
             <FormattedMessage {...messages.rapidPowerUser} />
-            <div className={'rapid-beta'}/>
+            <div className={'rapid-beta'} />
           </label>
 
           <SwitchToggle
@@ -141,7 +146,7 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
             onChange={() =>
               setProjectInfo({
                 ...projectInfo,
-                rapidPowerUser: !projectInfo.rapidPowerUser
+                rapidPowerUser: !projectInfo.rapidPowerUser,
               })
             }
           />

@@ -51,11 +51,22 @@ export const handleCheckButton = (event, arrayElement) => {
   return arrayElement;
 };
 
+const doesMappingTeamNotExist = (teams, mappingPermission) =>
+  ['TEAMS', 'TEAMS_LEVEL'].includes(mappingPermission) &&
+  teams.filter((team) => team.role === 'MAPPER').length === 0 &&
+  teams.filter((team) => team.role === 'VALIDATOR').length === 0 &&
+  teams.filter((team) => team.role === 'PROJECT_MANAGER').length === 0;
+
+const doesValidationTeamNotExist = (teams, validationPermission) =>
+  ['TEAMS', 'TEAMS_LEVEL'].includes(validationPermission) &&
+  teams.filter((team) => team.role === 'VALIDATOR').length === 0 &&
+  teams.filter((team) => team.role === 'PROJECT_MANAGER').length === 0;
+
 export default function ProjectEdit({ id }) {
   useSetTitleTag(`Edit project #${id}`);
   const [errorLanguages, loadingLanguages, languages] = useFetch('system/languages/');
   const mandatoryFields = ['name', 'shortDescription', 'description', 'instructions'];
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [option, setOption] = useState('description');
@@ -141,14 +152,11 @@ export default function ProjectEdit({ id }) {
     if (nonLocaleMissingFields.length) {
       missingFields.push({ locale: null, fields: nonLocaleMissingFields });
     }
-
-    const doesMappingTeamNotExist =
-      ['TEAMS', 'TEAMS_LEVEL'].includes(projectInfo.mappingPermission) &&
-      projectInfo.teams.filter((team) => team.role === 'MAPPER').length === 0;
-    const doesValidationTeamNotExist =
-      ['TEAMS', 'TEAMS_LEVEL'].includes(projectInfo.validationPermission) &&
-      projectInfo.teams.filter((team) => team.role === 'VALIDATOR').length === 0;
-    if (doesMappingTeamNotExist || doesValidationTeamNotExist) {
+    const { teams, mappingPermission, validationPermission } = projectInfo;
+    if (
+      doesMappingTeamNotExist(teams, mappingPermission) ||
+      doesValidationTeamNotExist(teams, validationPermission)
+    ) {
       missingFields.push({ type: 'noTeamsAssigned' });
     }
 
@@ -184,7 +192,7 @@ export default function ProjectEdit({ id }) {
 
   const renderList = () => {
     const checkSelected = (optionSelected) => {
-      let liClass = 'w-90 link barlow-condensed f4 fw5 pv3 pl2 pointer';
+      let liClass = 'w-90 link f4 fw5 pv3 pl2 pointer';
       if (option === optionSelected) {
         liClass = liClass.concat(' fw6 bg-grey-light');
       }
@@ -205,7 +213,7 @@ export default function ProjectEdit({ id }) {
 
     return (
       <div>
-        <ul className="list pl0 mt0 ttu">
+        <ul className="list pl0 mt0">
           {elements.map((elm, n) => (
             <li key={n} className={checkSelected(elm.value)} onClick={() => setOption(elm.value)}>
               <FormattedMessage {...messages[`projectEditSection_${elm.value}`]} />
@@ -240,6 +248,7 @@ export default function ProjectEdit({ id }) {
           <ActionsForm
             projectId={projectInfo.projectId}
             projectName={projectInfo.projectInfo.name}
+            orgId={projectInfo.organisation}
           />
         );
       case 'custom_editor':
@@ -255,11 +264,11 @@ export default function ProjectEdit({ id }) {
   };
 
   return (
-    <div className="cf pv3 blue-dark">
+    <div className={`cf pv3 blue-dark db-${projectInfo.database}`}>
       <h2 className="pb2 f2 fw6 mt2 mb3 ttu barlow-condensed blue-dark">
         <FormattedMessage {...messages.editProject} />
       </h2>
-      <div className="fl w-30-l w-100 ph0-ns ph4-m ph2 pb4">
+      <div className="fl w-30-l w-100 ph0-ns ph4-m ph2 pb4 sticky-top-l">
         <ReactPlaceholder
           showLoadingAnimation={true}
           rows={8}
@@ -332,18 +341,15 @@ export default function ProjectEdit({ id }) {
 const ErrorTitle = ({ locale, numberOfMissingFields, type, projectInfo }) => {
   if (type === 'noTeamsAssigned') {
     // message if mapping or validation permissions is set to team only but no team has been added
-    const { mappingPermission, validationPermission, teams } = projectInfo;
-    const doesMappingTeamNotExist =
-      ['TEAMS', 'TEAMS_LEVEL'].includes(mappingPermission) &&
-      teams.filter((team) => team.role === 'MAPPER').length === 0;
-    const doesValidationTeamNotExist =
-      ['TEAMS', 'TEAMS_LEVEL'].includes(validationPermission) &&
-      teams.filter((team) => team.role === 'VALIDATOR').length === 0;
+    const { teams, mappingPermission, validationPermission } = projectInfo;
 
     return (
       <FormattedMessage
         {...messages.noTeamsAssigned}
-        values={{ mapping: doesMappingTeamNotExist, validation: doesValidationTeamNotExist }}
+        values={{
+          mapping: doesMappingTeamNotExist(teams, mappingPermission),
+          validation: doesValidationTeamNotExist(teams, validationPermission),
+        }}
       />
     );
   }

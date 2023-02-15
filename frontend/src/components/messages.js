@@ -34,6 +34,11 @@ export default defineMessages({
     id: 'footer.privacyPolicy',
     defaultMessage: 'Privacy Policy',
   },
+  license: {
+    id: 'footer.license',
+    defaultMessage:
+      'Images and screenshots of the Tasking Manager may be shared under a Creative Commons Attribution-Sharealike 4.0 International License',
+  },
   mappingLevelALL: {
     id: 'mapping.level.all',
     defaultMessage: 'All levels',
@@ -49,6 +54,38 @@ export default defineMessages({
   mappingLevelBEGINNER: {
     id: 'mapping.level.beginner',
     defaultMessage: 'Beginner mapper',
+  },
+  database: {
+    id: 'projects.formInputs.database',
+    defaultMessage: 'Database',
+  },
+  databaseALL: {
+    id: 'project.formInputs.database.options.all',
+    defaultMessage: 'All',
+  },
+  databaseOSM: {
+    id: 'project.formInputs.database.options.osm',
+    defaultMessage: 'OpenStreetMap',
+  },
+  databasePDMAP: {
+    id: 'project.formInputs.database.options.pdmap',
+    defaultMessage: 'Public Domain Map',
+  },
+  difficultyALL: {
+    id: 'mapping.difficulty.all',
+    defaultMessage: 'All',
+  },
+  difficultyEASY: {
+    id: 'mapping.difficulty.advanced',
+    defaultMessage: 'Easy',
+  },
+  difficultyMODERATE: {
+    id: 'mapping.difficulty.moderate',
+    defaultMessage: 'Moderate',
+  },
+  difficultyCHALLENGING: {
+    id: 'mapping.difficulty.beginner',
+    defaultMessage: 'Challenging',
   },
   roads: {
     id: 'project.typesOfMapping.roads',
