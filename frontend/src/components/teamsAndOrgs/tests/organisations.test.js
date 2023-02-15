@@ -1,8 +1,9 @@
-import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { FormattedMessage } from 'react-intl';
 import { Provider } from 'react-redux';
+import '@testing-library/jest-dom';
 
-import { createComponentWithIntl } from '../../../utils/testWithIntl';
+import { createComponentWithIntl, IntlProviders } from '../../../utils/testWithIntl';
 import { store } from '../../../store';
 import { OrgsManagement, OrganisationCard } from '../organisations';
 import { AddButton } from '../management';
@@ -61,7 +62,12 @@ describe('OrgsManagement with', () => {
   };
   it('isOrgManager = false and isAdmin = false should NOT list organisations', () => {
     const element = createComponentWithIntl(
-      <OrgsManagement organisations={orgData.organisations} isOrgManager={false} isAdmin={false} />,
+      <OrgsManagement
+        organisations={orgData.organisations}
+        isOrgManager={false}
+        isAdmin={false}
+        isOrganisationsFetched={true}
+      />,
     );
     const testInstance = element.root;
     expect(testInstance.findAllByType(FormattedMessage).map((i) => i.props.id)).toContain(
@@ -77,7 +83,12 @@ describe('OrgsManagement with', () => {
 
   it('isOrgManager and isAdmin SHOULD list organisations and have a link to /new ', () => {
     const element = createComponentWithIntl(
-      <OrgsManagement organisations={orgData.organisations} isOrgManager={true} isAdmin={true} />,
+      <OrgsManagement
+        organisations={orgData.organisations}
+        isOrgManager={true}
+        isAdmin={true}
+        isOrganisationsFetched={true}
+      />,
     );
     const testInstance = element.root;
     expect(testInstance.findByType(OrganisationCard).props.details).toStrictEqual(
@@ -99,7 +110,12 @@ describe('OrgsManagement with', () => {
 
   it('OrgsManagement with isOrgManager = true and isAdmin = false SHOULD list organisations, but should NOT have an AddButton', () => {
     const element = createComponentWithIntl(
-      <OrgsManagement organisations={orgData.organisations} isOrgManager={true} isAdmin={false} />,
+      <OrgsManagement
+        organisations={orgData.organisations}
+        isOrgManager={true}
+        isAdmin={false}
+        isOrganisationsFetched={true}
+      />,
     );
     const testInstance = element.root;
     expect(testInstance.findByType(OrganisationCard).props.details).toStrictEqual(
@@ -108,5 +124,60 @@ describe('OrgsManagement with', () => {
     expect(() => testInstance.findByType(AddButton)).toThrow(
       new Error('No instances found with node type: "AddButton"'),
     );
+  });
+
+  it('renders loading placeholder when API is being fetched', () => {
+    const element = createComponentWithIntl(
+      <OrgsManagement
+        organisations={orgData.organisations}
+        isOrgManager={true}
+        isAdmin={false}
+        isOrganisationsFetched={false}
+      />,
+    );
+    const testInstance = element.root;
+    expect(testInstance.findAllByProps({ className: 'show-loading-animation' }).length).toBe(4);
+  });
+
+  it('should not render loading placeholder after API is fetched', () => {
+    const element = createComponentWithIntl(
+      <OrgsManagement
+        organisations={orgData.organisations}
+        isOrgManager={true}
+        isAdmin={false}
+        isOrganisationsFetched={true}
+      />,
+    );
+    const testInstance = element.root;
+    expect(testInstance.findAllByProps({ className: 'show-loading-animation' }).length).toBe(0);
+  });
+
+  it('filters organisations list by the search query', async () => {
+    render(
+      <IntlProviders>
+        <OrgsManagement
+          organisations={orgData.organisations}
+          isOrgManager={true}
+          isAdmin={false}
+          isOrganisationsFetched={true}
+        />
+      </IntlProviders>,
+    );
+    const textField = screen.getByRole('textbox');
+    fireEvent.change(textField, {
+      target: {
+        value: 'Singapore',
+      },
+    });
+    expect(screen.getByRole('heading', { name: 'Singapore Red Cross' })).toHaveTextContent(
+      'Singapore Red Cross',
+    );
+    fireEvent.change(textField, {
+      target: {
+        value: 'not Singapore',
+      },
+    });
+    expect(screen.queryByRole('heading', { name: 'Singapore Red Cross' })).not.toBeInTheDocument();
+    expect(screen.queryByText('No organizations were found.')).toBeInTheDocument();
   });
 });

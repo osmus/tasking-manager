@@ -6,6 +6,7 @@ import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 import { PriorityBox } from '../projectCard/priorityBox';
 import { translateCountry } from '../../utils/countries';
+import { ProjectVisibilityBox } from './visibilityBox';
 import { ProjectStatusBox } from './statusBox';
 import { EditButton } from '../button';
 import { useEditProjectAllowed } from '../../hooks/UsePermissions';
@@ -20,7 +21,7 @@ export function HeaderLine({ author, projectId, priority, showEditLink, organisa
     <div className="cf">
       <div className="w-70-ns w-100 dib fl pv2">
         <span className="blue-dark">{projectIdLink}</span>
-        {organisation ? <span> | {organisation}</span> : null}
+        {organisation ? <span className="blue-dark"> | {organisation}</span> : null}
       </div>
       <div className="w-30-ns w-100 dib fl tr">
         {showEditLink && (
@@ -59,11 +60,12 @@ export const ProjectHeader = ({ project, showEditLink }: Object) => {
       <div className="cf">
         <div>
           <h3
-            className="f2 fw6 mt2 mb3 ttu barlow-condensed blue-dark dib"
+            className="f2 fw5 mt2 mb3 ttu barlow-condensed blue-dark dib"
             lang={project.projectInfo.locale}
           >
             {project.projectInfo && project.projectInfo.name}
           </h3>
+          {project.private && <ProjectVisibilityBox className={'pv2 ph3 ml3 mb3 v-mid dib'} />}
           {['DRAFT', 'ARCHIVED'].includes(project.status) && (
             <ProjectStatusBox status={project.status} className={'pv2 ph3 ml3 mb3 v-mid dib'} />
           )}

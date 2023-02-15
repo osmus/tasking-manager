@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { Link, navigate } from '@reach/router';
 import Popup from 'reactjs-popup';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
-import { ORG_URL, ORG_NAME, ORG_LOGO } from '../../config';
+import { ORG_URL, ORG_NAME, ORG_LOGO, SERVICE_DESK } from '../../config';
 import logo from '../../assets/img/main-logo.svg';
 import { ExternalLinkIcon } from '../svgIcons';
 import { Dropdown } from '../dropdown';
@@ -31,9 +31,18 @@ function getMenuItensForUser(userDetails, organisations) {
       authenticated: true,
     },
     { label: messages.manage, link: 'manage', authenticated: true, manager: true },
-    { label: messages.learn, link: 'learn', showAlways: true },
+    { label: messages.learn, link: 'learn/map', showAlways: true },
     { label: messages.about, link: 'about', showAlways: true },
   ];
+  if (SERVICE_DESK) {
+    menuItems.push({
+      label: messages.support,
+      link: SERVICE_DESK,
+      showAlways: true,
+      serviceDesk: true,
+    });
+  }
+
   let filteredMenuItems;
   if (userDetails.username) {
     filteredMenuItems = menuItems.filter((item) => item.authenticated === true || item.showAlways);
@@ -97,9 +106,21 @@ const PopupItems = (props) => {
         .filter((item) => item.authenticated === false || item.showAlways)
         .map((item, n) => (
           <p key={n}>
-            <Link to={item.link} className={props.linkCombo} onClick={props.close}>
-              <FormattedMessage {...item.label} />
-            </Link>
+            {!item.serviceDesk ? (
+              <Link to={item.link} className={props.linkCombo} onClick={props.close}>
+                <FormattedMessage {...item.label} />
+              </Link>
+            ) : (
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noreferrer"
+                className="link mh3 blue-dark f5 ttu"
+              >
+                <FormattedMessage {...item.label} />
+                <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
+              </a>
+            )}
           </p>
         ))}
       <p className="bb b--grey-light"></p>
@@ -114,6 +135,7 @@ const PopupItems = (props) => {
               </Link>
             </p>
           ))}
+
       {/* user links */}
       {props.userDetails.username && (
         <>
@@ -143,10 +165,10 @@ const PopupItems = (props) => {
 };
 
 class Header extends React.Component {
-  linkCombo = 'link mh3 barlow-condensed blue-dark f4 ttu';
-  isActive = ({ isCurrent }) => {
-    return isCurrent
-      ? { className: `${this.linkCombo} bb b--blue-dark bw1 pv2` }
+  linkCombo = 'link mh3 blue-dark f5 fw6';
+  isActive = ({ isPartiallyCurrent }) => {
+    return isPartiallyCurrent
+      ? { className: `${this.linkCombo} bb b--blue-dark bw1 pv1` }
       : { className: this.linkCombo };
   };
 
@@ -162,10 +184,24 @@ class Header extends React.Component {
 
     return (
       <div className="v-mid">
-        {filteredMenuItems.map((item, n) => (
-          <TopNavLink to={item.link} key={n} isActive={this.isActive}>
-            <FormattedMessage {...item.label} />
-          </TopNavLink>
+        {filteredMenuItems.map((item) => (
+          <Fragment key={item.label.id}>
+            {!item.serviceDesk ? (
+              <TopNavLink to={item.link} isActive={this.isActive}>
+                <FormattedMessage {...item.label} />
+              </TopNavLink>
+            ) : (
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noreferrer"
+                className="link mh3 blue-dark f5 ttu"
+              >
+                <FormattedMessage {...item.label} />
+                <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
+              </a>
+            )}
+          </Fragment>
         ))}
       </div>
     );
@@ -222,8 +258,8 @@ class Header extends React.Component {
       // Validate that user has set is email.
       <header className="w-100 bb b--grey-light">
         <UpdateDialog />
-        {this.checkUserEmail()}
-        {this.props.showOrgBar && (
+        {/*this.checkUserEmail()*/}
+        {/*this.props.showOrgBar && (
           <div className="cf ph2 red pt3 pb2 bb b--grey-light">
             <div className="fl w-50">
               <span className="barlow-condensed f5 ml2 ">
@@ -237,17 +273,29 @@ class Header extends React.Component {
               </a>
             </div>
           </div>
-        )}
-        <div className="mt3 pb1 pb2-ns ph2 dib w-100">
-          <div className="cf fl pt1 dib">
-            <Link to={'/'} className="link mv-1">
-              <img src={ORG_LOGO || logo} alt={`${ORG_NAME} logo`} className="h2 ml2 v-mid pb2" />
-              <span className="barlow-condensed f3 fw6 ml2 blue-dark">Tasking Manager</span>
+        )*/}
+        <div className="mt2 pb2 pb2-ns ph2 dib w-100">
+          <div className="cf fl dib">
+            <Link to={'/'} className="link mv-1 dib">
+              <img
+                src={ORG_LOGO || logo}
+                alt={`${ORG_NAME} logo`}
+                className="main-logo ml2 v-mid"
+                onError={({ currentTarget }) => {
+                  // fallback to HOT logo if ORG_LOGO is broken
+                  currentTarget.onerror = null;
+                  currentTarget.src = logo;
+                }}
+              />
+              <div className="wordmark barlow-condensed f4 ml2 blue-dark">
+                <span className="fw6">OpenStreetMap US</span>
+                <span className="">Tasking Manager</span>
+              </div>
             </Link>
           </div>
-          <nav className="dn dib-l pl4-l pl6-xl pt1 mv1">{this.renderMenuItems()}</nav>
+          <nav className="dn dib-l pl4-l pl6-xl pt1 mt2">{this.renderMenuItems()}</nav>
 
-          <div className="fr dib tr mb1">
+          <div className="fr dib tr">
             {this.renderAuthenticationButtons()}
             <div className="dib v-mid dn-l">
               <Popup trigger={(open) => <BurgerMenu open={open} />} modal closeOnDocumentClick>
@@ -273,9 +321,9 @@ class Header extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-  userDetails: state.auth.get('userDetails'),
-  organisations: state.auth.get('organisations'),
-  token: state.auth.get('token'),
+  userDetails: state.auth.userDetails,
+  organisations: state.auth.organisations,
+  token: state.auth.token,
   showOrgBar: state.orgBarVisibility.isVisible,
 });
 

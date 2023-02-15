@@ -18,6 +18,7 @@ from backend.models.postgis.project import ProjectTeams
 from backend.models.postgis.project_info import ProjectInfo
 from backend.models.postgis.utils import NotFound
 from backend.models.postgis.statuses import (
+    TeamJoinMethod,
     TeamMemberFunctions,
     TeamVisibility,
     TeamRoles,
@@ -28,7 +29,7 @@ from backend.services.messaging.message_service import MessageService
 
 
 class TeamServiceError(Exception):
-    """ Custom Exception to notify callers an error occurred when handling teams """
+    """Custom Exception to notify callers an error occurred when handling teams"""
 
     def __init__(self, message):
         if current_app:
@@ -36,7 +37,7 @@ class TeamServiceError(Exception):
 
 
 class TeamJoinNotAllowed(Exception):
-    """ Custom Exception to notify bad user level on joining team """
+    """Custom Exception to notify bad user level on joining team"""
 
     def __init__(self, message):
         if current_app:
@@ -45,17 +46,60 @@ class TeamJoinNotAllowed(Exception):
 
 class TeamService:
     @staticmethod
-    def join_team(team_id: int, requesting_user: int, username: str, role: str = None):
-        is_manager = TeamService.is_user_team_manager(team_id, requesting_user)
-        team = TeamService.get_team_by_id(team_id)
-        user = UserService.get_user_by_username(username)
+    def request_to_join_team(team_id: int, user_id: int):
+        # If user has team manager permission add directly to the team without request.E.G. Admins, Org managers
+        if TeamService.is_user_team_member(team_id, user_id):
+            raise TeamServiceError(
+                "The user is already a member of the team or has requested to join."
+            )
+        if TeamService.is_user_team_manager(team_id, user_id):
+            TeamService.add_team_member(
+                team_id, user_id, TeamMemberFunctions.MEMBER.value, True
+            )
+            return
 
-        if TeamService.is_user_team_member(team.id, user.id):
-            raise TeamJoinNotAllowed(
-                "User is already a member of this team or has already requested to join"
+        team = TeamService.get_team_by_id(team_id)
+        # Cannot send join request to BY_INVITE team
+        if team.join_method == TeamJoinMethod.BY_INVITE.value:
+            raise TeamServiceError(
+                f"Team join method is {TeamJoinMethod.BY_INVITE.name}"
             )
 
-        if is_manager:
+        role = TeamMemberFunctions.MEMBER.value
+        user = UserService.get_user_by_id(user_id)
+        active = False
+        # Set active=True for team with join method ANY as no approval is required to join this team type.
+        if team.join_method == TeamJoinMethod.ANY.value:
+            active = True
+        TeamService.add_team_member(team_id, user_id, role, active)
+
+        # Notify team managers about a join request in BY_REQUEST team.
+        if team.join_method == TeamJoinMethod.BY_REQUEST.value:
+            team_managers = team.get_team_managers()
+            for manager in team_managers:
+                # Only send notifications to team managers who have join request notification enabled.
+                if manager.join_request_notifications:
+                    MessageService.send_request_to_join_team(
+                        user.id, user.username, manager.user_id, team.name, team_id
+                    )
+
+    @staticmethod
+    def add_user_to_team(
+        team_id: int, requesting_user: int, username: str, role: str = None
+    ):
+        is_manager = TeamService.is_user_team_manager(team_id, requesting_user)
+        if not is_manager:
+            raise TeamServiceError("User is not allowed to add member to the team")
+        team = TeamService.get_team_by_id(team_id)
+        from_user = UserService.get_user_by_id(requesting_user)
+        to_user = UserService.get_user_by_username(username)
+        member = TeamMembers.get(team_id, to_user.id)
+        if member:
+            member.function = TeamMemberFunctions[role].value
+            member.active = True
+            member.update()
+            return {"Success": "User role updated"}
+        else:
             if role:
                 try:
                     role = TeamMemberFunctions[role.upper()].value
@@ -63,28 +107,24 @@ class TeamService:
                     raise Exception("Invalid TeamMemberFunction")
             else:
                 role = TeamMemberFunctions.MEMBER.value
+            TeamService.add_team_member(team_id, to_user.id, role, True)
+            MessageService.send_team_join_notification(
+                requesting_user,
+                from_user.username,
+                to_user.id,
+                team.name,
+                team_id,
+                TeamMemberFunctions(role).name,
+            )
 
-            TeamService.add_team_member(team_id, user.id, role, True)
-        else:
-            if user.id != requesting_user:
-                raise TeamJoinNotAllowed("User not allowed to join team")
-
-            role = TeamMemberFunctions.MEMBER.value
-
-            # active if the team is open
-            if team.invite_only:
-                active = False
-            else:
-                active = True
-
-            TeamService.add_team_member(team_id, user.id, role, active)
-
-            if team.invite_only:
-                team_managers = team.get_team_managers()
-                for member in team_managers:
-                    MessageService.send_request_to_join_team(
-                        user.id, user.username, member.user_id, team.name, team_id
-                    )
+    @staticmethod
+    def add_team_member(team_id, user_id, function, active=False):
+        team_member = TeamMembers()
+        team_member.team_id = team_id
+        team_member.user_id = user_id
+        team_member.function = function
+        team_member.active = active
+        team_member.create()
 
     @staticmethod
     def send_invite(team_id, from_user_id, username):
@@ -100,26 +140,20 @@ class TeamService:
         from_user = UserService.get_user_by_id(from_user_id)
         to_user_id = UserService.get_user_by_username(username).id
         team = TeamService.get_team_by_id(team_id)
+
+        if not TeamService.is_user_team_member(team_id, to_user_id):
+            raise NotFound("Join request not found")
+
+        if action not in ["accept", "reject"]:
+            raise TeamServiceError("Invalid action type")
+        if action == "accept":
+            TeamService.activate_team_member(team_id, to_user_id)
+        elif action == "reject":
+            TeamService.delete_invite(team_id, to_user_id)
+
         MessageService.accept_reject_request_to_join_team(
             from_user_id, from_user.username, to_user_id, team.name, team_id, action
         )
-
-        is_member = TeamService.is_user_team_member(team_id, to_user_id)
-        if action == "accept":
-            if is_member:
-                TeamService.activate_team_member(team_id, to_user_id)
-            else:
-                TeamService.add_team_member(
-                    team_id,
-                    to_user_id,
-                    TeamMemberFunctions[function.upper()].value,
-                    True,
-                )
-        elif action == "reject":
-            if is_member:
-                TeamService.delete_invite(team_id, to_user_id)
-        else:
-            raise TeamServiceError("Invalid action type")
 
     @staticmethod
     def accept_reject_invitation_request(
@@ -144,15 +178,6 @@ class TeamService:
             TeamService.add_team_member(
                 team_id, from_user_id, TeamMemberFunctions[function.upper()].value
             )
-
-    @staticmethod
-    def add_team_member(team_id, user_id, function, active=False):
-        team_member = TeamMembers()
-        team_member.team_id = team_id
-        team_member.user_id = user_id
-        team_member.function = function
-        team_member.active = active
-        team_member.create()
 
     @staticmethod
     def leave_team(team_id, username):
@@ -262,7 +287,7 @@ class TeamService:
             team_dto = TeamDTO()
             team_dto.team_id = team.id
             team_dto.name = team.name
-            team_dto.invite_only = team.invite_only
+            team_dto.join_method = TeamJoinMethod(team.join_method).name
             team_dto.visibility = TeamVisibility(team.visibility).name
             team_dto.description = team.description
             team_dto.logo = team.organisation.logo
@@ -297,7 +322,7 @@ class TeamService:
         team_dto = TeamDetailsDTO()
         team_dto.team_id = team.id
         team_dto.name = team.name
-        team_dto.invite_only = team.invite_only
+        team_dto.join_method = TeamJoinMethod(team.join_method).name
         team_dto.visibility = TeamVisibility(team.visibility).name
         team_dto.description = team.description
         team_dto.logo = team.organisation.logo
@@ -348,7 +373,7 @@ class TeamService:
 
     @staticmethod
     def get_project_teams_as_dto(project_id: int) -> TeamsListDTO:
-        """ Gets all the teams for a specified project """
+        """Gets all the teams for a specified project"""
         project_teams = ProjectTeams.query.filter(
             ProjectTeams.project_id == project_id
         ).all()
@@ -423,7 +448,7 @@ class TeamService:
 
     @staticmethod
     def assert_validate_organisation(org_id: int):
-        """ Makes sure an organisation exists """
+        """Makes sure an organisation exists"""
         try:
             OrganisationService.get_organisation_by_id(org_id)
         except NotFound:
@@ -431,7 +456,7 @@ class TeamService:
 
     @staticmethod
     def assert_validate_members(team_dto: TeamDTO):
-        """ Validates that the users exist"""
+        """Validates that the users exist"""
         if len(team_dto.members) == 0:
             raise TeamServiceError("Must have at least one member")
 
@@ -516,7 +541,7 @@ class TeamService:
 
     @staticmethod
     def delete_team(team_id: int):
-        """ Deletes a team """
+        """Deletes a team"""
         team = TeamService.get_team_by_id(team_id)
 
         if team.can_be_deleted():
@@ -526,7 +551,7 @@ class TeamService:
 
     @staticmethod
     def check_team_membership(project_id: int, allowed_roles: list, user_id: int):
-        """ Given a project and permitted team roles, check user's membership in the team list """
+        """Given a project and permitted team roles, check user's membership in the team list"""
         teams_dto = TeamService.get_project_teams_as_dto(project_id)
         teams_allowed = [
             team_dto for team_dto in teams_dto.teams if team_dto.role in allowed_roles

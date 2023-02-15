@@ -5,9 +5,10 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, redirect
 from flask_cors import CORS
 from flask_migrate import Migrate
-from flask_oauthlib.client import OAuth
+from requests_oauthlib import OAuth2Session
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 
 from backend.config import EnvironmentConfig
 
@@ -32,9 +33,15 @@ def format_url(endpoint):
 
 db = SQLAlchemy()
 migrate = Migrate()
-oauth = OAuth()
 
-osm = oauth.remote_app("osm", app_key="OSM_OAUTH_SETTINGS")
+mail = Mail()
+
+
+osm = OAuth2Session(
+    client_id=EnvironmentConfig.OAUTH_CLIENT_ID,
+    scope=EnvironmentConfig.OAUTH_SCOPE,
+    redirect_uri=EnvironmentConfig.OAUTH_REDIRECT_URI,
+)
 
 # Import all models so that they are registered with SQLAlchemy
 from backend.models.postgis import *  # noqa
@@ -61,6 +68,7 @@ def create_app(env="backend.config.EnvironmentConfig"):
     app.logger.debug("Connecting to the database")
     db.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
 
     app.logger.debug("Add root redirect route")
 
@@ -78,7 +86,6 @@ def create_app(env="backend.config.EnvironmentConfig"):
     app.secret_key = app.config[
         "SECRET_KEY"
     ]  # Required by itsdangerous, Flask-OAuthlib for creating entropy
-    oauth.init_app(app)
 
     return app
 
@@ -185,6 +192,7 @@ def add_api_endpoints(app):
         TasksActionsResetBadImageryAllAPI,
         TasksActionsResetAllAPI,
         TasksActionsSplitAPI,
+        TasksActionsExtendAPI,
     )
     from backend.api.tasks.statistics import (
         TasksStatisticsAPI,
@@ -228,6 +236,7 @@ def add_api_endpoints(app):
     from backend.api.teams.resources import TeamsRestAPI, TeamsAllAPI
     from backend.api.teams.actions import (
         TeamsActionsJoinAPI,
+        TeamsActionsAddAPI,
         TeamsActionsLeaveAPI,
         TeamsActionsMessageMembersAPI,
     )
@@ -276,7 +285,9 @@ def add_api_endpoints(app):
         SystemHeartbeatAPI,
         SystemLanguagesAPI,
         SystemContactAdminRestAPI,
+        SystemReleaseAPI,
     )
+    from backend.api.system.banner import SystemBannerAPI
     from backend.api.system.statistics import SystemStatisticsAPI
     from backend.api.system.authentication import (
         SystemAuthenticationEmailAPI,
@@ -472,7 +483,7 @@ def add_api_endpoints(app):
     )
     api.add_resource(
         TasksQueriesOwnInvalidatedAPI,
-        format_url("projects/<int:project_id>/tasks/queries/own/invalidated/"),
+        format_url("projects/<string:username>/tasks/queries/own/invalidated/"),
     )
 
     # Tasks actions endoints
@@ -499,6 +510,10 @@ def add_api_endpoints(app):
         format_url(
             "projects/<int:project_id>/tasks/actions/undo-last-action/<int:task_id>/"
         ),
+    )
+    api.add_resource(
+        TasksActionsExtendAPI,
+        format_url("projects/<int:project_id>/tasks/actions/extend/"),
     )
     api.add_resource(
         TasksActionsValidationLockAPI,
@@ -661,6 +676,11 @@ def add_api_endpoints(app):
         methods=["POST", "PATCH"],
     )
     api.add_resource(
+        TeamsActionsAddAPI,
+        format_url("teams/<int:team_id>/actions/add/"),
+        methods=["POST"],
+    )
+    api.add_resource(
         TeamsActionsLeaveAPI,
         format_url("teams/<int:team_id>/actions/leave/"),
         endpoint="leave_team",
@@ -784,6 +804,9 @@ def add_api_endpoints(app):
 
     # System endpoint
     api.add_resource(SystemDocsAPI, format_url("system/docs/json/"))
+    api.add_resource(
+        SystemBannerAPI, format_url("system/banner/"), methods=["GET", "PATCH"]
+    )
     api.add_resource(SystemHeartbeatAPI, format_url("system/heartbeat/"))
     api.add_resource(SystemLanguagesAPI, format_url("system/languages/"))
     api.add_resource(SystemStatisticsAPI, format_url("system/statistics/"))
@@ -821,3 +844,4 @@ def add_api_endpoints(app):
     api.add_resource(
         SystemContactAdminRestAPI, format_url("system/contact-admin/"), methods=["POST"]
     )
+    api.add_resource(SystemReleaseAPI, format_url("system/release/"), methods=["POST"])

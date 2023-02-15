@@ -12,7 +12,7 @@ export const ActionTabsNav = ({
   action,
 }) => {
   return (
-    <div className="cf ttu barlow-condensed f4 pt2 pb3 blue-dark nowrap overflow-x-auto">
+    <div className="cf f4 pt2 pb3 blue-dark nowrap overflow-x-auto">
       <span
         className={`mr4-l mr3 pb1 pointer ${activeSection === 'completion' && 'bb b--blue-dark'}`}
         onClick={() => setActiveSection('completion')}

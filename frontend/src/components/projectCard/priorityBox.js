@@ -17,7 +17,7 @@ export function PriorityBox({ priority, extraClasses, hideMediumAndLow, showIcon
           <div className={`tc br1 f7 ttu ba ${color} ${extraClasses}`} title={msg}>
             {showIcon && <ClockIcon className={`${color} v-mid mr1`} style={{ height: '13px' }} />}
             {priority ? (
-              <span className="v-mid">
+              <span className="v-mid fw5">
                 <FormattedMessage {...messages[`projectPriority${priority}`]} />
               </span>
             ) : (

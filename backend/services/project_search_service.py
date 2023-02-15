@@ -25,6 +25,8 @@ from backend.models.postgis.statuses import (
     TeamRoles,
     ValidationPermission,
     MappingPermission,
+    ProjectDifficulty,
+    ProjectDatabase,
 )
 from backend.models.postgis.campaign import Campaign
 from backend.models.postgis.organisation import Organisation
@@ -48,7 +50,7 @@ MAX_AREA = math.pow(1250 * 4275 * 1.5, 2)
 
 
 class ProjectSearchServiceError(Exception):
-    """ Custom Exception to notify callers an error occurred when handling mapping """
+    """Custom Exception to notify callers an error occurred when handling mapping"""
 
     def __init__(self, message):
         if current_app:
@@ -56,7 +58,7 @@ class ProjectSearchServiceError(Exception):
 
 
 class BBoxTooBigError(Exception):
-    """ Custom Exception to notify callers an error occurred when handling mapping """
+    """Custom Exception to notify callers an error occurred when handling mapping"""
 
     def __init__(self, message):
         if current_app:
@@ -69,7 +71,8 @@ class ProjectSearchService:
         query = (
             db.session.query(
                 Project.id.label("id"),
-                Project.mapper_level,
+                Project.database,
+                Project.difficulty,
                 Project.priority,
                 Project.default_locale,
                 Project.centroid.ST_AsGeoJSON().label("centroid"),
@@ -124,7 +127,8 @@ class ProjectSearchService:
         list_dto.locale = project_info_dto.locale
         list_dto.name = project_info_dto.name
         list_dto.priority = ProjectPriority(project.priority).name
-        list_dto.mapper_level = MappingLevel(project.mapper_level).name
+        list_dto.database = ProjectDatabase(project.database).name
+        list_dto.difficulty = ProjectDifficulty(project.difficulty).name
         list_dto.short_description = project_info_dto.short_description
         list_dto.last_updated = project.last_updated
         list_dto.due_date = project.due_date
@@ -178,7 +182,7 @@ class ProjectSearchService:
     @staticmethod
     @cached(search_cache)
     def search_projects(search_dto: ProjectSearchDTO, user) -> ProjectSearchResultsDTO:
-        """ Searches all projects for matches to the criteria provided by the user """
+        """Searches all projects for matches to the criteria provided by the user"""
         all_results, paginated_results = ProjectSearchService._filter_projects(
             search_dto, user
         )
@@ -217,7 +221,7 @@ class ProjectSearchService:
 
     @staticmethod
     def _filter_projects(search_dto: ProjectSearchDTO, user):
-        """ Filters all projects based on criteria provided by user"""
+        """Filters all projects based on criteria provided by user"""
 
         query = ProjectSearchService.create_search_query(user)
 
@@ -249,9 +253,13 @@ class ProjectSearchService:
             query = query.filter(
                 Project.id.in_([project.id for project in projects_favorited])
             )
-        if search_dto.mapper_level and search_dto.mapper_level.upper() != "ALL":
+        if search_dto.database and search_dto.database.upper() != "ALL":
             query = query.filter(
-                Project.mapper_level == MappingLevel[search_dto.mapper_level].value
+                Project.database == ProjectDatabase[search_dto.database].value
+            )
+        if search_dto.difficulty and search_dto.difficulty.upper() != "ALL":
+            query = query.filter(
+                Project.difficulty == ProjectDifficulty[search_dto.difficulty].value
             )
         if search_dto.action and search_dto.action != "any":
             if search_dto.action == "map":
@@ -295,9 +303,11 @@ class ProjectSearchService:
 
         if search_dto.text_search:
             # We construct an OR search, so any projects that contain or more of the search terms should be returned
-            or_search = " | ".join(
-                [x for x in search_dto.text_search.split(" ") if x != ""]
+            invalid_ts_chars = "@|&!><\\():"
+            search_text = "".join(
+                char for char in search_dto.text_search if char not in invalid_ts_chars
             )
+            or_search = " | ".join([x for x in search_text.split(" ") if x != ""])
             opts = [
                 ProjectInfo.text_searchable.match(
                     or_search, postgresql_regconfig="english"
@@ -472,7 +482,9 @@ class ProjectSearchService:
         # validate the bbox area is less than or equal to the max area allowed to prevent
         # abuse of the api or performance issues from large requests
         if not ProjectSearchService.validate_bbox_area(polygon):
-            raise BBoxTooBigError("Requested bounding box is too large")
+            raise BBoxTooBigError(
+                "BBoxTooBigError- Requested bounding box is too large"
+            )
 
         # get projects intersecting the polygon for created by the author_id
         intersecting_projects = ProjectSearchService._get_intersecting_projects(
@@ -504,7 +516,7 @@ class ProjectSearchService:
 
     @staticmethod
     def _get_intersecting_projects(search_polygon: Polygon, author_id: int):
-        """Executes a database query to get the intersecting projects created by the author if provided """
+        """Executes a database query to get the intersecting projects created by the author if provided"""
 
         query = db.session.query(
             Project.id,
@@ -531,7 +543,7 @@ class ProjectSearchService:
 
     @staticmethod
     def _make_4326_polygon_from_bbox(bbox: list, srid: int) -> Polygon:
-        """ make a shapely Polygon in SRID 4326 from bbox and srid"""
+        """make a shapely Polygon in SRID 4326 from bbox and srid"""
         try:
             polygon = box(bbox[0], bbox[1], bbox[2], bbox[3])
             if not srid == 4326:
@@ -544,13 +556,13 @@ class ProjectSearchService:
 
     @staticmethod
     def _get_area_sqm(polygon: Polygon) -> float:
-        """ get the area of the polygon in square metres """
+        """get the area of the polygon in square metres"""
         return db.engine.execute(
             ST_Area(ST_Transform(shape.from_shape(polygon, 4326), 3857))
         ).scalar()
 
     @staticmethod
     def validate_bbox_area(polygon: Polygon) -> bool:
-        """ check polygon does not exceed maximim allowed area"""
+        """check polygon does not exceed maximim allowed area"""
         area = ProjectSearchService._get_area_sqm(polygon)
         return area <= MAX_AREA

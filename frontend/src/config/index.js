@@ -30,8 +30,9 @@ export const ORG_URL = process.env.REACT_APP_ORG_URL || '';
 export const ORG_LOGO = process.env.REACT_APP_ORG_LOGO || '';
 export const HOMEPAGE_IMG_HIGH = process.env.REACT_APP_HOMEPAGE_IMG_HIGH || '';
 export const HOMEPAGE_IMG_LOW = process.env.REACT_APP_HOMEPAGE_IMG_LOW || '';
-export const OSM_CONSUMER_KEY = process.env.REACT_APP_OSM_CONSUMER_KEY || '';
-export const OSM_CONSUMER_SECRET = process.env.REACT_APP_OSM_CONSUMER_SECRET || '';
+export const OSM_CLIENT_ID = process.env.REACT_APP_OSM_CLIENT_ID || '';
+export const OSM_CLIENT_SECRET = process.env.REACT_APP_OSM_CLIENT_SECRET || '';
+export const OSM_REDIRECT_URI = process.env.REACT_APP_OSM_REDIRECT_URI || '';
 export const ORG_PRIVACY_POLICY_URL = process.env.REACT_APP_ORG_PRIVACY_POLICY_URL || '';
 export const OSM_REGISTER_URL =
   process.env.REACT_APP_OSM_REGISTER_URL || 'https://www.openstreetmap.org/user/new';
@@ -49,6 +50,11 @@ export const HOMEPAGE_VIDEO_URL = process.env.REACT_APP_HOMEPAGE_VIDEO_URL || ''
 // Sentry.io DSN
 export const SENTRY_FRONTEND_DSN = process.env.REACT_APP_SENTRY_FRONTEND_DSN;
 
+// Public Domain Map
+export const PD_CONSUMER_KEY = process.env.REACT_APP_PD_CONSUMER_KEY || '';
+export const PD_CONSUMER_SECRET = process.env.REACT_APP_PD_CONSUMER_SECRET || '';
+export const PD_SERVER_URL = process.env.REACT_APP_PD_SERVER_URL || '';
+
 // OSM API and Editor URLs
 export const OSM_SERVER_URL =
   process.env.REACT_APP_OSM_SERVER_URL || 'https://www.openstreetmap.org';
@@ -57,6 +63,10 @@ export const ID_EDITOR_URL =
 export const POTLATCH2_EDITOR_URL =
   process.env.REACT_APP_POTLATCH2_EDITOR_URL ||
   'https://www.openstreetmap.org/edit?editor=potlatch2';
+export const RAPID_EDITOR_URL =
+  process.env.REACT_APP_RAPID_EDITOR_URL || 'https://mapwith.ai/rapid';
+export const PDEDITOR_URL =
+  process.env.REACT_APP_PDEDITOR_URL || 'https://publicdomainmap.org';
 
 export const TASK_COLOURS = {
   READY: '#fff',

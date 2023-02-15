@@ -4,6 +4,7 @@ import { Redirect, navigate } from '@reach/router';
 import { useQueryParam, NumberParam } from 'use-query-params';
 import { FormattedMessage, FormattedNumber, useIntl } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';
+import { supported } from 'mapbox-gl';
 import area from '@turf/area';
 import bbox from '@turf/bbox';
 import { featureCollection } from '@turf/helpers';
@@ -14,14 +15,13 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import messages from './messages';
 import { createProject } from '../../store/actions/project';
 import { store } from '../../store';
-import { pushToLocalJSONAPI } from '../../network/genericJSONRequest';
+import { fetchLocalJSONAPI, pushToLocalJSONAPI } from '../../network/genericJSONRequest';
 import SetAOI from './setAOI';
 import SetTaskSizes from './setTaskSizes';
 import TrimProject from './trimProject';
 import NavButtons from './navButtons';
 import Review from './review';
 import { Alert } from '../alert';
-import { fetchLocalJSONAPI } from '../../network/genericJSONRequest';
 import { makeGrid } from '../../utils/taskGrid';
 import { MAX_AOI_AREA } from '../../config';
 import {
@@ -38,7 +38,7 @@ const ProjectCreationMap = React.lazy(() =>
 
 const ProjectCreate = (props) => {
   const intl = useIntl();
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [drawModeIsActive, setDrawModeIsActive] = useState(false);
   const [showProjectsAOILayer, setShowProjectsAOILayer] = useState(false);
 
@@ -131,6 +131,7 @@ const ProjectCreate = (props) => {
   const [step, setStep] = useState(1);
   const [cloneProjectName, setCloneProjectName] = useState(null);
   const [cloneProjectOrg, setCloneProjectOrg] = useState(null);
+  const [cloneProjectDatabase, setCloneProjectDatabase] = useState('OSM');
   const [err, setErr] = useState({ error: false, message: null });
 
   const fetchCloneProjectInfo = useCallback(
@@ -138,8 +139,9 @@ const ProjectCreate = (props) => {
       const res = await fetchLocalJSONAPI(`projects/${cloneFromId}/`, token);
       setCloneProjectName(res.projectInfo.name);
       setCloneProjectOrg(res.organisation);
+      setCloneProjectDatabase(res.database);
     },
-    [setCloneProjectName, setCloneProjectOrg, token],
+    [setCloneProjectName, setCloneProjectOrg, setCloneProjectDatabase, token],
   );
 
   useLayoutEffect(() => {
@@ -152,6 +154,7 @@ const ProjectCreate = (props) => {
     id: cloneFromId,
     name: cloneProjectName,
     organisation: cloneProjectOrg,
+    database: cloneProjectDatabase,
   };
 
   // Project information.
@@ -165,7 +168,10 @@ const ProjectCreate = (props) => {
     tempTaskGrid: null,
     arbitraryTasks: false,
     organisation: '',
+    database: 'OSM'
   });
+
+  const [selectedOrgObj, updateSelectedOrgObj] = useState({});
 
   useLayoutEffect(() => {
     let err = { error: false, message: null };
@@ -202,6 +208,7 @@ const ProjectCreate = (props) => {
         areaOfInterest: truncate(metadata.geom, { precision: 6 }),
         projectName: metadata.projectName,
         organisation: metadata.organisation || cloneProjectData.organisation,
+        database: metadata.database,
         tasks: truncate(metadata.taskGrid, { precision: 6 }),
         arbitraryTasks: metadata.arbitraryTasks,
       };
@@ -250,6 +257,8 @@ const ProjectCreate = (props) => {
           <Review
             metadata={metadata}
             updateMetadata={updateMetadata}
+            selectedOrgObj={selectedOrgObj}
+            updateSelectedOrgObj={updateSelectedOrgObj}
             token={token}
             cloneProjectData={cloneProjectData}
           />
@@ -278,50 +287,54 @@ const ProjectCreate = (props) => {
             showProjectsAOILayer={showProjectsAOILayer}
           />
         </Suspense>
-        <div className="cf absolute bg-white o-90 top-1 left-1 pa3 mw6">
-          {cloneFromId && (
-            <p className="fw6 pv2 blue-grey">
-              <FormattedMessage
-                {...messages.cloneProject}
-                values={{ id: cloneFromId, name: cloneProjectName }}
+        {supported() && (
+          <>
+            <div className="cf absolute bg-white o-90 top-1 left-1 pa3 mw6">
+              {cloneFromId && (
+                <p className="fw6 pv2 blue-grey">
+                  <FormattedMessage
+                    {...messages.cloneProject}
+                    values={{ id: cloneFromId, name: cloneProjectName }}
+                  />
+                </p>
+              )}
+              <div className="pb2">{renderCurrentStep()}</div>
+              {err.error === true && <Alert type="error">{err.message}</Alert>}
+              <NavButtons
+                index={step}
+                setStep={setStep}
+                metadata={metadata}
+                mapObj={mapObj}
+                updateMetadata={updateMetadata}
+                maxArea={MAX_AOI_AREA}
+                setErr={setErr}
+                cloneProjectData={cloneProjectData}
+                handleCreate={() => handleCreate(cloneProjectData)}
               />
-            </p>
-          )}
-          <div className="pb2">{renderCurrentStep()}</div>
-          {err.error === true && <Alert type="error">{err.message}</Alert>}
-          <NavButtons
-            index={step}
-            setStep={setStep}
-            metadata={metadata}
-            mapObj={mapObj}
-            updateMetadata={updateMetadata}
-            maxArea={MAX_AOI_AREA}
-            setErr={setErr}
-            cloneProjectData={cloneProjectData}
-            handleCreate={() => handleCreate(cloneProjectData)}
-          />
-        </div>
-        <div className="cf absolute" style={{ bottom: '3.5rem', left: '0.6rem' }}>
-          <p
-            className={`fl mr2 pa1 f7-ns white ${
-              metadata.area > MAX_AOI_AREA || metadata.area === 0 ? 'bg-red' : 'bg-green'
-            }`}
-          >
-            <FormattedMessage
-              {...messages.areaSize}
-              values={{
-                area: <FormattedNumber value={metadata.area} unit="kilometer" />,
-                sq: <sup>2</sup>,
-              }}
-            />
-          </p>
-          <p className="fl bg-blue-light white mr2 pa1 f7-ns">
-            <FormattedMessage
-              {...messages.taskNumber}
-              values={{ n: <FormattedNumber value={metadata.tasksNumber} /> }}
-            />
-          </p>
-        </div>
+            </div>
+            <div className="cf absolute" style={{ bottom: '3.5rem', right: '0.6rem' }}>
+              <p
+                className={`fl mr2 pa1 f7-ns white ${
+                  metadata.area > MAX_AOI_AREA || metadata.area === 0 ? 'bg-red' : 'bg-green'
+                }`}
+              >
+                <FormattedMessage
+                  {...messages.areaSize}
+                  values={{
+                    area: <FormattedNumber value={metadata.area} unit="kilometer" />,
+                    sq: <sup>2</sup>,
+                  }}
+                />
+              </p>
+              <p className="fl bg-blue-light white mr2 pa1 f7-ns">
+                <FormattedMessage
+                  {...messages.taskNumber}
+                  values={{ n: <FormattedNumber value={metadata.tasksNumber} /> }}
+                />
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

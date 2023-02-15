@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
 import { Link } from '@reach/router';
 import ReactPlaceholder from 'react-placeholder';
 import centroid from '@turf/centroid';
 import { FormattedMessage } from 'react-intl';
+import { supported } from 'mapbox-gl';
 
 import messages from './messages';
 import { UserAvatar, UserAvatarList } from '../user/avatar';
@@ -27,7 +27,7 @@ const ProjectTimeline = React.lazy(() => import('./timeline' /* webpackChunkName
 const ProjectDetailMap = (props) => {
   const [taskBordersOnly, setTaskBordersOnly] = useState(true);
 
-  var taskBordersGeoJSON = props.project.areaOfInterest && {
+  const taskBordersGeoJSON = props.project.areaOfInterest && {
     type: 'FeatureCollection',
     features: [
       {
@@ -37,10 +37,12 @@ const ProjectDetailMap = (props) => {
       },
     ],
   };
-  var centroidGeoJSON = props.project.areaOfInterest && {
+
+  const centroidGeoJSON = props.project.areaOfInterest && {
     type: 'FeatureCollection',
     features: [centroid(props.project.areaOfInterest)],
   };
+
   return (
     <div className="relative">
       {
@@ -61,9 +63,9 @@ const ProjectDetailMap = (props) => {
         loading={props.projectLoading}
         className="dib w-100 fl vh-75"
       />
-      {taskBordersOnly && (
+      {taskBordersOnly && supported() && (
         <div className="cf left-1 top-1 absolute">
-          <div className="cf ttu bg-white barlow-condensed f4 pv2">
+          <div className="cf bg-white f4 pv2">
             <span onClick={(e) => setTaskBordersOnly(false)} className="pb2 mh2 pointer ph2">
               <FormattedMessage {...messages.zoomToTasks} />
             </span>
@@ -80,7 +82,7 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }: Ob
 
   return (
     <div className={`${className}`}>
-      <div className="h-75 z-1">
+      <div className="z-1">
         <ReactPlaceholder
           showLoadingAnimation={true}
           rows={10}
@@ -102,7 +104,7 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }: Ob
       </div>
 
       <div
-        className="cf ph4-l ph2 pb3 w-100 h-25 z-2 absolute bottom-0 left-0 bg-white"
+        className="cf ph4-l ph2 pb3 w-100 z-2 absolute bottom-0 left-0 bg-white"
         style={{ minHeight: '10rem' }}
       >
         <ProjectInfoPanel
@@ -118,7 +120,6 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }: Ob
 
 export const ProjectDetail = (props) => {
   useSetProjectPageTitleTag(props.project);
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
   /* eslint-disable-next-line */
   const [visualError, visualLoading, visualData] = useFetch(
     `projects/${props.project.projectId}/contributions/queries/day/`,
@@ -140,7 +141,7 @@ export const ProjectDetail = (props) => {
   );
 
   return (
-    <div className={`${props.className || 'bg-white blue-dark'}`}>
+    <div className={`${props.className || 'bg-white blue-dark'} db-${props.project.database}`}>
       <div className="bb b--grey-light">
         <div className="cf">
           <ProjectDetailLeft
@@ -256,7 +257,7 @@ export const ProjectDetail = (props) => {
       <h3 className={`${h2Classes} mv0 pv4 bg-tan`}>
         <FormattedMessage {...messages.questionsAndComments} />
       </h3>
-      <QuestionsAndComments projectId={props.project.projectId} />
+      <QuestionsAndComments projectId={props.project.projectId} contributors={contributors} />
 
       <a href="#contributions" name="contributions" style={{ visibility: 'hidden' }}>
         <FormattedMessage {...messages.contributors} />
@@ -320,20 +321,14 @@ export const ProjectDetail = (props) => {
               className="bg-white blue-dark ba b--grey-light pa3"
             />
           </span>
-          {userDetails && userDetails.isExpert ? (
-            <>
-              <DownloadAOIButton
-                projectId={props.project.projectId}
-                className="bg-white blue-dark ba b--grey-light pa3"
-              />
-              <DownloadTaskGridButton
-                projectId={props.project.projectId}
-                className="bg-white blue-dark ba b--grey-light pa3"
-              />
-            </>
-          ) : (
-            ''
-          )}
+          <DownloadAOIButton
+            projectId={props.project.projectId}
+            className="bg-white blue-dark ba b--grey-light pa3"
+          />
+          <DownloadTaskGridButton
+            projectId={props.project.projectId}
+            className="bg-white blue-dark ba b--grey-light pa3"
+          />
         </ReactPlaceholder>
       </div>
     </div>

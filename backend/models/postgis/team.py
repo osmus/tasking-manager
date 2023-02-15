@@ -8,6 +8,7 @@ from backend.models.dtos.team_dto import (
 from backend.models.dtos.organisation_dto import OrganisationTeamsDTO
 from backend.models.postgis.organisation import Organisation
 from backend.models.postgis.statuses import (
+    TeamJoinMethod,
     TeamVisibility,
     TeamMemberFunctions,
     TeamRoles,
@@ -26,7 +27,9 @@ class TeamMembers(db.Model):
     )
     function = db.Column(db.Integer, nullable=False)  # either 'editor' or 'manager'
     active = db.Column(db.Boolean, default=False)
-
+    join_request_notifications = db.Column(
+        db.Boolean, nullable=False, default=False
+    )  # Managers can turn notifications on/off for team join requests
     member = db.relationship(
         User, backref=db.backref("teams", cascade="all, delete-orphan")
     )
@@ -44,6 +47,15 @@ class TeamMembers(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def update(self):
+        """ Updates the current model in the DB """
+        db.session.commit()
+
+    @staticmethod
+    def get(team_id: int, user_id: int):
+        """ Returns a team member by team_id and user_id """
+        return TeamMembers.query.filter_by(team_id=team_id, user_id=user_id).first()
+
 
 class Team(db.Model):
     """ Describes a team """
@@ -60,7 +72,9 @@ class Team(db.Model):
     name = db.Column(db.String(512), nullable=False)
     logo = db.Column(db.String)  # URL of a logo
     description = db.Column(db.String)
-    invite_only = db.Column(db.Boolean, default=False, nullable=False)
+    join_method = db.Column(
+        db.Integer, default=TeamJoinMethod.ANY.value, nullable=False
+    )
     visibility = db.Column(
         db.Integer, default=TeamVisibility.PUBLIC.value, nullable=False
     )
@@ -79,7 +93,7 @@ class Team(db.Model):
 
         new_team.name = new_team_dto.name
         new_team.description = new_team_dto.description
-        new_team.invite_only = new_team_dto.invite_only
+        new_team.join_method = TeamJoinMethod[new_team_dto.join_method].value
         new_team.visibility = TeamVisibility[new_team_dto.visibility].value
 
         org = Organisation.get(new_team_dto.organisation_id)
@@ -107,6 +121,8 @@ class Team(db.Model):
         for attr, value in team_dto.items():
             if attr == "visibility" and value is not None:
                 value = TeamVisibility[team_dto.visibility].value
+            if attr == "join_method" and value is not None:
+                value = TeamJoinMethod[team_dto.join_method].value
 
             if attr in ("members", "organisation"):
                 continue
@@ -122,18 +138,25 @@ class Team(db.Model):
 
         if team_dto.members != self._get_team_members() and team_dto.members:
             for member in self.members:
-                db.session.delete(member)
-
+                member_name = User.get_by_id(member.user_id).username
+                if member_name not in [i["username"] for i in team_dto.members]:
+                    member.delete()
             for member in team_dto.members:
-                user = User.get_by_username(member["userName"])
-
+                user = User.get_by_username(member["username"])
                 if user is None:
                     raise NotFound("User not found")
-
-                new_team_member = TeamMembers()
-                new_team_member.team = self
-                new_team_member.member = user
-                new_team_member.function = TeamMemberFunctions[member["function"]].value
+                team_member = TeamMembers.get(self.id, user.id)
+                if team_member:
+                    team_member.join_request_notifications = member[
+                        "join_request_notifications"
+                    ]
+                else:
+                    new_team_member = TeamMembers()
+                    new_team_member.team = self
+                    new_team_member.member = user
+                    new_team_member.function = TeamMemberFunctions[
+                        member["function"]
+                    ].value
 
         db.session.commit()
 
@@ -167,7 +190,7 @@ class Team(db.Model):
         team_dto = TeamDTO()
         team_dto.team_id = self.id
         team_dto.description = self.description
-        team_dto.invite_only = self.invite_only
+        team_dto.join_method = TeamJoinMethod(self.join_method).name
         team_dto.members = self._get_team_members()
         team_dto.name = self.name
         team_dto.organisation = self.organisation.name
@@ -182,7 +205,7 @@ class Team(db.Model):
         team_dto.team_id = self.id
         team_dto.name = self.name
         team_dto.description = self.description
-        team_dto.invite_only = self.invite_only
+        team_dto.join_method = TeamJoinMethod(self.join_method).name
         team_dto.members = self._get_team_members()
         team_dto.visibility = TeamVisibility(self.visibility).name
         return team_dto
@@ -196,6 +219,7 @@ class Team(db.Model):
         member_dto.function = member_function
         member_dto.picture_url = user.picture_url
         member_dto.active = member.active
+        member_dto.join_request_notifications = member.join_request_notifications
         return member_dto
 
     def as_dto_team_project(self, project) -> TeamProjectDTO:

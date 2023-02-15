@@ -9,7 +9,11 @@ from schematics.types import (
     DictType,
 )
 
-from backend.models.postgis.statuses import OrganisationType
+from backend.models.dtos.stats_dto import OrganizationStatsDTO
+from backend.models.postgis.statuses import (
+    OrganisationType,
+    ProjectDatabase
+)
 
 
 def is_known_organisation_type(value):
@@ -20,6 +24,19 @@ def is_known_organisation_type(value):
         raise ValidationError(
             f"Unknown organisationType: {value}. Valid values are {OrganisationType.FREE.name}, "
             f"{OrganisationType.DISCOUNTED.name}, {OrganisationType.FULL_FEE.name}"
+        )
+
+def is_known_database_type(value):
+    """ Validates database is known value"""
+    if type(value) == list:
+        return  # Don't validate the entire list, just the individual values
+
+    try:
+        ProjectDatabase[value.upper()]
+    except KeyError:
+        raise ValidationError(
+            f"Unknown database: {value} Valid values are {ProjectDatabase.OSM.name}, "
+            f"{ProjectDatabase.PDMAP.name}"
         )
 
 
@@ -36,7 +53,7 @@ class OrganisationTeamsDTO(Model):
     team_id = IntType(serialized_name="teamId")
     name = StringType(required=True)
     description = StringType()
-    invite_only = BooleanType(default=False, serialized_name="inviteOnly")
+    join_method = StringType(required=True, serialized_name="joinMethod")
     visibility = StringType()
     members = ListType(DictType(StringType, serialize_when_none=False))
 
@@ -55,8 +72,15 @@ class OrganisationDTO(Model):
     projects = ListType(StringType, serialize_when_none=False)
     teams = ListType(ModelType(OrganisationTeamsDTO))
     campaigns = ListType(ListType(StringType))
+    stats = ModelType(OrganizationStatsDTO, serialize_when_none=False)
     type = StringType(validators=[is_known_organisation_type])
     subscription_tier = IntType(serialized_name="subscriptionTier")
+    databases = ListType(
+        StringType,
+        serialized_name="databases",
+        default=[],
+        validators=[is_known_database_type],
+    )
 
 
 class ListOrganisationsDTO(Model):
@@ -79,6 +103,12 @@ class NewOrganisationDTO(Model):
     url = StringType()
     type = StringType(validators=[is_known_organisation_type])
     subscription_tier = IntType(serialized_name="subscriptionTier")
+    databases = ListType(
+        StringType,
+        serialized_name="databases",
+        default=[],
+        validators=[is_known_database_type],
+    )
 
 
 class UpdateOrganisationDTO(OrganisationDTO):
@@ -91,3 +121,5 @@ class UpdateOrganisationDTO(OrganisationDTO):
     description = StringType()
     url = StringType()
     type = StringType(validators=[is_known_organisation_type])
+    databases = ListType(StringType, validators=[is_known_database_type])
+

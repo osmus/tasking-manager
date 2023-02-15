@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
 
-export const NotFound = props => {
+export const NotFound = (props) => {
+  useEffect(() => {
+    // eslint-disable-next-line
+    if (opener.authComplete) {
+      // eslint-disable-next-line
+      opener.authComplete(window.location.href);
+      window.close();
+    }
+  }, []);
   return (
     <div className="cf w-100 pv5">
       <div className="tc">

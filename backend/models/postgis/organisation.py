@@ -1,5 +1,7 @@
 from slugify import slugify
 
+from sqlalchemy.dialects.postgresql import ARRAY
+
 from backend import db
 from backend.models.dtos.organisation_dto import (
     OrganisationDTO,
@@ -9,7 +11,10 @@ from backend.models.dtos.organisation_dto import (
 from backend.models.postgis.user import User
 from backend.models.postgis.campaign import Campaign, campaign_organisations
 from backend.models.postgis.utils import NotFound
-from backend.models.postgis.statuses import OrganisationType
+from backend.models.postgis.statuses import (
+    OrganisationType,
+    ProjectDatabase
+)
 
 
 # Secondary table defining many-to-many relationship between organisations and managers
@@ -43,6 +48,8 @@ class Organisation(db.Model):
     type = db.Column(db.Integer, default=OrganisationType.FREE.value, nullable=False)
     subscription_tier = db.Column(db.Integer)
 
+    databases = db.Column(ARRAY(db.Integer))
+
     managers = db.relationship(
         User,
         secondary=organisation_managers,
@@ -57,6 +64,9 @@ class Organisation(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    def save(self):
+        db.session.commit()
+
     @classmethod
     def create_from_dto(cls, new_organisation_dto: NewOrganisationDTO):
         """ Creates a new organisation from a DTO """
@@ -69,6 +79,7 @@ class Organisation(db.Model):
         new_org.url = new_organisation_dto.url
         new_org.type = OrganisationType[new_organisation_dto.type].value
         new_org.subscription_tier = new_organisation_dto.subscription_tier
+        new_org.databases = new_organisation_dto.databases
 
         for manager in new_organisation_dto.managers:
             user = User.get_by_username(manager)
@@ -85,6 +96,11 @@ class Organisation(db.Model):
         """ Updates Organisation from DTO """
 
         for attr, value in organisation_dto.items():
+            if attr == "databases" and value is not None:
+                db_array = []
+                for db_name in organisation_dto.databases:
+                    db_array.append(ProjectDatabase[db_name].value)
+                value = db_array
             if attr == "type" and value is not None:
                 value = OrganisationType[organisation_dto.type].value
             if attr == "managers":
@@ -177,6 +193,11 @@ class Organisation(db.Model):
         organisation_dto.managers = []
         organisation_dto.type = OrganisationType(self.type).name
         organisation_dto.subscription_tier = self.subscription_tier
+
+        db_array = []
+        for db in self.databases:
+            db_array.append(ProjectDatabase(db).name)
+        organisation_dto.databases = db_array
 
         if omit_managers:
             return organisation_dto

@@ -40,7 +40,7 @@ describe('Licenses Management', () => {
   it('renders all licenses and button to add a new license', () => {
     const { container } = render(
       <IntlProviders>
-        <LicensesManagement licenses={licenses} />
+        <LicensesManagement licenses={licenses} isLicensesFetched={true} />
       </IntlProviders>,
     );
     expect(container.querySelector('h3').innerHTML).toBe('Manage Licenses');
@@ -52,6 +52,18 @@ describe('Licenses Management', () => {
     expect(license1.closest('a').href).toContain('/1');
     const license2 = screen.getByText(/NextView/);
     expect(license2.closest('a').href).toContain('/2');
+  });
+
+  it('renders placeholder and not licenses when API is being fetched', () => {
+    const { container } = render(
+      <IntlProviders>
+        <LicensesManagement licenses={licenses} isLicensesFetched={false} />
+      </IntlProviders>,
+    );
+    expect(screen.queryByText(/HOT Licence/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/NextView/)).not.toBeInTheDocument();
+    expect(container.querySelectorAll('svg').length).toBe(5); // 4 plus the new icon svg
+    expect(container.querySelector('.show-loading-animation')).toBeInTheDocument();
   });
 });
 
@@ -110,5 +122,29 @@ describe('LicenseForm', () => {
     expect(inputs[1].value).toBe('');
     expect(inputs[2].name).toBe('plainText');
     expect(inputs[2].value).toBe('');
+  });
+
+  it('filters interests list by the search query', async () => {
+    render(
+      <IntlProviders>
+        <LicensesManagement licenses={licenses} isLicensesFetched={true} />
+      </IntlProviders>,
+    );
+    const textField = screen.getByRole('textbox');
+
+    expect(textField).toBeInTheDocument();
+    fireEvent.change(textField, {
+      target: {
+        value: 'HOT',
+      },
+    });
+    expect(screen.getByText(/HOT Licence/i)).toBeInTheDocument();
+    expect(screen.queryByText(/NextView 1/i)).not.toBeInTheDocument();
+    fireEvent.change(textField, {
+      target: {
+        value: 'not HOT',
+      },
+    });
+    expect(screen.queryByText('There are no licenses yet.')).toBeInTheDocument();
   });
 });

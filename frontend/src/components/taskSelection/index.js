@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useLocation } from '@reach/router';
 import { useSelector, useDispatch } from 'react-redux';
 import { useQueryParam, StringParam } from 'use-query-params';
 import Popup from 'reactjs-popup';
@@ -43,8 +44,9 @@ const getRandomTaskByAction = (activities, taskAction) => {
 };
 
 export function TaskSelection({ project, type, loading }: Object) {
-  const user = useSelector((state) => state.auth.get('userDetails'));
-  const userOrgs = useSelector((state) => state.auth.get('organisations'));
+  const location = useLocation();
+  const user = useSelector((state) => state.auth.userDetails);
+  const userOrgs = useSelector((state) => state.auth.organisations);
   const lockedTasks = useGetLockedTasks();
   const dispatch = useDispatch();
   const [tasks, setTasks] = useState();
@@ -90,6 +92,14 @@ export function TaskSelection({ project, type, loading }: Object) {
         .catch((e) => console.log(e));
     }
   }, []);
+
+  useEffect(() => {
+    const { lastLockedTasksIds, lastLockedProjectId } = location.state || {};
+    if (lastLockedTasksIds && lastLockedProjectId === project.projectId) {
+      setZoomedTaskId(lastLockedTasksIds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project]);
 
   // fetch activities and contributions when the component is started
   useEffect(() => {
@@ -244,11 +254,9 @@ export function TaskSelection({ project, type, loading }: Object) {
           setSelectedTasks(selected.concat([selection]));
         } else {
           setSelectedTasks([selection]);
-          if (lockedTasks.get('tasks').includes(selection)) {
+          if (lockedTasks.tasks.includes(selection)) {
             setTaskAction(
-              lockedTasks.get('status') === 'LOCKED_FOR_MAPPING'
-                ? 'resumeMapping'
-                : 'resumeValidation',
+              lockedTasks.status === 'LOCKED_FOR_MAPPING' ? 'resumeMapping' : 'resumeValidation',
             );
           } else {
             setTaskAction(getTaskAction(user, project, status, userTeams.teams, userOrgs));
@@ -271,7 +279,7 @@ export function TaskSelection({ project, type, loading }: Object) {
   }
 
   return (
-    <div>
+    <div className={`cf vh-minus-200-ns db-${project.database}`}>
       <div className="cf vh-minus-200-ns">
         {!userTeamsLoading && ['mappingIsComplete', 'selectAnotherProject'].includes(taskAction) && (
           <Popup modal open closeOnEscape={true} closeOnDocumentClick={true}>
@@ -284,15 +292,15 @@ export function TaskSelection({ project, type, loading }: Object) {
             )}
           </Popup>
         )}
-        <div className="w-100 w-50-ns fl pt3 overflow-y-scroll-ns vh-minus-200-ns h-100">
-          <div className="pl4-l pl2 pr2">
+        <div className="w-100 w-50-ns fl pt3 overflow-y-auto-ns vh-minus-200-ns h-100">
+          <div className="pl4-l pl2 pr4">
             <ReactPlaceholder
               showLoadingAnimation={true}
               rows={3}
               ready={typeof project.projectId === 'number' && project.projectId > 0}
             >
               <ProjectHeader project={project} />
-              <div className="cf">
+              <div className="mt3">
                 <TabSelector activeSection={activeSection} setActiveSection={setActiveSection} />
                 <div className="pt3">
                   <div className={`${activeSection !== 'tasks' ? 'dn' : ''}`}>
@@ -313,6 +321,7 @@ export function TaskSelection({ project, type, loading }: Object) {
                     <>
                       <ProjectInstructions
                         instructions={project.projectInfo && project.projectInfo.instructions}
+                        isProjectArchived={project.status === 'ARCHIVED'}
                       />
                       <ChangesetCommentTags tags={project.changesetComment} />
                     </>

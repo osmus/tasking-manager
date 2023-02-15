@@ -12,6 +12,10 @@ export default defineMessages({
     id: 'project.nav.mappingDifficulty',
     defaultMessage: 'Difficulty level',
   },
+  database: {
+    id: 'project.nav.database',
+    defaultMessage: 'Database',
+  },
   moreFilters: {
     id: 'project.nav.moreFilters',
     defaultMessage: 'More filters',
@@ -35,6 +39,38 @@ export default defineMessages({
   endDatePlaceholder: {
     id: 'navFilters.endDatePlace.placeholder',
     defaultMessage: 'Click to select an end date',
+  },
+  dateRange: {
+    id: 'navFilters.dateRange',
+    defaultMessage: 'Date Range',
+  },
+  thisWeek: {
+    id: 'navFilters.thisWeek',
+    defaultMessage: 'This week',
+  },
+  thisMonth: {
+    id: 'navFilters.thisMonth',
+    defaultMessage: 'This month',
+  },
+  thisYear: {
+    id: 'navFilters.thisYear',
+    defaultMessage: 'This year',
+  },
+  lastWeek: {
+    id: 'navFilters.lastWeek',
+    defaultMessage: 'Last week',
+  },
+  lastMonth: {
+    id: 'navFilters.lastMonth',
+    defaultMessage: 'Last month',
+  },
+  lastYear: {
+    id: 'navFilters.lastYear',
+    defaultMessage: 'Last year',
+  },
+  customRange: {
+    id: 'navFilters.customRange',
+    defaultMessage: 'Custom range',
   },
   showMapToggle: {
     id: 'project.nav.showMapToggle',
@@ -92,6 +128,14 @@ export default defineMessages({
     id: 'project.navFilters.locations',
     defaultMessage: 'Locations',
   },
+  interest: {
+    id: 'project.navFilters.interest',
+    defaultMessage: 'Interest',
+  },
+  interests: {
+    id: 'project.navFilters.interests',
+    defaultMessage: 'Interests',
+  },
   errorLoadingTheXForY: {
     id: 'project.navFilters.error',
     defaultMessage: 'Error loading the {xWord} for {yWord}',
@@ -128,6 +172,10 @@ export default defineMessages({
     id: 'project.nav.active',
     defaultMessage: 'Active',
   },
+  stale: {
+    id: 'project.nav.stale',
+    defaultMessage: 'Stale',
+  },
   managed: {
     id: 'project.nav.managed',
     defaultMessage: 'Managed by me',
@@ -146,7 +194,7 @@ export default defineMessages({
   },
   paginationCount: {
     id: 'project.pagination.count',
-    defaultMessage: 'Showing {number} of {total}',
+    defaultMessage: 'Showing {number} of {total} projects',
   },
   clearFilters: {
     id: 'project.nav.clearFilters',
@@ -168,13 +216,13 @@ export default defineMessages({
     id: 'project.sortby.priority',
     defaultMessage: 'Urgent projects',
   },
-  sortByBeginner: {
-    id: 'project.sortby.difficulty.beginner',
-    defaultMessage: 'Beginner projects',
+  sortByEasy: {
+    id: 'project.sortby.difficulty.easy',
+    defaultMessage: 'Easy projects',
   },
-  sortByAdvanced: {
-    id: 'project.sortby.difficulty.advanced',
-    defaultMessage: 'Advanced projects',
+  sortByChallenging: {
+    id: 'project.sortby.difficulty.challenging',
+    defaultMessage: 'Challenging projects',
   },
   sortByMoreActive: {
     id: 'project.sortby.more_active',

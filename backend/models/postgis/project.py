@@ -36,9 +36,9 @@ from backend.models.postgis.priority_area import PriorityArea, project_priority_
 from backend.models.postgis.project_info import ProjectInfo
 from backend.models.postgis.project_chat import ProjectChat
 from backend.models.postgis.statuses import (
+    ProjectDatabase,
     ProjectStatus,
     ProjectPriority,
-    MappingLevel,
     TaskStatus,
     MappingTypes,
     TaskCreationMode,
@@ -46,6 +46,7 @@ from backend.models.postgis.statuses import (
     TeamRoles,
     MappingPermission,
     ValidationPermission,
+    ProjectDifficulty,
 )
 from backend.models.postgis.task import Task, TaskHistory
 from backend.models.postgis.team import Team
@@ -93,16 +94,16 @@ class ProjectTeams(db.Model):
     )
 
     def create(self):
-        """ Creates and saves the current model to the DB """
+        """Creates and saves the current model to the DB"""
         db.session.add(self)
         db.session.commit()
 
     def save(self):
-        """ Save changes to db"""
+        """Save changes to db"""
         db.session.commit()
 
     def delete(self):
-        """ Deletes the current model from the DB """
+        """Deletes the current model from the DB"""
         db.session.delete(self)
         db.session.commit()
 
@@ -112,12 +113,13 @@ active_mappers_cache = TTLCache(maxsize=1024, ttl=30)
 
 
 class Project(db.Model):
-    """ Describes a HOT Mapping Project """
+    """Describes a HOT Mapping Project"""
 
     __tablename__ = "projects"
 
     # Columns
     id = db.Column(db.Integer, primary_key=True)
+    database = db.Column(db.Integer, default=ProjectDatabase.OSM.value, nullable=False)
     status = db.Column(db.Integer, default=ProjectStatus.DRAFT.value, nullable=False)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     priority = db.Column(db.Integer, default=ProjectPriority.MEDIUM.value)
@@ -127,12 +129,12 @@ class Project(db.Model):
     author_id = db.Column(
         db.BigInteger, db.ForeignKey("users.id", name="fk_users"), nullable=False
     )
-    mapper_level = db.Column(
+    difficulty = db.Column(
         db.Integer, default=2, nullable=False, index=True
     )  # Mapper level project is suitable for
     mapping_permission = db.Column(db.Integer, default=MappingPermission.ANY.value)
     validation_permission = db.Column(
-        db.Integer, default=ValidationPermission.ANY.value
+        db.Integer, default=ValidationPermission.LEVEL.value
     )  # Means only users with validator role can validate
     enforce_random_task_selection = db.Column(
         db.Boolean, default=False
@@ -149,7 +151,10 @@ class Project(db.Model):
     imagery = db.Column(db.String)
     josm_preset = db.Column(db.String)
     id_presets = db.Column(ARRAY(db.String))
+    extra_id_params = db.Column(db.String)
+    rapid_power_user = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=timestamp)
+    progress_email_sent = db.Column(db.Boolean, default=False)
     license_id = db.Column(db.Integer, db.ForeignKey("licenses.id", name="fk_licenses"))
     geometry = db.Column(Geometry("MULTIPOLYGON", srid=4326), nullable=False)
     centroid = db.Column(Geometry("POINT", srid=4326), nullable=False)
@@ -209,7 +214,9 @@ class Project(db.Model):
         cascade="all, delete-orphan",
         single_parent=True,
     )
-    custom_editor = db.relationship(CustomEditor, uselist=False)
+    custom_editor = db.relationship(
+        CustomEditor, cascade="all, delete-orphan", uselist=False
+    )
     favorited = db.relationship(User, secondary=project_favorites, backref="favorites")
     organisation = db.relationship(Organisation, backref="projects")
     campaign = db.relationship(
@@ -229,12 +236,16 @@ class Project(db.Model):
             ProjectInfo.create_from_name(draft_project_dto.project_name)
         )
         self.organisation = draft_project_dto.organisation
+
+        if draft_project_dto.database is not None:
+            self.database = ProjectDatabase[draft_project_dto.database].value
+
         self.status = ProjectStatus.DRAFT.value
         self.author_id = draft_project_dto.user_id
         self.last_updated = timestamp()
 
     def set_project_aoi(self, draft_project_dto: DraftProjectDTO):
-        """ Sets the AOI for the supplied project """
+        """Sets the AOI for the supplied project"""
         aoi_geojson = geojson.loads(json.dumps(draft_project_dto.area_of_interest))
 
         aoi_geometry = GridService.merge_to_multi_polygon(aoi_geojson, dissolve=True)
@@ -244,7 +255,7 @@ class Project(db.Model):
         self.centroid = ST_Centroid(self.geometry)
 
     def set_default_changeset_comment(self):
-        """ Sets the default changeset comment"""
+        """Sets the default changeset comment"""
         default_comment = current_app.config["DEFAULT_CHANGESET_COMMENT"]
         self.changeset_comment = (
             f"{default_comment}-{self.id} {self.changeset_comment}"
@@ -254,7 +265,7 @@ class Project(db.Model):
         self.save()
 
     def set_country_info(self):
-        """ Sets the default country based on centroid"""
+        """Sets the default country based on centroid"""
 
         centroid = to_shape(self.centroid)
         lat, lng = (centroid.y, centroid.x)
@@ -271,17 +282,17 @@ class Project(db.Model):
         self.save()
 
     def create(self):
-        """ Creates and saves the current model to the DB """
+        """Creates and saves the current model to the DB"""
         db.session.add(self)
         db.session.commit()
 
     def save(self):
-        """ Save changes to db"""
+        """Save changes to db"""
         db.session.commit()
 
     @staticmethod
     def clone(project_id: int, author_id: int):
-        """ Clone project """
+        """Clone project"""
 
         orig = Project.query.get(project_id)
         if orig is None:
@@ -343,7 +354,8 @@ class Project(db.Model):
         for field in ["interests", "campaign"]:
             value = getattr(orig, field)
             setattr(new_proj, field, value)
-        new_proj.custom_editor = orig.custom_editor
+        if orig.custom_editor:
+            new_proj.custom_editor = orig.custom_editor.clone_to_project(new_proj.id)
 
         return new_proj
 
@@ -359,22 +371,26 @@ class Project(db.Model):
         ).get(project_id)
 
     def update(self, project_dto: ProjectDTO):
-        """ Updates project from DTO """
+        """Updates project from DTO"""
+        self.database = ProjectDatabase[project_dto.database].value
         self.status = ProjectStatus[project_dto.project_status].value
         self.priority = ProjectPriority[project_dto.project_priority].value
-        if self.default_locale != project_dto.default_locale:
+        locales = [i.locale for i in project_dto.project_info_locales]
+        if project_dto.default_locale not in locales:
             new_locale_dto = ProjectInfoDTO()
             new_locale_dto.locale = project_dto.default_locale
             project_dto.project_info_locales.append(new_locale_dto)
         self.default_locale = project_dto.default_locale
         self.enforce_random_task_selection = project_dto.enforce_random_task_selection
         self.private = project_dto.private
-        self.mapper_level = MappingLevel[project_dto.mapper_level.upper()].value
+        self.difficulty = ProjectDifficulty[project_dto.difficulty.upper()].value
         self.changeset_comment = project_dto.changeset_comment
         self.due_date = project_dto.due_date
         self.imagery = project_dto.imagery
         self.josm_preset = project_dto.josm_preset
         self.id_presets = project_dto.id_presets
+        self.extra_id_params = project_dto.extra_id_params
+        self.rapid_power_user = project_dto.rapid_power_user
         self.last_updated = timestamp()
         self.license_id = project_dto.license_id
 
@@ -497,7 +513,7 @@ class Project(db.Model):
         db.session.commit()
 
     def delete(self):
-        """ Deletes the current model from the DB """
+        """Deletes the current model from the DB"""
         db.session.delete(self)
         db.session.commit()
 
@@ -522,24 +538,24 @@ class Project(db.Model):
     def unfavorite(self, user_id: int):
         user = User.query.get(user_id)
         if user not in self.favorited:
-            raise ValueError("Project not been favorited by user")
+            raise ValueError("NotFeatured- Project not been favorited by user")
         self.favorited.remove(user)
         db.session.commit()
 
     def set_as_featured(self):
         if self.featured is True:
-            raise ValueError("Project is already featured")
+            raise ValueError("AlreadyFeatured- Project is already featured")
         self.featured = True
         db.session.commit()
 
     def unset_as_featured(self):
         if self.featured is False:
-            raise ValueError("Project is not featured")
+            raise ValueError("NotFeatured- Project is not featured")
         self.featured = False
         db.session.commit()
 
     def can_be_deleted(self) -> bool:
-        """ Projects can be deleted if they have no mapped work """
+        """Projects can be deleted if they have no mapped work"""
         task_count = self.tasks.filter(
             Task.task_status != TaskStatus.READY.value
         ).count()
@@ -552,7 +568,7 @@ class Project(db.Model):
     def get_projects_for_admin(
         admin_id: int, preferred_locale: str, search_dto: ProjectSearchDTO
     ) -> PMDashboardDTO:
-        """ Get projects for admin """
+        """Get projects for admin"""
         query = Project.query.filter(Project.author_id == admin_id)
         # Do Filtering Here
 
@@ -635,7 +651,7 @@ class Project(db.Model):
         return stats_dto
 
     def get_project_stats(self) -> ProjectStatsDTO:
-        """ Create Project Stats model for postgis project object"""
+        """Create Project Stats model for postgis project object"""
         project_stats = ProjectStatsDTO()
         project_stats.project_id = self.id
         project_area_sql = "select ST_Area(geometry, true)/1000000 as area from public.projects where id = :id"
@@ -811,7 +827,7 @@ class Project(db.Model):
         return project_stats
 
     def get_project_summary(self, preferred_locale) -> ProjectSummary:
-        """ Create Project Summary model for postgis project object"""
+        """Create Project Summary model for postgis project object"""
         summary = ProjectSummary()
         summary.project_id = self.id
         priority = self.priority
@@ -831,7 +847,7 @@ class Project(db.Model):
         summary.created = self.created
         summary.last_updated = self.last_updated
         summary.osmcha_filter_id = self.osmcha_filter_id
-        summary.mapper_level = MappingLevel(self.mapper_level).name
+        summary.difficulty = ProjectDifficulty(self.difficulty).name
         summary.mapping_permission = MappingPermission(self.mapping_permission).name
         summary.validation_permission = ValidationPermission(
             self.validation_permission
@@ -839,8 +855,11 @@ class Project(db.Model):
         summary.random_task_selection_enforced = self.enforce_random_task_selection
         summary.private = self.private
         summary.license_id = self.license_id
+        summary.database = ProjectDatabase(self.database).name
         summary.status = ProjectStatus(self.status).name
         summary.id_presets = self.id_presets
+        summary.extra_id_params = self.extra_id_params
+        summary.rapid_power_user = self.rapid_power_user
         summary.imagery = self.imagery
         if self.organisation_id:
             summary.organisation = self.organisation_id
@@ -945,12 +964,12 @@ class Project(db.Model):
         return project_contributors_count
 
     def get_aoi_geometry_as_geojson(self):
-        """ Helper which returns the AOI geometry as a geojson object """
+        """Helper which returns the AOI geometry as a geojson object"""
         aoi_geojson = db.engine.execute(self.geometry.ST_AsGeoJSON()).scalar()
         return geojson.loads(aoi_geojson)
 
     def get_project_teams(self):
-        """ Helper to return teams with members so we can handle permissions """
+        """Helper to return teams with members so we can handle permissions"""
         project_teams = []
         for t in self.teams:
             project_teams.append(
@@ -966,7 +985,7 @@ class Project(db.Model):
     @staticmethod
     @cached(active_mappers_cache)
     def get_active_mappers(project_id) -> int:
-        """ Get count of Locked tasks as a proxy for users who are currently active on the project """
+        """Get count of Locked tasks as a proxy for users who are currently active on the project"""
 
         return (
             Task.query.filter(
@@ -983,9 +1002,10 @@ class Project(db.Model):
         )
 
     def _get_project_and_base_dto(self):
-        """ Populates a project DTO with properties common to all roles """
+        """Populates a project DTO with properties common to all roles"""
         base_dto = ProjectDTO()
         base_dto.project_id = self.id
+        base_dto.database= ProjectDatabase(self.database).name
         base_dto.project_status = ProjectStatus(self.status).name
         base_dto.default_locale = self.default_locale
         base_dto.project_priority = ProjectPriority(self.priority).name
@@ -997,13 +1017,15 @@ class Project(db.Model):
         ).name
         base_dto.enforce_random_task_selection = self.enforce_random_task_selection
         base_dto.private = self.private
-        base_dto.mapper_level = MappingLevel(self.mapper_level).name
+        base_dto.difficulty = ProjectDifficulty(self.difficulty).name
         base_dto.changeset_comment = self.changeset_comment
         base_dto.osmcha_filter_id = self.osmcha_filter_id
         base_dto.due_date = self.due_date
         base_dto.imagery = self.imagery
         base_dto.josm_preset = self.josm_preset
         base_dto.id_presets = self.id_presets
+        base_dto.extra_id_params = self.extra_id_params
+        base_dto.rapid_power_user = self.rapid_power_user
         base_dto.country_tag = self.country
         base_dto.organisation_id = self.organisation_id
         base_dto.license_id = self.license_id
@@ -1095,7 +1117,7 @@ class Project(db.Model):
     def as_dto_for_mapping(
         self, authenticated_user_id: int = None, locale: str = "en", abbrev: bool = True
     ) -> Optional[ProjectDTO]:
-        """ Creates a Project DTO suitable for transmitting to mapper users """
+        """Creates a Project DTO suitable for transmitting to mapper users"""
         project, project_dto = self._get_project_and_base_dto()
         if abbrev is False:
             project_dto.tasks = Task.get_tasks_as_geojson_feature_collection(
@@ -1120,7 +1142,7 @@ class Project(db.Model):
     def tasks_as_geojson(
         self, task_ids_str: str, order_by=None, order_by_type="ASC", status=None
     ):
-        """ Creates a geojson of all areas """
+        """Creates a geojson of all areas"""
         project_tasks = Task.get_tasks_as_geojson_feature_collection(
             self.id, task_ids_str, order_by, order_by_type, status
         )
@@ -1143,7 +1165,7 @@ class Project(db.Model):
     def calculate_tasks_percent(
         target, total_tasks, tasks_mapped, tasks_validated, tasks_bad_imagery
     ):
-        """ Calculates percentages of contributions """
+        """Calculates percentages of contributions"""
         try:
             if target == "mapped":
                 return int(
@@ -1155,11 +1177,19 @@ class Project(db.Model):
                 return int(tasks_validated / (total_tasks - tasks_bad_imagery) * 100)
             elif target == "bad_imagery":
                 return int((tasks_bad_imagery / total_tasks) * 100)
+            elif target == "project_completion":
+                # To calculate project completion we assign 2 points to each task
+                # one for mapping and one for validation
+                return int(
+                    (tasks_mapped + (tasks_validated * 2))
+                    / ((total_tasks - tasks_bad_imagery) * 2)
+                    * 100
+                )
         except ZeroDivisionError:
             return 0
 
     def as_dto_for_admin(self, project_id):
-        """ Creates a Project DTO suitable for transmitting to project admins """
+        """Creates a Project DTO suitable for transmitting to project admins"""
         project, project_dto = self._get_project_and_base_dto()
 
         if project is None:

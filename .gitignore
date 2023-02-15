@@ -12,9 +12,11 @@ frontend/.env
 frontend/.eslintcache
 frontend/coverage/
 
-# Ignore dist folder as this contains the minimized build for deploy
+# Don't ignore dist folder as this contains the minimized build for deploy
 #backend/web/static/dist
 #backend/web/static/dist/
+#server/web/static/dist
+#server/web/static/dist/
 
 # Ignore local logs
 logs/
@@ -46,3 +48,7 @@ ehthumbs.db
 Thumbs.db
 .elasticbeanstalk/
 venv_aws/
+
+# Backend coverage generated files
+htmlcov/
+.coverage

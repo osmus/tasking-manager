@@ -51,11 +51,22 @@ export const handleCheckButton = (event, arrayElement) => {
   return arrayElement;
 };
 
+const doesMappingTeamNotExist = (teams, mappingPermission) =>
+  ['TEAMS', 'TEAMS_LEVEL'].includes(mappingPermission) &&
+  teams.filter((team) => team.role === 'MAPPER').length === 0 &&
+  teams.filter((team) => team.role === 'VALIDATOR').length === 0 &&
+  teams.filter((team) => team.role === 'PROJECT_MANAGER').length === 0;
+
+const doesValidationTeamNotExist = (teams, validationPermission) =>
+  ['TEAMS', 'TEAMS_LEVEL'].includes(validationPermission) &&
+  teams.filter((team) => team.role === 'VALIDATOR').length === 0 &&
+  teams.filter((team) => team.role === 'PROJECT_MANAGER').length === 0;
+
 export default function ProjectEdit({ id }) {
   useSetTitleTag(`Edit project #${id}`);
   const [errorLanguages, loadingLanguages, languages] = useFetch('system/languages/');
   const mandatoryFields = ['name', 'shortDescription', 'description', 'instructions'];
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [option, setOption] = useState('description');
@@ -75,6 +86,7 @@ export default function ProjectEdit({ id }) {
         perTaskInstructions: '',
       },
     ],
+    rapidPowerUser: false,
   });
   const [userCanEditProject] = useEditProjectAllowed(projectInfo);
   const supportedLanguages =
@@ -120,10 +132,32 @@ export default function ProjectEdit({ id }) {
 
     const nonLocaleMissingFields = [];
     if (projectInfo.mappingTypes.length === 0) nonLocaleMissingFields.push('mappingTypes');
+    const { mappingEditors, validationEditors, customEditor } = projectInfo;
+    if (
+      (mappingEditors.filter((editor) => editor !== 'CUSTOM').length === 0 &&
+        mappingEditors.includes('CUSTOM') &&
+        customEditor === undefined) ||
+      mappingEditors.length === 0
+    )
+      nonLocaleMissingFields.push('noMappingEditor');
+    if (
+      (validationEditors.filter((editor) => editor !== 'CUSTOM').length === 0 &&
+        validationEditors.includes('CUSTOM') &&
+        customEditor === undefined) ||
+      validationEditors.length === 0
+    )
+      nonLocaleMissingFields.push('noValidationEditor');
     if (!projectInfo.organisation) nonLocaleMissingFields.push('organisation');
 
     if (nonLocaleMissingFields.length) {
       missingFields.push({ locale: null, fields: nonLocaleMissingFields });
+    }
+    const { teams, mappingPermission, validationPermission } = projectInfo;
+    if (
+      doesMappingTeamNotExist(teams, mappingPermission) ||
+      doesValidationTeamNotExist(teams, validationPermission)
+    ) {
+      missingFields.push({ type: 'noTeamsAssigned' });
     }
 
     if (missingFields.length > 0) {
@@ -158,7 +192,7 @@ export default function ProjectEdit({ id }) {
 
   const renderList = () => {
     const checkSelected = (optionSelected) => {
-      let liClass = 'w-90 link barlow-condensed f4 fw5 pv3 pl2 pointer';
+      let liClass = 'w-90 link f4 fw5 pv3 pl2 pointer';
       if (option === optionSelected) {
         liClass = liClass.concat(' fw6 bg-grey-light');
       }
@@ -179,7 +213,7 @@ export default function ProjectEdit({ id }) {
 
     return (
       <div>
-        <ul className="list pl0 mt0 ttu">
+        <ul className="list pl0 mt0">
           {elements.map((elm, n) => (
             <li key={n} className={checkSelected(elm.value)} onClick={() => setOption(elm.value)}>
               <FormattedMessage {...messages[`projectEditSection_${elm.value}`]} />
@@ -214,6 +248,7 @@ export default function ProjectEdit({ id }) {
           <ActionsForm
             projectId={projectInfo.projectId}
             projectName={projectInfo.projectInfo.name}
+            orgId={projectInfo.organisation}
           />
         );
       case 'custom_editor':
@@ -229,11 +264,11 @@ export default function ProjectEdit({ id }) {
   };
 
   return (
-    <div className="cf pv3 blue-dark">
+    <div className={`cf pv3 blue-dark db-${projectInfo.database}`}>
       <h2 className="pb2 f2 fw6 mt2 mb3 ttu barlow-condensed blue-dark">
         <FormattedMessage {...messages.editProject} />
       </h2>
-      <div className="fl w-30-l w-100 ph0-ns ph4-m ph2 pb4">
+      <div className="fl w-30-l w-100 ph0-ns ph4-m ph2 pb4 sticky-top-l">
         <ReactPlaceholder
           showLoadingAnimation={true}
           rows={8}
@@ -249,7 +284,9 @@ export default function ProjectEdit({ id }) {
             <FormattedMessage {...messages.save} />
           </Button>
           <div style={{ minHeight: '3rem' }}>
-            {(error || success) && <SaveStatus error={error} success={success} />}
+            {(error || success) && (
+              <SaveStatus error={error} success={success} projectInfo={projectInfo} />
+            )}
           </div>
           <span className="db">
             <Dropdown
@@ -301,7 +338,21 @@ export default function ProjectEdit({ id }) {
   );
 }
 
-const ErrorTitle = ({ locale, numberOfMissingFields }) => {
+const ErrorTitle = ({ locale, numberOfMissingFields, type, projectInfo }) => {
+  if (type === 'noTeamsAssigned') {
+    // message if mapping or validation permissions is set to team only but no team has been added
+    const { teams, mappingPermission, validationPermission } = projectInfo;
+
+    return (
+      <FormattedMessage
+        {...messages.noTeamsAssigned}
+        values={{
+          mapping: doesMappingTeamNotExist(teams, mappingPermission),
+          validation: doesValidationTeamNotExist(teams, validationPermission),
+        }}
+      />
+    );
+  }
   if (locale === null) {
     return (
       <FormattedMessage {...messages.missingFields} values={{ number: numberOfMissingFields }} />
@@ -311,7 +362,7 @@ const ErrorTitle = ({ locale, numberOfMissingFields }) => {
   return <FormattedMessage {...messages.missingFieldsForLocale} values={{ locale: locale }} />;
 };
 
-const ErrorMessage = ({ errors }) => {
+const ErrorMessage = ({ errors, projectInfo }) => {
   return (
     <>
       <span className="fw6">
@@ -321,10 +372,15 @@ const ErrorMessage = ({ errors }) => {
         return (
           <div className="cf w-100 pt2 ml3 pl2" key={i}>
             <span>
-              <ErrorTitle locale={error.locale} numberOfMissingFields={error.fields.length || 0} />
+              <ErrorTitle
+                locale={error.locale}
+                numberOfMissingFields={error.fields?.length || 0}
+                type={error.type}
+                projectInfo={projectInfo}
+              />
             </span>
             <ul className="mt2 mb0">
-              {error.fields.map((f, i) => {
+              {error.fields?.map((f, i) => {
                 return (
                   <li key={i}>
                     {<FormattedMessage {...projectEditMessages[f]} />}
@@ -340,13 +396,13 @@ const ErrorMessage = ({ errors }) => {
   );
 };
 
-const SaveStatus = ({ error, success }) => {
+const SaveStatus = ({ error, success, projectInfo }) => {
   let message = null;
   if (success === true) {
     message = <FormattedMessage {...messages.updateSuccess} />;
   }
   if (error !== null && error !== 'SERVER') {
-    message = <ErrorMessage errors={error} />;
+    message = <ErrorMessage errors={error} projectInfo={projectInfo} />;
   }
   if (error !== null && error === 'SERVER') {
     message = <FormattedMessage {...messages.serverError} />;

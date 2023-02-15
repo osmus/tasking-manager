@@ -12,6 +12,30 @@ export default defineMessages({
     id: 'deleteModal.status.success',
     defaultMessage: '{type} deleted successfully.',
   },
+  success_projects: {
+    id: 'deleteModal.status.success.projects',
+    defaultMessage: 'Project deleted successfully.',
+  },
+  success_teams: {
+    id: 'deleteModal.status.success.teams',
+    defaultMessage: 'Team deleted successfully.',
+  },
+  success_organisations: {
+    id: 'deleteModal.status.success.organisations',
+    defaultMessage: 'Organisation deleted successfully.',
+  },
+  success_interests: {
+    id: 'deleteModal.status.success.interests',
+    defaultMessage: 'Interest deleted successfully.',
+  },
+  success_licenses: {
+    id: 'deleteModal.status.success.licenses',
+    defaultMessage: 'License deleted successfully.',
+  },
+  success_campaigns: {
+    id: 'deleteModal.status.success.campaigns',
+    defaultMessage: 'Campaign deleted successfully.',
+  },
   failure_projects: {
     id: 'deleteModal.status.failure.projects',
     defaultMessage: 'An error occurred when trying to delete this project.',
@@ -44,6 +68,15 @@ export default defineMessages({
     id: 'deleteModal.button.delete',
     defaultMessage: 'Delete',
   },
+  InternalServerErrorError: {
+    id: 'deleteModal.status.failure.InternalServerErrorError',
+    defaultMessage:
+      'Something has gone wrong on the server, but the server could not be more specific on what the exact problem is.',
+  },
+  HasMappedTasksError: {
+    id: 'deleteModal.status.failure.HasMappedTasksError',
+    defaultMessage: 'Project has mapped tasks, cannot be deleted.',
+  },
   cancel: {
     id: 'deleteModal.button.cancel',
     defaultMessage: 'Cancel',
@@ -75,5 +108,9 @@ export default defineMessages({
   confirmDeleteTitle_teams: {
     id: 'deleteModal.title.teams',
     defaultMessage: 'Are you sure you want to delete this team?',
+  },
+  OrgHasProjectsError: {
+    id: 'deleteModal.error.OrgHasProjectsError',
+    defaultMessage: 'Organisation has some projects. Please delete them first.',
   },
 });
