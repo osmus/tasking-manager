@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { useFetch } from '../hooks/UseFetch';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
-import { Link, useNavigate } from '@reach/router';
+import { Link, useNavigate } from '@gatsbyjs/reach-router';
 import { Form } from 'react-final-form';
 import { FormattedMessage } from 'react-intl';
 

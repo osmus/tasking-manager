@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, navigate, useLocation } from '@reach/router';
+import { Link, navigate, useLocation } from '@gatsbyjs/reach-router';
 import { fetchLocalJSONAPI, pushToLocalJSONAPI } from '../../network/genericJSONRequest';
 import { useSelector } from 'react-redux';
 import { FormattedMessage } from 'react-intl';

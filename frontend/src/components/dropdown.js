@@ -1,5 +1,5 @@
 import React from 'react';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import onClickOutside from 'react-click-outside';
 
 import { ChevronDownIcon, CheckIcon } from './svgIcons';

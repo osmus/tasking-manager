@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import { useQueryParam, StringParam } from 'use-query-params';
 import ReactPlaceholder from 'react-placeholder';
 import { FormattedMessage } from 'react-intl';

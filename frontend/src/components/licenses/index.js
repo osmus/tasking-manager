@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import { Form, Field } from 'react-final-form';
 import { FormattedMessage } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';

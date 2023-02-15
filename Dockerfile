@@ -5,7 +5,8 @@ COPY frontend .
 COPY tasking-manager.env ..
 
 ## SETUP
-RUN npm install
+# --legacy-peer-deps is a temporary hack to make `react-placeholder` install with react v18
+RUN npm install --legacy-peer-deps
 
 ARG TM_APP_API_URL=https://tasks-backend.openstreetmap.us/api
 ARG TM_CONSUMER_KEY=94tWwKDLwq6xlzEcR9OHWDz8XeHT7tNrPz7jjcS5
