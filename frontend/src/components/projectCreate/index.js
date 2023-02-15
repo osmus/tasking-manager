@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useCallback, Suspense } from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, navigate } from '@reach/router';
+import { Redirect, navigate } from '@gatsbyjs/reach-router';
 import { useQueryParam, NumberParam } from 'use-query-params';
 import { FormattedMessage, FormattedNumber, useIntl } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';

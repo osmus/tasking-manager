@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 
 export const NavLink = ({ partial = true, ...props }) => (
   <Link

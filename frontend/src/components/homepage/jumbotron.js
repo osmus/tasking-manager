@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import Popup from 'reactjs-popup';
 import { FormattedMessage } from 'react-intl';
 

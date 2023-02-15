@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useLocation } from '@reach/router';
+import { Link, useLocation } from '@gatsbyjs/reach-router';
 import { Form, Field } from 'react-final-form';
 import { useCopyClipboard } from '@lokibai/react-use-copy-clipboard';
 import Select from 'react-select';

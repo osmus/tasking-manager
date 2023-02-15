@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Redirect } from '@reach/router';
+import { Redirect } from '@gatsbyjs/reach-router';
 import { connect } from 'react-redux';
 import { setAuthDetails } from '../store/actions/auth';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';
 import { Form, Field, useFormState } from 'react-final-form';

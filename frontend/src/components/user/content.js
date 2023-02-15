@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import { FormattedMessage, FormattedNumber, FormattedRelativeTime } from 'react-intl';
 import { selectUnit } from '../../utils/selectUnit';
 import { useCopyClipboard } from '@lokibai/react-use-copy-clipboard';

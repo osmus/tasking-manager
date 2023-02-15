@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect } from '@reach/router';
+import { Redirect } from '@gatsbyjs/reach-router';
 
 import { UserTopBar } from '../components/user/topBar';
 import { OSMCard, APIKeyCard } from '../components/user/content';

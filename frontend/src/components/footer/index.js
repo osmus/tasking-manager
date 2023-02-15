@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useMatch as matchPath } from '@reach/router';
+import { Link, useMatch as matchPath } from '@gatsbyjs/reach-router';
 import { FormattedMessage } from 'react-intl';
 import {
   TwitterIcon,

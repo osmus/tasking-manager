@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import Popup from 'reactjs-popup';
 import ReactTooltip from 'react-tooltip';
 import { FormattedMessage } from 'react-intl';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import Popup from 'reactjs-popup';
 import { FormattedMessage, useIntl } from 'react-intl';
 

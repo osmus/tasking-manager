@@ -2,7 +2,7 @@ import React from 'react';
 import { FlagIcon } from '../svgIcons';
 import { FormattedMessage } from 'react-intl';
 import { useFavProjectAPI } from '../../hooks/UseFavProjectAPI';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import { useSelector } from 'react-redux';
 import messages from './messages';
 
