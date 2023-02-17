@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from '@reach/router';
+import { Link, useNavigate } from '@gatsbyjs/reach-router';
 import ReactPlaceholder from 'react-placeholder';
 import { FormattedMessage } from 'react-intl';
 import { Form } from 'react-final-form';
@@ -234,6 +234,7 @@ export function EditOrganisation(props) {
                 description: organisation.description,
                 type: organisation.type,
                 subscriptionTier: organisation.subscriptionTier,
+                databases: organisation.databases,
               }}
               updateOrg={updateOrg}
               disabledForm={error || loading}

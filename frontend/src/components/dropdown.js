@@ -1,5 +1,5 @@
 import React from 'react';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import onClickOutside from 'react-click-outside';
 
 import { ChevronDownIcon, CheckIcon } from './svgIcons';
@@ -175,7 +175,7 @@ export class _Dropdown extends React.PureComponent {
           onClick={this.toggleDropdown}
           className={`blue-dark ${this.props.className || ''}`}
         >
-          <p className="lh-title dib ma0 f6">{this.getActiveOrDisplay()}</p>
+          <p className="lh-title dib ma0">{this.getActiveOrDisplay()}</p>
           <ChevronDownIcon style={{ width: '11px', height: '11px' }} className="pl3 v-mid pr1" />
         </CustomButton>
         {this.state.display && (

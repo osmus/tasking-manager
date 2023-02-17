@@ -8,8 +8,27 @@ import { Imagery } from '../taskSelection/imagery';
 import ProjectProgressBar from '../projectCard/projectProgressBar';
 import { DueDateBox } from '../projectCard/dueDateBox';
 import { DifficultyMessage } from '../mappingLevel';
+import { MapDatabaseMessage } from '../mapDatabase';
 import { BigProjectTeaser } from './bigProjectTeaser';
 import { useComputeCompleteness } from '../../hooks/UseProjectCompletenessCalc';
+
+const ProjectDatabaseInfo = (props) => {
+  //if (props.db === 'OSM') {
+    //<FormattedMessage {...messages.database} />
+    return (
+      <div className="cf">
+        <div className="w-50-ns w-70 fl">
+          <h3 className='db ttu f6 blue-light mb2'>
+            <FormattedMessage {...messages.database} />
+          </h3>
+          <div className="db fl pt1">
+            <a target="_blank" href={ props.db === 'PDMAP' ? 'https://publicdomainmap.org/' : 'https://www.openstreetmap.org/about'}><MapDatabaseMessage db={props.db} /></a>
+          </div>
+        </div>
+      </div>
+    );
+  //}
+};
 
 const ProjectDetailTypeBar = (props) => {
   const titleClasses = 'db ttu f6 blue-light mb2';
@@ -43,6 +62,9 @@ export function ProjectInfoPanel({ project, tasks, contributors, type }: Object)
       delay={500}
       ready={typeof project.projectId === 'number'}
     >
+      <ProjectDatabaseInfo
+        db={project.database}
+      />
       <ProjectDetailTypeBar
         type={type}
         mappingTypes={project.mappingTypes || []}

@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
-import { Router, Redirect, globalHistory } from '@reach/router';
+import { Router, Redirect, globalHistory } from '@gatsbyjs/reach-router';
 import { QueryParamProvider } from 'use-query-params';
 import ReactPlaceholder from 'react-placeholder';
 import { useMeta } from 'react-meta-elements';
@@ -154,7 +154,6 @@ let App = (props) => {
               </QueryParamProvider>
             </Suspense>
           </main>
-          <ArchivalNotificationBanner />
           {MATOMO_ID && <Banner />}
           <Router primary={false}>
             <Footer path="/*" />

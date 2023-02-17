@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocation } from '@reach/router';
+import { useLocation } from '@gatsbyjs/reach-router';
 import Popup from 'reactjs-popup';
 import { useQueryParam, NumberParam, StringParam } from 'use-query-params';
 import ReactPlaceholder from 'react-placeholder';

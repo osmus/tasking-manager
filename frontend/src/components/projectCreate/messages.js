@@ -52,6 +52,18 @@ export default defineMessages({
     id: 'management.projects.create.review_tasks.organization',
     defaultMessage: 'Organization',
   },
+  database: {
+    id: 'management.projects.create.review_tasks',
+    defaultMessage: 'Database',
+  },
+  limitedOrgDatabasesOSM: {
+    id: 'management.projects.create.limited_org_databasesOSM',
+    defaultMessage: 'This organization is limited to OpenStreetMap. Contact info@publicdomainmap.org for greater access.',
+  },
+  limitedOrgDatabasesPDMAP: {
+    id: 'management.projects.create.limited_org_databasesPDMAP',
+    defaultMessage: 'This organization is limited to Public Domain Map. Contact info@publicdomainmap.org for greater access.',
+  },
   creationFailed: {
     id: 'management.projects.create.review_tasks.failure.message',
     defaultMessage: 'It was not possible to save your project due to an error: {error}',

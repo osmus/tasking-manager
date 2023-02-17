@@ -212,10 +212,11 @@ https://codepen.io/nielsenramon/pen/mLMeLY
     font-size: 1rem;
   }
 
-  a {
-    color: $red;
-    text-decoration: none;
-  }
+}
+
+a {
+  color: $red;
+  text-decoration: none;
 }
 
 .bottom-3 {
@@ -505,7 +506,7 @@ a[href="https://www.mapbox.com/map-feedback/"]
 }
 
 .popup-content {
-  font-family: 'Archivo', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Source Sans Pro', 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   max-height: calc(100vh - 10em);
   overflow-y: auto;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.105469), 0px 15px 14px rgba(0, 0, 0, 0.270041),

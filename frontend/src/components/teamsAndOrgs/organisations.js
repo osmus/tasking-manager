@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useLocation } from '@reach/router';
+import { Link, useLocation } from '@gatsbyjs/reach-router';
 import { Form, Field } from 'react-final-form';
 import { useCopyClipboard } from '@lokibai/react-use-copy-clipboard';
 import Select from 'react-select';
@@ -18,7 +18,8 @@ import { Button } from '../button';
 import { UserAvatarList } from '../user/avatar';
 import { nCardPlaceholders } from './organisationsPlaceholder';
 import { Alert } from '../alert';
-import { TextField } from '../formInputs';
+import { CheckBox, TextField } from '../formInputs';
+import { MapDatabaseMessage } from '../mapDatabase';
 
 export function OrgsManagement({
   organisations,
@@ -273,6 +274,7 @@ export function OrgInformation({ hasSlug, formState }) {
       {userDetails &&
         userDetails.role === 'ADMIN' && ( // only admin users can edit the org type and subscribed tier
           <>
+            {/* we don't need org type for OSMUS TM
             <div className="cf">
               <label className={labelClasses}>
                 <FormattedMessage {...messages.type} />
@@ -295,7 +297,8 @@ export function OrgInformation({ hasSlug, formState }) {
                 )}
               </Field>
             </div>
-            {['DISCOUNTED', 'FULL_FEE'].includes(formState.type) && (
+            */}
+            {/*['DISCOUNTED', 'FULL_FEE'].includes(formState.type) && (
               <div className="cf">
                 <label className={labelClasses}>
                   <FormattedMessage {...messages.subscribedTier} />
@@ -318,7 +321,32 @@ export function OrgInformation({ hasSlug, formState }) {
                   )}
                 </Field>
               </div>
-            )}
+            )*/}
+            <div className="cf">
+              <label className={labelClasses}>
+                <FormattedMessage {...messages.databases} />
+              </label>
+              <Field name="databases" className={fieldClasses}>
+                {(props) => (
+                  <>
+                    {['OSM', 'PDMAP'].map((opt) => (
+                      <div className="pr3" aria-label="databases" key={opt}>
+                        <div className="ph0 pt1 fl" aria-labelledby={opt}>
+                          <CheckBox
+                            activeItems={formState.databases}
+                            toggleFn={(value) => props.input.onChange(value)}
+                            itemId={opt}
+                          />
+                        </div>
+                        <span className="fl pt2 mr1 ph2" id={opt}>
+                          <MapDatabaseMessage db={opt} />
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </Field>
+            </div>
           </>
         )}
       <div className="cf">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense } from 'react';
-import { Redirect } from '@reach/router';
+import { Redirect } from '@gatsbyjs/reach-router';
 import { useSelector } from 'react-redux';
 import { FormattedMessage } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';

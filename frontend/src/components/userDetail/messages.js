@@ -99,7 +99,7 @@ export default defineMessages({
   },
   tasks: {
     id: 'users.detail.tasks',
-    defaultMessage: 'tasks',
+    defaultMessage: 'Tasks',
   },
   heatmapNoContribution: {
     id: 'users.detail.heatmapNoContribution',

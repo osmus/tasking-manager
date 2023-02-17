@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useMatch as matchPath } from '@reach/router';
+import { Link, useMatch as matchPath } from '@gatsbyjs/reach-router';
 import { FormattedMessage } from 'react-intl';
 import {
   TwitterIcon,
@@ -69,7 +69,7 @@ export function Footer() {
                 {!item.serviceDesk ? (
                   <Link
                     to={item.link}
-                    className="link barlow-condensed white f5 fw5 ttu di-l dib ml4-l w-100 w-auto-l nowrap"
+                    className="link white f5 fw5 di-l dib ml4-l w-100 w-auto-l nowrap"
                   >
                     <FormattedMessage {...item.label} />
                   </Link>
@@ -78,7 +78,7 @@ export function Footer() {
                     href={item.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="link barlow-condensed white f5 fw5 ttu di-l dib ml4-l w-100 w-auto-l nowrap"
+                    className="link white f5 fw5 di-l dib ml4-l w-100 w-auto-l nowrap"
                   >
                     <FormattedMessage {...item.label} />
                     <ExternalLinkIcon className="pl2 v-cen" style={{ height: '11px' }} />
@@ -124,7 +124,7 @@ export function Footer() {
                   <a
                     key={n}
                     href={item.link}
-                    className="link barlow-condensed white f4 ttu di-l dib"
+                    className="link white f4 di-l dib"
                   >
                     {item.icon}
                   </a>

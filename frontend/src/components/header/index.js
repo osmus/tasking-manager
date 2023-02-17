@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
-import { Link, navigate } from '@reach/router';
+import { Link, navigate } from '@gatsbyjs/reach-router';
 import Popup from 'reactjs-popup';
 import { FormattedMessage } from 'react-intl';
 
@@ -115,7 +115,7 @@ const PopupItems = (props) => {
                 href={item.link}
                 target="_blank"
                 rel="noreferrer"
-                className="link mh3 barlow-condensed blue-dark f4 ttu"
+                className="link mh3 blue-dark f5 ttu"
               >
                 <FormattedMessage {...item.label} />
                 <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
@@ -165,10 +165,10 @@ const PopupItems = (props) => {
 };
 
 class Header extends React.Component {
-  linkCombo = 'link mh3 barlow-condensed blue-dark f4 ttu';
+  linkCombo = 'link mh3 blue-dark f5 fw6';
   isActive = ({ isPartiallyCurrent }) => {
     return isPartiallyCurrent
-      ? { className: `${this.linkCombo} bb b--blue-dark bw1 pv2` }
+      ? { className: `${this.linkCombo} bb b--blue-dark bw1 pv1` }
       : { className: this.linkCombo };
   };
 
@@ -195,7 +195,7 @@ class Header extends React.Component {
                 href={item.link}
                 target="_blank"
                 rel="noreferrer"
-                className="link mh3 barlow-condensed blue-dark f4 ttu"
+                className="link mh3 blue-dark f5 ttu"
               >
                 <FormattedMessage {...item.label} />
                 <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
@@ -258,8 +258,8 @@ class Header extends React.Component {
       // Validate that user has set is email.
       <header className="w-100 bb b--grey-light">
         <UpdateDialog />
-        {this.checkUserEmail()}
-        {this.props.showOrgBar && (
+        {/*this.checkUserEmail()*/}
+        {/*this.props.showOrgBar && (
           <div className="cf ph2 red pt3 pb2 bb b--grey-light">
             <div className="fl w-50">
               <span className="barlow-condensed f5 ml2 ">
@@ -273,26 +273,29 @@ class Header extends React.Component {
               </a>
             </div>
           </div>
-        )}
-        <div className="mt3 pb1 pb2-ns ph2 dib w-100">
-          <div className="cf fl pt1 dib">
-            <Link to={'/'} className="link mv-1">
+        )*/}
+        <div className="mt2 pb2 pb2-ns ph2 dib w-100">
+          <div className="cf fl dib">
+            <Link to={'/'} className="link mv-1 dib">
               <img
                 src={ORG_LOGO || logo}
                 alt={`${ORG_NAME} logo`}
-                className="h2 ml2 v-mid pb2"
+                className="main-logo ml2 v-mid"
                 onError={({ currentTarget }) => {
                   // fallback to HOT logo if ORG_LOGO is broken
                   currentTarget.onerror = null;
                   currentTarget.src = logo;
                 }}
               />
-              <span className="barlow-condensed f3 fw6 ml2 blue-dark">Tasking Manager</span>
+              <div className="wordmark barlow-condensed f4 ml2 blue-dark">
+                <span className="fw6">OpenStreetMap US</span>
+                <span className="">Tasking Manager</span>
+              </div>
             </Link>
           </div>
-          <nav className="dn dib-l pl4-l pl6-xl pt1 mv1">{this.renderMenuItems()}</nav>
+          <nav className="dn dib-l pl4-l pl6-xl pt1 mt2">{this.renderMenuItems()}</nav>
 
-          <div className="fr dib tr mb1">
+          <div className="fr dib tr">
             {this.renderAuthenticationButtons()}
             <div className="dib v-mid dn-l">
               <Popup trigger={(open) => <BurgerMenu open={open} />} modal closeOnDocumentClick>

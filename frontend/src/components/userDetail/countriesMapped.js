@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import mapboxgl from 'mapbox-gl';
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import { FormattedMessage } from 'react-intl';

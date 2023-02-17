@@ -163,6 +163,9 @@ class ProjectsRestAPI(Resource):
                     projectName:
                         type: string
                         default: HOT Project
+                    database:
+                        type: string
+                        default: OSM
                     areaOfInterest:
                         schema:
                             properties:
@@ -310,6 +313,9 @@ class ProjectsRestAPI(Resource):
               description: JSON object for updating an existing project
               schema:
                 properties:
+                    projectDatabase:
+                        type: string
+                        default: OSM
                     projectStatus:
                         type: string
                         default: DRAFT
@@ -322,6 +328,9 @@ class ProjectsRestAPI(Resource):
                     difficulty:
                         type: string
                         default: EASY
+                    database:
+                        type: string
+                        default: OSM
                     validation_permission:
                         type: string
                         default: ANY
@@ -509,6 +518,7 @@ class ProjectSearchBase(Resource):
         search_dto = ProjectSearchDTO()
         search_dto.preferred_locale = request.environ.get("HTTP_ACCEPT_LANGUAGE")
         search_dto.difficulty = request.args.get("difficulty")
+        search_dto.database = request.args.get("database")
         search_dto.action = request.args.get("action")
         search_dto.organisation_name = request.args.get("organisationName")
         search_dto.organisation_id = request.args.get("organisationId")
@@ -590,6 +600,9 @@ class ProjectsAllAPI(ProjectSearchBase):
               default: en
             - in: query
               name: difficulty
+              type: string
+            - in: query
+              name: database
               type: string
             - in: query
               name: orderBy

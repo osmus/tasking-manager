@@ -15,6 +15,7 @@ from backend.models.dtos.stats_dto import Pagination
 from backend.models.dtos.team_dto import ProjectTeamDTO
 from backend.models.dtos.interests_dto import InterestDTO
 from backend.models.postgis.statuses import (
+    ProjectDatabase,
     ProjectStatus,
     ProjectPriority,
     MappingTypes,
@@ -25,6 +26,22 @@ from backend.models.postgis.statuses import (
     ProjectDifficulty,
 )
 from backend.models.dtos.campaign_dto import CampaignDTO
+
+def is_known_project_database(value):
+    """ Validates that Project Database is known value """
+    if value.upper() == "ALL":
+        return True
+        
+    if type(value) == list:
+        return  # Don't validate the entire list, just the individual values
+
+    try:
+        ProjectDatabase[value.upper()]
+    except KeyError:
+        raise ValidationError(
+            f"Unknown projectDatabase: {value} Valid values are {ProjectDatabase.OSM.name}, "
+            f"{ProjectDatabase.PDMAP.name}"
+        )
 
 
 def is_known_project_status(value):
@@ -140,6 +157,12 @@ class DraftProjectDTO(Model):
     cloneFromProjectId = IntType(serialized_name="cloneFromProjectId")
     project_name = StringType(required=True, serialized_name="projectName")
     organisation = IntType(required=True)
+    database = StringType(
+        required=True,
+        serialized_name="database",
+        validators=[is_known_project_database],
+        serialize_when_none=False,
+    )
     area_of_interest = BaseType(required=True, serialized_name="areaOfInterest")
     tasks = BaseType(required=False)
     has_arbitrary_tasks = BooleanType(required=True, serialized_name="arbitraryTasks")
@@ -171,6 +194,12 @@ class ProjectDTO(Model):
     """ Describes JSON model for a tasking manager project """
 
     project_id = IntType(serialized_name="projectId")
+    database = StringType(
+        required=True,
+        serialized_name="database",
+        validators=[is_known_project_database],
+        serialize_when_none=False,
+    )
     project_status = StringType(
         required=True,
         serialized_name="status",
@@ -303,6 +332,7 @@ class ProjectSearchDTO(Model):
 
     preferred_locale = StringType(default="en")
     difficulty = StringType(validators=[is_known_project_difficulty])
+    database = StringType(validators=[is_known_project_database])
     action = StringType()
     mapping_types = ListType(StringType, validators=[is_known_mapping_type])
     mapping_types_exact = BooleanType(required=False)
@@ -358,6 +388,7 @@ class ProjectSearchDTO(Model):
         return hash(
             (
                 self.preferred_locale,
+                self.database,
                 self.difficulty,
                 hashable_mapping_types,
                 hashable_project_statuses,
@@ -387,6 +418,7 @@ class ListSearchResultDTO(Model):
     locale = StringType(required=True)
     name = StringType(default="")
     short_description = StringType(serialized_name="shortDescription", default="")
+    database = StringType(required=True, serialized_name="database")
     difficulty = StringType(required=True, serialized_name="difficulty")
     priority = StringType(required=True)
     organisation_name = StringType(serialized_name="organisationName")
@@ -496,6 +528,7 @@ class ProjectSummary(Model):
     percent_validated = IntType(serialized_name="percentValidated")
     percent_bad_imagery = IntType(serialized_name="percentBadImagery")
     aoi_centroid = BaseType(serialized_name="aoiCentroid")
+    database = StringType(serialized_name="database")
     difficulty = StringType(serialized_name="difficulty")
     mapping_permission = IntType(
         serialized_name="mappingPermission", validators=[is_known_mapping_permission]

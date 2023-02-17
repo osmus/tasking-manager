@@ -1,7 +1,7 @@
 import React from 'react';
 import TestRenderer from 'react-test-renderer';
 import { FormattedMessage } from 'react-intl';
-import { createHistory, createMemorySource } from '@reach/router';
+import { createHistory, createMemorySource } from '@gatsbyjs/reach-router';
 import '@testing-library/jest-dom/extend-expect';
 import {
   LockedTaskModalContent,
@@ -13,8 +13,8 @@ import {
 import { createComponentWithReduxAndIntl } from '../../../utils/testWithIntl';
 import { store } from '../../../store';
 
-jest.mock('@reach/router', () => ({
-  ...jest.requireActual('@reach/router'),
+jest.mock('@gatsbyjs/reach-router', () => ({
+  ...jest.requireActual('@gatsbyjs/reach-router'),
   useLocation: () => ({
     pathname: 'localhost:3000/example/path',
   }),

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { navigate, useLocation } from '@reach/router';
+import { navigate, useLocation } from '@gatsbyjs/reach-router';
 import ReactPlaceholder from 'react-placeholder';
 import Popup from 'reactjs-popup';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -37,6 +37,7 @@ import { SessionAboutToExpire, SessionExpired } from './extendSession';
 import { MappingTypes } from '../mappingTypes';
 const Editor = React.lazy(() => import('../editor'));
 const RapiDEditor = React.lazy(() => import('../rapidEditor'));
+const PDEditor = React.lazy(() => import('../pdEditor'));
 
 const MINUTES_BEFORE_DIALOG = 5;
 
@@ -232,24 +233,35 @@ export function TaskMapAction({
                   </div>
                 }
               >
-                {editor === 'ID' ? (
-                  <Editor
-                    setDisable={setDisable}
-                    comment={project.changesetComment}
-                    presets={project.idPresets}
-                    imagery={formatImageryUrlCallback(project.imagery)}
-                    gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                  />
+                {project.database === 'OSM' ? (
+                  editor === 'ID' ? (
+                    <Editor
+                      setDisable={setDisable}
+                      comment={project.changesetComment}
+                      presets={project.idPresets}
+                      imagery={formatImageryUrlCallback(project.imagery)}
+                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                    />
+                  ) : (
+                    <RapiDEditor
+                      setDisable={setDisable}
+                      comment={project.changesetComment}
+                      presets={project.idPresets}
+                      imagery={formatImageryUrlCallback(project.imagery)}
+                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                      powerUser={project.rapidPowerUser}
+                    />
+                  )
                 ) : (
-                  <RapiDEditor
+                  <PDEditor
                     setDisable={setDisable}
                     comment={project.changesetComment}
                     presets={project.idPresets}
-                    imagery={formatImageryUrlCallback(project.imagery)}
+                    //imagery={formatImageryUrlCallback(project.imagery)}
                     gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                    powerUser={project.rapidPowerUser}
                   />
-                )}
+                )
+              }
               </React.Suspense>
             ) : (
               <ReactPlaceholder
@@ -271,7 +283,7 @@ export function TaskMapAction({
             )}
           </div>
           {showSidebar ? (
-            <div className="w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white">
+            <div className={`w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white db-${project.database}`}>
               <ReactPlaceholder
                 showLoadingAnimation={true}
                 rows={3}

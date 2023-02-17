@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
-import { useLocation } from '@reach/router';
+import { useLocation } from '@gatsbyjs/reach-router';
 import { useSelector, useDispatch } from 'react-redux';
 import { useQueryParam, StringParam } from 'use-query-params';
 import Popup from 'reactjs-popup';
@@ -279,7 +279,7 @@ export function TaskSelection({ project, type, loading }: Object) {
   }
 
   return (
-    <div>
+    <div className={`cf vh-minus-200-ns db-${project.database}`}>
       <div className="cf vh-minus-200-ns">
         {!userTeamsLoading && ['mappingIsComplete', 'selectAnotherProject'].includes(taskAction) && (
           <Popup modal open closeOnEscape={true} closeOnDocumentClick={true}>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import ReactPlaceholder from 'react-placeholder';
 import centroid from '@turf/centroid';
 import { FormattedMessage } from 'react-intl';
@@ -65,7 +65,7 @@ const ProjectDetailMap = (props) => {
       />
       {taskBordersOnly && supported() && (
         <div className="cf left-1 top-1 absolute">
-          <div className="cf ttu bg-white barlow-condensed f4 pv2">
+          <div className="cf bg-white f4 pv2">
             <span onClick={(e) => setTaskBordersOnly(false)} className="pb2 mh2 pointer ph2">
               <FormattedMessage {...messages.zoomToTasks} />
             </span>
@@ -82,7 +82,7 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }: Ob
 
   return (
     <div className={`${className}`}>
-      <div className="h-75 z-1">
+      <div className="z-1">
         <ReactPlaceholder
           showLoadingAnimation={true}
           rows={10}
@@ -104,7 +104,7 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }: Ob
       </div>
 
       <div
-        className="cf ph4-l ph2 pb3 w-100 h-25 z-2 absolute bottom-0 left-0 bg-white"
+        className="cf ph4-l ph2 pb3 w-100 z-2 absolute bottom-0 left-0 bg-white"
         style={{ minHeight: '10rem' }}
       >
         <ProjectInfoPanel
@@ -141,7 +141,7 @@ export const ProjectDetail = (props) => {
   );
 
   return (
-    <div className={`${props.className || 'bg-white blue-dark'}`}>
+    <div className={`${props.className || 'bg-white blue-dark'} db-${props.project.database}`}>
       <div className="bb b--grey-light">
         <div className="cf">
           <ProjectDetailLeft

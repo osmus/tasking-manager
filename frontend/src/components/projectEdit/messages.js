@@ -308,6 +308,14 @@ export default defineMessages({
     id: 'projects.actions.task_reset.confirmation',
     defaultMessage: 'Are you sure you want to reset all tasks? You cannot undo this.',
   },
+  database: {
+    id: 'projects.formInputs.database',
+    defaultMessage: 'Database',
+  },
+  databaseInfo: {
+    id: 'projects.formInputs.database_info',
+    defaultMessage: 'The database cannot be changed after creating a project.',
+  },
   status: {
     id: 'projects.formInputs.status',
     defaultMessage: 'Status',

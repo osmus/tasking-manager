@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 import ReactTooltip from 'react-tooltip';
 import { FormattedMessage } from 'react-intl';
 

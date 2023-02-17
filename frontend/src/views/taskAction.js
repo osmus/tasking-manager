@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import { useQueryParam, StringParam } from 'use-query-params';
 import { FormattedMessage } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';

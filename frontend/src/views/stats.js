@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect } from '@reach/router';
+import { Redirect } from '@gatsbyjs/reach-router';
 import { format, startOfYear } from 'date-fns';
 import { FormattedMessage } from 'react-intl';
 

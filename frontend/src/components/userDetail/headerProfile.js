@@ -60,19 +60,19 @@ export const SocialMedia = ({ data }) => {
 
   return (
     <ul className="list pa0 ma0 mt3">
-      <li className="dib mr4-ns mr2 cf f7">
+      <li className="dib mr4-ns mr2 cf f6">
         <div className="mr2 h2">
           <img className="h1 v-mid" src={OsmLogo} alt="OpenStreetMap" />{' '}
           {createLink('osm', data.username)}
         </div>
       </li>
-      <li className="dib mr4-ns mr2 cf f7">
+      <li className="dib mr4-ns mr2 cf f6">
         <div className="mr2 h2">
           <img className="h1 v-mid" src={MissingMapsLogo} alt="Missing Maps" />{' '}
           {createLink('missingmaps', data.username)}
         </div>
       </li>
-      <li className="dib mr4-ns mr2 cf f7" title={intl.formatMessage(messages.osmChaUsername)}>
+      <li className="dib mr4-ns mr2 cf f6" title={intl.formatMessage(messages.osmChaUsername)}>
         <div className="mr2 h2">
           <img className="h1 v-mid" src={OsmChaLogo} alt="OSM Cha Logo" />{' '}
           {createLink('osmcha', data.username)}
@@ -80,7 +80,7 @@ export const SocialMedia = ({ data }) => {
       </li>
       {data.slackId && (
         <li
-          className="dib mr4-ns mr2 cf f7"
+          className="dib mr4-ns mr2 cf f6"
           title={intl.formatMessage(messages.slackUsername, { org: ORG_CODE })}
         >
           <div className="mr2 h2 blue-grey">
@@ -155,7 +155,7 @@ export const HeaderProfile = ({ userDetails, changesets, selfProfile }) => {
         </div>
         <div className="w-70-ns w-100 fl dib tc tl-ns">
           <div className="pl2 dib w-50-l fl w-100">
-            <p className="barlow-condensed f2 ttu fw5 ma0 mb3" style={{ letterSpacing: '1.25px' }}>
+            <p className="barlow-condensed f2 ttu fw5 ma0 mb3">
               {user.name || user.username}
             </p>
             <p className="f125 ma0 mb2 fw5">

@@ -1,17 +1,13 @@
 import React from 'react';
-import { navigate } from '@reach/router';
+import { navigate } from '@gatsbyjs/reach-router';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
 import { Button } from '../button';
 
 const organizations = [
-  { url: 'https://www.redcross.org/', code: 'redcross', name: 'American Red Cross' },
-  { url: 'https://www.redcross.org.uk/', code: 'brc', name: 'British Red Cross' },
-  { url: 'https://www.msf.org/', code: 'msf', name: 'Medecins Sans Frontieres' },
-  { url: 'https://www.worldbank.org/', code: 'wb', name: 'World Bank' },
-  { url: 'https://www.usaid.gov/', code: 'usaid', name: 'USAID' },
-  { url: 'https://www.bing.com/', code: 'bing', name: 'Bing' },
+  { url: 'https://www.usgs.gov/', code: 'usgs', name: 'USGS' },
+  { url: 'https://www.transportation.gov/', code: 'usdot', name: 'USDOT' },
 ];
 
 function contactCard() {

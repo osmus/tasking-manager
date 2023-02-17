@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useCallback, Suspense } from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, navigate } from '@reach/router';
+import { Redirect, navigate } from '@gatsbyjs/reach-router';
 import { useQueryParam, NumberParam } from 'use-query-params';
 import { FormattedMessage, FormattedNumber, useIntl } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';
@@ -131,6 +131,7 @@ const ProjectCreate = (props) => {
   const [step, setStep] = useState(1);
   const [cloneProjectName, setCloneProjectName] = useState(null);
   const [cloneProjectOrg, setCloneProjectOrg] = useState(null);
+  const [cloneProjectDatabase, setCloneProjectDatabase] = useState('OSM');
   const [err, setErr] = useState({ error: false, message: null });
 
   const fetchCloneProjectInfo = useCallback(
@@ -138,8 +139,9 @@ const ProjectCreate = (props) => {
       const res = await fetchLocalJSONAPI(`projects/${cloneFromId}/`, token);
       setCloneProjectName(res.projectInfo.name);
       setCloneProjectOrg(res.organisation);
+      setCloneProjectDatabase(res.database);
     },
-    [setCloneProjectName, setCloneProjectOrg, token],
+    [setCloneProjectName, setCloneProjectOrg, setCloneProjectDatabase, token],
   );
 
   useLayoutEffect(() => {
@@ -152,6 +154,7 @@ const ProjectCreate = (props) => {
     id: cloneFromId,
     name: cloneProjectName,
     organisation: cloneProjectOrg,
+    database: cloneProjectDatabase,
   };
 
   // Project information.
@@ -165,7 +168,10 @@ const ProjectCreate = (props) => {
     tempTaskGrid: null,
     arbitraryTasks: false,
     organisation: '',
+    database: 'OSM'
   });
+
+  const [selectedOrgObj, updateSelectedOrgObj] = useState({});
 
   useLayoutEffect(() => {
     let err = { error: false, message: null };
@@ -202,6 +208,7 @@ const ProjectCreate = (props) => {
         areaOfInterest: truncate(metadata.geom, { precision: 6 }),
         projectName: metadata.projectName,
         organisation: metadata.organisation || cloneProjectData.organisation,
+        database: metadata.database,
         tasks: truncate(metadata.taskGrid, { precision: 6 }),
         arbitraryTasks: metadata.arbitraryTasks,
       };
@@ -250,6 +257,8 @@ const ProjectCreate = (props) => {
           <Review
             metadata={metadata}
             updateMetadata={updateMetadata}
+            selectedOrgObj={selectedOrgObj}
+            updateSelectedOrgObj={updateSelectedOrgObj}
             token={token}
             cloneProjectData={cloneProjectData}
           />
@@ -303,7 +312,7 @@ const ProjectCreate = (props) => {
                 handleCreate={() => handleCreate(cloneProjectData)}
               />
             </div>
-            <div className="cf absolute" style={{ bottom: '3.5rem', left: '0.6rem' }}>
+            <div className="cf absolute" style={{ bottom: '3.5rem', right: '0.6rem' }}>
               <p
                 className={`fl mr2 pa1 f7-ns white ${
                   metadata.area > MAX_AOI_AREA || metadata.area === 0 ? 'bg-red' : 'bg-green'

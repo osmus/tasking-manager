@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { Link } from '@reach/router';
+import { Link } from '@gatsbyjs/reach-router';
 
 import messages from './messages';
 import { RelativeTimeWithUnit } from '../../utils/formattedRelativeTime';
@@ -11,12 +11,13 @@ import { PROJECTCARD_CONTRIBUTION_SHOWN_THRESHOLD } from '../../config/index';
 import { PriorityBox } from './priorityBox';
 import { DueDateBox } from './dueDateBox';
 import './styles.scss';
+import { MapDatabaseMessage } from '../mapDatabase';
 
 export function ProjectTeaser({
   lastUpdated,
   totalContributors,
   className,
-  littleFont = 'f7',
+  littleFont = 'f6',
   bigFont = 'f6',
 }: Object) {
   /* outerDivStyles must have f6 even if sub-divs have f7 to fix grid issues*/
@@ -58,6 +59,7 @@ export function ProjectCard({
   priority,
   status,
   difficulty,
+  database,
   campaignTag,
   percentMapped,
   percentValidated,
@@ -89,7 +91,7 @@ export function ProjectCard({
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative blue-dark`}
+      className={`relative blue-dark db-${database}`}
     >
       <Link className="no-underline color-inherit" to={`/projects/${projectId}`}>
         <div
@@ -118,7 +120,16 @@ export function ProjectCard({
               </div>
             </div>
             <div className="mt4 w-100">
-              <div className="f7 blue-grey">#{projectId}</div>
+              <div className="pt2 truncate flex justify-between items-center">
+                <div className="f6 blue-grey">#{projectId}</div>
+                <span>
+                  <img src={database === 'OSM' ? ("/osm-logo-mono.svg") : ("/pdmap-logo-mono.svg")} className="h1 v-mid mr1"/>
+                  <MapDatabaseMessage
+                    db={database}
+                    className="blue-grey db-label f6 ttc fw5 truncate"
+                  />
+                </span>
+              </div>
               <h3
                 title={name}
                 className="mt3 f125 fw7 lh-title overflow-y-hidden pr4 project-title"
@@ -126,7 +137,7 @@ export function ProjectCard({
                 {name}
               </h3>
               <div className="tc f6">
-                <div className="w-100 tl pr2 f7 blue-grey dib mb2 project-desc">
+                <div className="w-100 tl pr2 f6 blue-grey dib mb2 project-desc">
                   {shortDescription} {campaignTag ? ' · ' + campaignTag : ''}
                 </div>
               </div>
@@ -138,7 +149,7 @@ export function ProjectCard({
             <div className="pt2 truncate flex justify-between items-center">
               <DifficultyMessage
                 level={difficulty}
-                className="fl f7 pv2 ttc fw5 blue-grey truncate"
+                className="fl f6 pv2 ttc fw5 blue-grey truncate"
               />
               <DueDateBox dueDate={dueDate} />
             </div>
