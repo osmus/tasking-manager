@@ -21,6 +21,11 @@ export default defineMessages({
     id: 'projects.formInputs.teams.title',
     defaultMessage: 'Teams',
   },
+  teamsPermissionNote: {
+    id: 'projects.teams.teamsPermissionNote',
+    defaultMessage:
+      'Note: Mappers have mapping permissions. Validators have mapping and validation permissions. Project managers have mapping and validation permissions as well as the access to the management sections.',
+  },
   organisation: {
     id: 'projects.formInputs.organisation.title',
     defaultMessage: 'Organization',
@@ -37,6 +42,10 @@ export default defineMessages({
     id: 'projects.formInputs.organisation.description',
     defaultMessage:
       'Organization that is coordinating the project, if there is any. The managers of that organization will have administration rights over the project.',
+  },
+  admins: {
+    id: 'projects.formInputs.admins.title',
+    defaultMessage: 'TM Admins',
   },
   selectImagery: {
     id: 'projects.formInputs.imagery.select',
@@ -141,17 +150,17 @@ export default defineMessages({
   },
   invalidateAll: {
     id: 'projects.actions.invalidate_all_tasks.title',
-    defaultMessage: 'Invalidate all tasks',
+    defaultMessage: 'Invalidate all validated tasks',
   },
   invalidateAllConfirmation: {
     id: 'projects.actions.invalidate_all_tasks.confirmation',
     defaultMessage:
-      'Are you sure you want to invalidate all tasks in this project? You cannot undo this.',
+      'Are you sure you want to invalidate all validated tasks in this project? You cannot undo this.',
   },
   invalidateAllDescription: {
     id: 'projects.actions.invalidate_all_tasks.description',
     defaultMessage:
-      "This will mark all tasks (except 'unavailable' ones) as 'more mapping needed'. Please use this only if you are sure of what you are doing.",
+      "This will mark all validated tasks as 'more mapping needed'. Please use this only if you are sure of what you are doing.",
   },
   invalidateAllSuccess: {
     id: 'projects.actions.invalidate_all_tasks.success',
@@ -163,16 +172,16 @@ export default defineMessages({
   },
   validateAllTasks: {
     id: 'projects.actions.validate_all_tasks.title',
-    defaultMessage: 'Validate all tasks',
+    defaultMessage: 'Validate all mapped tasks',
   },
   validateAllTasksConfirmation: {
     id: 'projects.actions.validate_all_tasks.confirmation',
-    defaultMessage: 'Are you sure you want to validate all tasks? You cannot undo this.',
+    defaultMessage: 'Are you sure you want to validate all mapped tasks? You cannot undo this.',
   },
   validateAllTasksDescription: {
     id: 'projects.actions.validate_all_tasks.description',
     defaultMessage:
-      "This will change the status of all tasks (except 'unavailable' ones) to 'finished'. Please use this only if you are sure of what you are doing.",
+      "This will change the status of all mapped tasks to 'finished'. Please use this only if you are sure of what you are doing.",
   },
   validateAllSuccess: {
     id: 'projects.actions.validate_all_tasks.success',
@@ -247,7 +256,8 @@ export default defineMessages({
   },
   transferProjectAlert: {
     id: 'projects.actions.transfer_project.alert',
-    defaultMessage: 'In case of wrong transfer, contact the new owner to revert the change.',
+    defaultMessage:
+      'This feature is only available to the project author, organisation manager and TM admin.',
   },
   transferProjectSuccess: {
     id: 'projects.actions.transfer_project.success',
@@ -436,13 +446,14 @@ export default defineMessages({
     id: 'projects.formInputs.user_role',
     defaultMessage: 'User role',
   },
-  mapperLevel: {
-    id: 'projects.formInputs.mapper_level',
-    defaultMessage: 'Mapper level',
+  difficulty: {
+    id: 'projects.formInputs.difficulty',
+    defaultMessage: 'Difficulty',
   },
-  mapperLevelDescription: {
-    id: 'projects.formInputs.mapper_level.description',
-    defaultMessage: 'Setting the level will help mappers to find suitable projects to work on.',
+  difficultyDescription: {
+    id: 'projects.formInputs.difficulty.description',
+    defaultMessage:
+      'Setting the difficulty will help mappers to find suitable projects to work on.',
   },
   perTaskInstructions: {
     id: 'projects.formInputs.per_task_instructions',
@@ -470,6 +481,10 @@ export default defineMessages({
     id: 'projects.formInputs.changesetComment.description',
     defaultMessage:
       'Default comments added to uploaded changeset comment field. Users should also be encouraged to add text describing what they mapped. Hashtags are sometimes used for analysis later, but should be human informative and not overused, #group #event for example.',
+  },
+  nonEditableComment: {
+    id: 'projects.formInputs.non_editable_comment',
+    defaultMessage: 'This default comment is not editable.',
   },
   projectPriorityURGENT: {
     id: 'project.formInputs.priority.options.urgent',
@@ -515,21 +530,21 @@ export default defineMessages({
     id: 'project.formInputs.placeholders.message',
     defaultMessage: 'Message *',
   },
-  mapperLevelALL: {
+  difficultyALL: {
     id: 'project.formInputs.mapper_level.options.all',
     defaultMessage: 'All levels',
   },
-  mapperLevelADVANCED: {
-    id: 'project.formInputs.mapper_level.options.advanced',
-    defaultMessage: 'Advanced',
+  difficultyCHALLENGING: {
+    id: 'project.formInputs.mapper_level.options.challenging',
+    defaultMessage: 'Challenging',
   },
-  mapperLevelINTERMEDIATE: {
-    id: 'project.formInputs.mapper_level.options.intermediate',
-    defaultMessage: 'Intermediate',
+  difficultyMODERATE: {
+    id: 'project.formInputs.mapper_level.options.moderate',
+    defaultMessage: 'Moderate',
   },
-  mapperLevelBEGINNER: {
-    id: 'project.formInputs.mapper_level.options.beginner',
-    defaultMessage: 'Beginner',
+  difficultyEASY: {
+    id: 'project.formInputs.mapper_level.options.easy',
+    defaultMessage: 'Easy',
   },
   filterByOrg: {
     id: 'project.formInputs.teams.actions.filter.organisations',
@@ -587,5 +602,30 @@ export default defineMessages({
     id: 'projects.formInputs.custom_editor.delete.confirm',
     defaultMessage:
       'This will remove the custom editor from the project. Are you sure you don\'t want to disable the custom editor by toggling the "Enabled" checkbox above?',
+  },
+  noMappingEditor: {
+    id: 'projects.formInputs.noMappingEditor',
+    defaultMessage: 'At least one editor must be enabled for mapping',
+  },
+  noValidationEditor: {
+    id: 'projects.formInputs.noValidationEditor',
+    defaultMessage: 'At least one editor must be enabled for validation',
+  },
+  extraIdParams: {
+    id: 'projects.formInputs.extraIdParams',
+    defaultMessage: 'Additional iD URL parameters',
+  },
+  extraIdParamsDescription: {
+    id: 'projects.formInputs.extraIdParams.description',
+    defaultMessage:
+      'Any additional URL parameters that you want include when loading iD editor (both the embedded and the external ones). Use & to separate different parameters. Example: {text}.',
+  },
+  extraIdParamsDescriptionLink: {
+    id: 'projects.formInputs.extraIdParams.description.link',
+    defaultMessage: 'Check the {link} for more information.',
+  },
+  iDAPIDocs: {
+    id: 'projects.formInputs.extraIdParams.iDAPIDocs',
+    defaultMessage: 'iD editor documentation',
   },
 });

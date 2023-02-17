@@ -21,9 +21,9 @@ class DropdownContent extends React.PureComponent {
       if (!this.props.value || !this.props.onChange) {
         if (!label) return;
         if (data.href && data.internalLink) {
-          navigate(data.href)
+          navigate(data.href);
         }
-        return
+        return;
       }
       const value = this.props.value;
       let ourObj = data;
@@ -171,9 +171,12 @@ export class _Dropdown extends React.PureComponent {
   render() {
     return (
       <div className="dib pointer relative">
-        <CustomButton onClick={this.toggleDropdown} className={`${this.props.className || ''}`}>
-          {this.getActiveOrDisplay()}{' '}
-          <ChevronDownIcon style={{ height: '14px' }} className="pl2 v-mid" />
+        <CustomButton
+          onClick={this.toggleDropdown}
+          className={`blue-dark ${this.props.className || ''}`}
+        >
+          <p className="lh-title dib ma0 f6">{this.getActiveOrDisplay()}</p>
+          <ChevronDownIcon style={{ width: '11px', height: '11px' }} className="pl3 v-mid pr1" />
         </CustomButton>
         {this.state.display && (
           <DropdownContent

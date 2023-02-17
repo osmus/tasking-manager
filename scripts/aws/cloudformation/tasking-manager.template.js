@@ -75,12 +75,12 @@ const Parameters = {
     Description: 'TM_LOG_DIR environment variable',
     Type: 'String'
   },
-  TaskingManagerConsumerKey: {
-    Description: 'TM_CONSUMER_KEY',
+  TaskingManagerOAuthClientID: {
+    Description: 'TM_CLIENT_ID',
     Type: 'String'
   },
-  TaskingManagerConsumerSecret: {
-      Description: 'TM_CONSUMER_SECRET',
+  TaskingManagerOAuthClientSecret: {
+      Description: 'TM_CLIENT_SECRET',
       Type: 'String'
   },
   TaskingManagerSecret: {
@@ -127,6 +127,24 @@ const Parameters = {
   TaskingManagerSMTPPort: {
     Description: 'TM_SMTP_PORT environment variable',
     Type: 'String'
+  },
+  TaskingManagerSMTPSSL: {
+    Description: 'TM_SMTP_USE_SSL environment variable',
+    Type: 'Number',
+    AllowedValues: ['1', '0'],
+    Default: '0'
+  },
+  TaskingManagerSMTPTLS: {
+    Description: 'TM_SMTP_USE_TLS environment variable',
+    Type: 'Number',
+    AllowedValues: ['1', '0'],
+    Default: '1'
+  },
+  TaskingManagerSendProjectUpdateEmails:{
+    Description: 'TM_SEND_PROJECT_UPDATE_EMAILS environment variable',
+    Type: 'Number',
+    AllowedValues: ['1', '0'],
+    Default: '1'
   },
   TaskingManagerDefaultChangesetComment: {
     Description: 'TM_DEFAULT_CHANGESET_COMMENT environment variable',
@@ -388,13 +406,17 @@ const Resources = {
         cf.sub('export POSTGRES_USER="${PostgresUser}"'),
         cf.sub('export TM_APP_BASE_URL="${TaskingManagerAppBaseUrl}"'),
         cf.sub('export TM_ENVIRONMENT="${AWS::StackName}"'),
-        cf.sub('export TM_CONSUMER_KEY="${TaskingManagerConsumerKey}"'),
-        cf.sub('export TM_CONSUMER_SECRET="${TaskingManagerConsumerSecret}"'),
+        cf.sub('export TM_CLIENT_ID="${TaskingManagerOAuthClientID}"'),
+        cf.sub('export TM_CLIENT_SECRET="${TaskingManagerOAuthClientSecret}"'),
+        cf.sub('export TM_REDIRECT_URI="${TaskingManagerAppBaseUrl}/authorized"'),
+        'export TM_SCOPE="read_prefs write_api"',
         cf.sub('export TM_SECRET="${TaskingManagerSecret}"'),
         cf.sub('export TM_SMTP_HOST="${TaskingManagerSMTPHost}"'),
         cf.sub('export TM_SMTP_PASSWORD="${TaskingManagerSMTPPassword}"'),
         cf.sub('export TM_SMTP_PORT="${TaskingManagerSMTPPort}"'),
         cf.sub('export TM_SMTP_USER="${TaskingManagerSMTPUser}"'),
+        cf.sub('export TM_SMTP_USE_SSL="${TaskingManagerSMTPSSL}"'),
+        cf.sub('export TM_SMTP_USE_TLS="${TaskingManagerSMTPTLS}"'),
         cf.sub('export TM_DEFAULT_CHANGESET_COMMENT="${TaskingManagerDefaultChangesetComment}"'),
         cf.sub('export TM_EMAIL_FROM_ADDRESS="${TaskingManagerEmailFromAddress}"'),
         cf.sub('export TM_EMAIL_CONTACT_ADDRESS="${TaskingManagerEmailContactAddress}"'),

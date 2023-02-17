@@ -3,11 +3,18 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as RapiD from 'RapiD/dist/iD.legacy';
 import 'RapiD/dist/RapiD.css';
 
-import { OSM_CONSUMER_KEY, OSM_CONSUMER_SECRET, OSM_SERVER_URL } from '../config';
+import { OSM_CLIENT_ID, OSM_CLIENT_SECRET, OSM_REDIRECT_URI, OSM_SERVER_URL } from '../config';
 
-export default function RapidEditor({ setDisable, comment, presets, imagery, gpxUrl, powerUser = false }) {
+export default function RapidEditor({
+  setDisable,
+  comment,
+  presets,
+  imagery,
+  gpxUrl,
+  powerUser = false,
+}) {
   const dispatch = useDispatch();
-  const session = useSelector((state) => state.auth.get('session'));
+  const session = useSelector((state) => state.auth.session);
   const RapiDContext = useSelector((state) => state.editor.rapidContext);
   const locale = useSelector((state) => state.preferences.locale);
   const [customImageryIsSet, setCustomImageryIsSet] = useState(false);
@@ -44,9 +51,8 @@ export default function RapidEditor({ setDisable, comment, presets, imagery, gpx
       if (RapiDContext === null) {
         // we need to keep iD context on redux store because iD works better if
         // the context is not restarted while running in the same browser session
-        dispatch({ type: 'SET_RAPIDEDITOR', context: window.iD.coreContext() })
+        dispatch({ type: 'SET_RAPIDEDITOR', context: window.iD.coreContext() });
       }
-
     }
   }, [windowInit, RapiDContext, dispatch]);
 
@@ -69,8 +75,7 @@ export default function RapidEditor({ setDisable, comment, presets, imagery, gpx
         window.iD.presetManager.addablePresetIDs(null);
       }
       // setup the context
-      RapiDContext
-        .embed(true)
+      RapiDContext.embed(true)
         .assetPath('/static/rapid/')
         .locale(locale)
         .setsDocumentTitle(false)
@@ -90,11 +95,11 @@ export default function RapidEditor({ setDisable, comment, presets, imagery, gpx
 
       let osm = RapiDContext.connection();
       const auth = {
-        urlroot: OSM_SERVER_URL,
-        oauth_consumer_key: OSM_CONSUMER_KEY,
-        oauth_secret: OSM_CONSUMER_SECRET,
-        oauth_token: session.osm_oauth_token,
-        oauth_token_secret: session.osm_oauth_token_secret,
+        url: OSM_SERVER_URL,
+        client_id: OSM_CLIENT_ID,
+        client_secret: OSM_CLIENT_SECRET,
+        redirect_uri: OSM_REDIRECT_URI,
+        access_token: session.osm_oauth_token,
       };
       osm.switch(auth);
 

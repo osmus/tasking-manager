@@ -8,6 +8,7 @@ import messages from './messages';
 import { useFetch } from '../hooks/UseFetch';
 import { useEditTeamAllowed } from '../hooks/UsePermissions';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
+import useForceUpdate from '../hooks/UseForceUpdate';
 import { fetchLocalJSONAPI, pushToLocalJSONAPI } from '../network/genericJSONRequest';
 import {
   getMembersDiff,
@@ -37,15 +38,15 @@ export function ManageTeams() {
 export function MyTeams() {
   useSetTitleTag('My teams');
   return (
-    <div className="w-100 cf bg-tan blue-dark">
+    <div className="w-100 cf blue-dark">
       <ListTeams />
     </div>
   );
 }
 
 export function ListTeams({ managementView = false }: Object) {
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
-  const token = useSelector((state) => state.auth.get('token'));
+  const userDetails = useSelector((state) => state.auth.userDetails);
+  const token = useSelector((state) => state.auth.token);
   const [teams, setTeams] = useState(null);
   const [userTeamsOnly, setUserTeamsOnly] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -83,7 +84,7 @@ export function ListTeams({ managementView = false }: Object) {
 
 const joinTeamRequest = (team_id, username, role, token) => {
   return pushToLocalJSONAPI(
-    `teams/${team_id}/actions/join/`,
+    `teams/${team_id}/actions/add/`,
     JSON.stringify({ username: username, role: role }),
     token,
     'POST',
@@ -91,7 +92,7 @@ const joinTeamRequest = (team_id, username, role, token) => {
 };
 
 const leaveTeamRequest = (team_id, username, role, token) => {
-  pushToLocalJSONAPI(
+  return pushToLocalJSONAPI(
     `teams/${team_id}/actions/leave/`,
     JSON.stringify({ username: username, role: role }),
     token,
@@ -102,8 +103,8 @@ const leaveTeamRequest = (team_id, username, role, token) => {
 export function CreateTeam() {
   useSetTitleTag('Create new team');
   const navigate = useNavigate();
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
-  const token = useSelector((state) => state.auth.get('token'));
+  const userDetails = useSelector((state) => state.auth.userDetails);
+  const token = useSelector((state) => state.auth.token);
   const [managers, setManagers] = useState([]);
   const [members, setMembers] = useState([]);
 
@@ -119,18 +120,22 @@ export function CreateTeam() {
     );
     setManagers(managers.concat(newValues));
   };
+
   const removeManagers = (username) => {
     setManagers(managers.filter((i) => i.username !== username));
   };
+
   const addMembers = (values) => {
     const newValues = values.filter(
       (newUser) => !members.map((i) => i.username).includes(newUser.username),
     );
     setMembers(members.concat(newValues));
   };
+
   const removeMembers = (username) => {
     setMembers(members.filter((i) => i.username !== username));
   };
+
   const createTeam = (payload) => {
     delete payload['organisation'];
     pushToLocalJSONAPI('teams/', JSON.stringify(payload), token, 'POST').then((result) => {
@@ -145,7 +150,8 @@ export function CreateTeam() {
   return (
     <Form
       onSubmit={(values) => createTeam(values)}
-      render={({ handleSubmit, pristine, form, submitting, values }) => {
+      initialValues={{ visibility: 'PUBLIC' }}
+      render={({ handleSubmit, pristine, submitting, values }) => {
         return (
           <form onSubmit={handleSubmit} className="blue-grey">
             <div className="cf pb5">
@@ -192,7 +198,7 @@ export function CreateTeam() {
               </div>
               <div className="w-20-l w-40-m w-50 h-100 fr">
                 <FormSubmitButton
-                  disabled={submitting || pristine || !values.organisation_id || !values.visibility}
+                  disabled={submitting || pristine || !values.organisation_id}
                   className="w-100 h-100 bg-red white"
                   disabledClassName="bg-red o-50 white w-100 h-100"
                 >
@@ -203,14 +209,15 @@ export function CreateTeam() {
           </form>
         );
       }}
-    ></Form>
+    />
   );
 }
 
 export function EditTeam(props) {
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
-  const token = useSelector((state) => state.auth.get('token'));
-  const [error, loading, team] = useFetch(`teams/${props.id}/`);
+  const userDetails = useSelector((state) => state.auth.userDetails);
+  const token = useSelector((state) => state.auth.token);
+  const [forceUpdated, forceUpdate] = useForceUpdate();
+  const [error, loading, team] = useFetch(`teams/${props.id}/`, forceUpdated);
   const [initManagers, setInitManagers] = useState(false);
   const [managers, setManagers] = useState([]);
   const [members, setMembers] = useState([]);
@@ -227,55 +234,65 @@ export function EditTeam(props) {
       setInitManagers(true);
     }
   }, [team, managers, initManagers]);
+
+  useEffect(() => {
+    if (team && team.members) {
+      setManagers(filterActiveManagers(team.members));
+      setMembers(filterActiveMembers(team.members));
+    }
+  }, [team]);
+
   useSetTitleTag(`Edit ${team.name}`);
 
   const addManagers = (values) => {
     const newValues = values
       .filter((newUser) => !managers.map((i) => i.username).includes(newUser.username))
       .map((user) => formatMemberObject(user, true));
-    setManagers(managers.concat(newValues));
+    setManagers((prevManagers) => prevManagers.concat(newValues));
   };
+
   const removeManagers = (username) => {
-    setManagers(managers.filter((i) => i.username !== username));
+    setManagers((prevManagers) => prevManagers.filter((i) => i.username !== username));
   };
+
   const addMembers = (values) => {
     const newValues = values
       .filter((newUser) => !members.map((i) => i.username).includes(newUser.username))
       .map((user) => formatMemberObject(user));
-    setMembers(members.concat(newValues));
+    setMembers((prevMembers) => prevMembers.concat(newValues));
   };
+
   const removeMembers = (username) => {
-    setMembers(members.filter((i) => i.username !== username));
+    setMembers((prevMembers) => prevMembers.filter((i) => i.username !== username));
   };
+
   const updateManagers = () => {
     const { usersAdded, usersRemoved } = getMembersDiff(team.members, managers, true);
-    usersAdded.forEach((user) =>
-      joinTeamRequest(team.teamId, user, 'MANAGER', token).catch((err) => {
-        setManagerJoinTeamError(err.message);
-        removeManagers(user);
-      }),
-    );
-    usersRemoved.forEach((user) => leaveTeamRequest(team.teamId, user, 'MANAGER', token));
-    team.members = team.members
-      .filter((user) => user.function === 'MEMBER' || user.active === false)
-      .concat(managers);
+    Promise.all([
+      [...usersAdded.map((user) => joinTeamRequest(team.teamId, user, 'MANAGER', token))],
+      [...usersRemoved.map((user) => leaveTeamRequest(team.teamId, user, 'MANAGER', token))],
+    ]).then(forceUpdate);
   };
+
   const updateMembers = () => {
     const { usersAdded, usersRemoved } = getMembersDiff(team.members, members);
-    usersAdded.forEach((user) =>
-      joinTeamRequest(team.teamId, user, 'MEMBER', token).catch((err) => {
-        setMemberJoinTeamError(err.message);
-        removeMembers(user);
-      }),
-    );
-    usersRemoved.forEach((user) => leaveTeamRequest(team.teamId, user, 'MEMBER', token));
-    team.members = team.members
-      .filter((user) => user.function === 'MANAGER' || user.active === false)
-      .concat(members);
+    Promise.all([
+      ...usersAdded.map((user) =>
+        joinTeamRequest(team.teamId, user, 'MEMBER', token).catch((err) => {
+          setMemberJoinTeamError(err.message);
+          removeMembers(user);
+        }),
+      ),
+      ...usersRemoved.map((user) => leaveTeamRequest(team.teamId, user, 'MEMBER', token)),
+    ]).then(forceUpdate);
   };
 
   const updateTeam = (payload) => {
+    if (payload.joinMethod !== 'BY_INVITE') {
+      payload.visibility = 'PUBLIC';
+    }
     pushToLocalJSONAPI(`teams/${props.id}/`, JSON.stringify(payload), token, 'PATCH');
+    forceUpdate();
   };
 
   if (team && team.teamId && !canUserEditTeam) {
@@ -304,7 +321,7 @@ export function EditTeam(props) {
           team={{
             name: team.name,
             description: team.description,
-            inviteOnly: team.inviteOnly,
+            joinMethod: team.joinMethod,
             visibility: team.visibility,
             organisation_id: team.organisation_id,
           }}
@@ -339,9 +356,13 @@ export function EditTeam(props) {
           teamId={team.teamId}
           addMembers={addMembers}
           updateRequests={setRequests}
+          managers={managers}
+          updateTeam={updateTeam}
+          joinMethod={team.joinMethod}
+          members={team.members}
         />
         <div className="h1"></div>
-        <MessageMembers teamId={team.teamId} />
+        <MessageMembers teamId={team.teamId} members={team.members} />
       </div>
     </div>
   );
@@ -349,8 +370,8 @@ export function EditTeam(props) {
 
 export function TeamDetail(props) {
   useSetTitleTag(`Team #${props.id}`);
-  const userDetails = useSelector((state) => state.auth.get('userDetails'));
-  const token = useSelector((state) => state.auth.get('token'));
+  const userDetails = useSelector((state) => state.auth.userDetails);
+  const token = useSelector((state) => state.auth.token);
   const [error, loading, team] = useFetch(`teams/${props.id}/`);
   // eslint-disable-next-line
   const [projectsError, projectsLoading, projects] = useFetch(
@@ -422,7 +443,11 @@ export function TeamDetail(props) {
           </div>
         </div>
         <div className="fixed bottom-0 cf bg-white h3 w-100">
-          <div className="w-80-ns w-60-m w-50 h-100 fl tr">
+          <div
+            className={`${
+              team.joinMethod === 'BY_INVITE' && !isMember ? 'w-100-ns' : 'w-80-ns'
+            } w-60-m w-50 h-100 fl tr`}
+          >
             <Link to={'/contributions/teams'}>
               <CustomButton className="bg-white mr5 pr2 h-100 bn bg-white blue-dark">
                 <FormattedMessage {...messages.myTeams} />
@@ -441,13 +466,15 @@ export function TeamDetail(props) {
                 />
               </CustomButton>
             ) : (
-              <CustomButton
-                className="w-100 h-100 bg-red white"
-                disabledClassName="bg-red o-50 white w-100 h-100"
-                onClick={() => joinTeam()}
-              >
-                <FormattedMessage {...messages.joinTeam} />
-              </CustomButton>
+              team.joinMethod !== 'BY_INVITE' && (
+                <CustomButton
+                  className="w-100 h-100 bg-red white"
+                  disabledClassName="bg-red o-50 white w-100 h-100"
+                  onClick={() => joinTeam()}
+                >
+                  <FormattedMessage {...messages.joinTeam} />
+                </CustomButton>
+              )
             )}
           </div>
         </div>

@@ -12,7 +12,7 @@ import { AlertIcon } from '../svgIcons';
 
 export function DeleteModal({ id, name, type, className }: Object) {
   const navigate = useNavigate();
-  const token = useSelector((state) => state.auth.get('token'));
+  const token = useSelector((state) => state.auth.token);
   const [deleteStatus, setDeleteStatus] = useState(null);
   const [error, setErrorMessage] = useState(null);
 
@@ -92,7 +92,14 @@ export function DeleteModal({ id, name, type, className }: Object) {
                 )}
               </h3>
             )}
-            {deleteStatus === 'failure' && <p>{error}</p>}
+            {deleteStatus === 'failure' && (
+              <p>
+                {(error && messages[`${error}Error`] && (
+                  <FormattedMessage {...messages[`${error}Error`]} />
+                )) ||
+                  error}
+              </p>
+            )}
           </div>
         </div>
       )}

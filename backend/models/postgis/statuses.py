@@ -46,6 +46,12 @@ class MappingLevel(Enum):
     ADVANCED = 3
 
 
+class ProjectDifficulty(Enum):
+    EASY = 1
+    MODERATE = 2
+    CHALLENGING = 3
+
+
 class MappingTypes(Enum):
     """ Enum describing types of mapping a project may specify"""
 
@@ -118,6 +124,14 @@ class TeamVisibility(Enum):
     PRIVATE = 1
 
 
+class TeamJoinMethod(Enum):
+    """ Describes the visibility associated with an Team """
+
+    ANY = 0
+    BY_REQUEST = 1
+    BY_INVITE = 2
+
+
 class TeamRoles(Enum):
     """ Describes the role a Team has within a Project """
 
@@ -158,3 +172,18 @@ class OrganisationType(Enum):
     FREE = 1
     DISCOUNTED = 2
     FULL_FEE = 3
+
+
+class EncouragingEmailType(Enum):
+    """ Describes the type of encouraging email sent to users """
+
+    PROJECT_PROGRESS = 1  # Send encouraging email to mappers when a project they have contributed to make progress
+    PROJECT_COMPLETE = 2  # Send encouraging email to mappers when a project they have contributed to is complete
+    BEEN_SOME_TIME = 3  # Send encouraging email to mappers who haven't been active for some time on the site
+
+
+class BannerType(Enum):
+    """ Describes the type of banner a user can see """
+
+    INFO = 1
+    WARNING = 2

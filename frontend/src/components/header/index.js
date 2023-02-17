@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { connect } from 'react-redux';
 import { Link, navigate } from '@reach/router';
 import Popup from 'reactjs-popup';
@@ -31,11 +31,16 @@ function getMenuItensForUser(userDetails, organisations) {
       authenticated: true,
     },
     { label: messages.manage, link: 'manage', authenticated: true, manager: true },
-    { label: messages.learn, link: 'learn', showAlways: true },
+    { label: messages.learn, link: 'learn/map', showAlways: true },
     { label: messages.about, link: 'about', showAlways: true },
   ];
   if (SERVICE_DESK) {
-    menuItems.push({ label: messages.support, link: SERVICE_DESK, showAlways: true, serviceDesk: true });
+    menuItems.push({
+      label: messages.support,
+      link: SERVICE_DESK,
+      showAlways: true,
+      serviceDesk: true,
+    });
   }
 
   let filteredMenuItems;
@@ -179,10 +184,10 @@ class Header extends React.Component {
 
     return (
       <div className="v-mid">
-        {filteredMenuItems.map((item, n) => (
-          <>
+        {filteredMenuItems.map((item) => (
+          <Fragment key={item.label.id}>
             {!item.serviceDesk ? (
-              <TopNavLink to={item.link} key={n} isActive={this.isActive}>
+              <TopNavLink to={item.link} isActive={this.isActive}>
                 <FormattedMessage {...item.label} />
               </TopNavLink>
             ) : (
@@ -196,7 +201,7 @@ class Header extends React.Component {
                 <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
               </a>
             )}
-          </>
+          </Fragment>
         ))}
       </div>
     );
@@ -272,7 +277,16 @@ class Header extends React.Component {
         <div className="mt3 pb1 pb2-ns ph2 dib w-100">
           <div className="cf fl pt1 dib">
             <Link to={'/'} className="link mv-1">
-              <img src={ORG_LOGO || logo} alt={`${ORG_NAME} logo`} className="h2 ml2 v-mid pb2" />
+              <img
+                src={ORG_LOGO || logo}
+                alt={`${ORG_NAME} logo`}
+                className="h2 ml2 v-mid pb2"
+                onError={({ currentTarget }) => {
+                  // fallback to HOT logo if ORG_LOGO is broken
+                  currentTarget.onerror = null;
+                  currentTarget.src = logo;
+                }}
+              />
               <span className="barlow-condensed f3 fw6 ml2 blue-dark">Tasking Manager</span>
             </Link>
           </div>
@@ -304,9 +318,9 @@ class Header extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-  userDetails: state.auth.get('userDetails'),
-  organisations: state.auth.get('organisations'),
-  token: state.auth.get('token'),
+  userDetails: state.auth.userDetails,
+  organisations: state.auth.organisations,
+  token: state.auth.token,
   showOrgBar: state.orgBarVisibility.isVisible,
 });
 
