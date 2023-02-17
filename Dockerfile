@@ -8,6 +8,10 @@ COPY tasking-manager.env ..
 # --legacy-peer-deps is a temporary hack to make `react-placeholder` install with react v18
 RUN npm install --legacy-peer-deps
 
+ARG TM_APP_API_URL
+ARG TM_CONSUMER_KEY
+ARG TM_CONSUMER_SECRET
+
 # SERVE
 RUN npm run build
 
