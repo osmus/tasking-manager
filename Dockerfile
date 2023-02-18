@@ -3,7 +3,7 @@ FROM node:18
 WORKDIR /usr/src/app/frontend
 
 ## Dependencies Install
-COPY frontend/package.json frontend/package-lock.json .
+COPY package.json package-lock.json* ./
 # --legacy-peer-deps is a temporary hack to make `react-placeholder` install with react v18
 RUN npm ci --legacy-peer-deps && npm cache clean --force
 
