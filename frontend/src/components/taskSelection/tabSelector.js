@@ -3,7 +3,7 @@ import { FormattedMessage } from 'react-intl';
 import messages from './messages';
 
 export const TabSelector = ({ activeSection, setActiveSection }) => (
-  <div className="ttu barlow-condensed f4 blue-dark bb b--grey-light">
+  <div className="f4 blue-dark bb b--grey-light">
     {['tasks', 'instructions', 'contributions'].map((section) => (
       <div
         key={section}
