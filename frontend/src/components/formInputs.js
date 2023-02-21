@@ -163,6 +163,7 @@ export const CheckBoxInput = ({ isActive, changeState, className = '', disabled 
 );
 
 export const CheckBox = ({ activeItems, toggleFn, itemId }) => {
+  if (!activeItems) activeItems = [];
   const isActive = activeItems.includes(itemId);
   const changeState = (e) => {
     e.persist();

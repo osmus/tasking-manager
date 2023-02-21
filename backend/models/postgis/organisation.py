@@ -79,7 +79,9 @@ class Organisation(db.Model):
         new_org.url = new_organisation_dto.url
         new_org.type = OrganisationType[new_organisation_dto.type].value
         new_org.subscription_tier = new_organisation_dto.subscription_tier
-        new_org.databases = new_organisation_dto.databases
+        new_org.databases = []
+        for db_name in new_organisation_dto.databases:
+            new_org.databases.append(ProjectDatabase[db_name].value)
 
         for manager in new_organisation_dto.managers:
             user = User.get_by_username(manager)

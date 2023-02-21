@@ -56,7 +56,7 @@ import { SwaggerView } from './views/swagger';
 import { ContributionsPage, ContributionsPageIndex, UserStats } from './views/contributions';
 import { NotificationsPage, NotificationPageIndex } from './views/notifications';
 import { Banner, ArchivalNotificationBanner } from './components/banner/index';
-import TopBanner from './components/banner/TopBanner';
+// import TopBanner from './components/banner/TopBanner';
 
 const ProjectEdit = React.lazy(() =>
   import('./views/projectEdit' /* webpackChunkName: "projectEdit" */),
@@ -78,9 +78,6 @@ let App = (props) => {
         <Preloader />
       ) : (
         <div className="w-100 base-font bg-white" lang={props.locale}>
-          <Router>
-            <TopBanner path="/" />
-          </Router>
           <Router>
             <Header path="/*" />
           </Router>
