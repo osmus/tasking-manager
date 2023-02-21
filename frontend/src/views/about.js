@@ -1,6 +1,8 @@
 import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import osiLogoSrc from '../assets/img/osi-badge-dark.svg';
+
 import messages from './messages';
 import { TopBar } from '../components/header/topBar';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
@@ -61,7 +63,7 @@ export function AboutPage() {
         <div className="w-60-l cf flex items-center">
           <img
             className="mw3 mr2"
-            src="https://opensource.org/files/OSIApproved_1.png"
+            src={osiLogoSrc}
             alt="OSI aproved license"
           />
           <div className="v-mid pl3">
