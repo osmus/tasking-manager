@@ -101,7 +101,7 @@ class NewOrganisationDTO(Model):
     logo = StringType()
     description = StringType()
     url = StringType()
-    type = StringType(validators=[is_known_organisation_type])
+    type = StringType(default=OrganisationType.FREE.name, validators=[is_known_organisation_type])
     subscription_tier = IntType(serialized_name="subscriptionTier")
     databases = ListType(
         StringType,
