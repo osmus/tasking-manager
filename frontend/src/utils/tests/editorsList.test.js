@@ -32,7 +32,7 @@ describe('test getEditors', () => {
   });
 
   it('with ID and JOSM in the filterList', () => {
-    expect(getEditors(['ID', 'JOSM'])).toStrictEqual([
+    expect(getEditors(null, ['ID', 'JOSM'])).toStrictEqual([
       {
         label: 'iD Editor',
         value: 'ID',
@@ -52,7 +52,7 @@ describe('test getEditors', () => {
       description: null,
       url: 'https://mapwith.ai/rapid',
     };
-    expect(getEditors(['ID', 'JOSM', 'CUSTOM'], customEditor)).toStrictEqual([
+    expect(getEditors(null, ['ID', 'JOSM', 'CUSTOM'], customEditor)).toStrictEqual([
       {
         label: 'iD Editor',
         value: 'ID',

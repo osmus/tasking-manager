@@ -1,7 +1,13 @@
-import { ID_EDITOR_URL, POTLATCH2_EDITOR_URL, RAPID_EDITOR_URL } from '../config';
+import { ID_EDITOR_URL, POTLATCH2_EDITOR_URL, RAPID_EDITOR_URL, PDEDITOR_URL } from '../config';
 
-export function getEditors(filterList, customEditor) {
-  let editors = [
+export function getEditors(database, filterList, customEditor) {
+  let editors = database === 'PDMAP' ? [
+    {
+      label: 'iD Editor',
+      value: 'ID',
+      url: PDEDITOR_URL,
+    }
+  ] : [
     {
       label: 'RapiD',
       value: 'RAPID',
