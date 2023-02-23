@@ -686,7 +686,7 @@ function CompletionInstructions({ setVisibility }: Object) {
 }
 
 export function ReopenEditor({ project, action, editor, callEditor }: Object) {
-  const editorOptions = project.databse === 'OSM' ? getEditors(
+  const editorOptions = project.database === 'OSM' ? getEditors(
     action === 'MAPPING' ? project.mappingEditors : project.validationEditors,
     project.customEditor,
   ) : [{
