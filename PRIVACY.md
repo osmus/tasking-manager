@@ -100,7 +100,7 @@ The Services may include links to third-party websites and services that are not
 
 ### Source code
 
-If you choose to interact with the project GitHub page or website hosted by GitHub, you do so in accordance with [GitHub’s Privacy Policy](https://help.github.com/en/articles/github-privacy-statement). If you choose any other communications medium to contact the maintainers of the Services, that use is governed by the policies of those respective mediums. See [https://github.com/osmus/tasking-manager](https://github.com/osmus/tasking-manager) for more information. OSMUS may use any feedback you provide.
+If you choose to interact with the OSMUS Tasking Manager GitHub page (located at [https://github.com/osmus/tasking-manager](https://github.com/osmus/tasking-manager)) or a related website hosted by GitHub, you do so in accordance with [GitHub’s Privacy Policy](https://help.github.com/en/articles/github-privacy-statement). If you choose any other communications medium to contact the maintainers of the Services, that use is governed by the policies of those respective mediums. OSMUS may use any feedback you provide.
 
 ## Children’s Privacy 
 
