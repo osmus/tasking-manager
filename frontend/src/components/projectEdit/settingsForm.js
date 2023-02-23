@@ -21,7 +21,7 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
     setProjectInfo({ ...projectInfo, defaultLocale: event.target.value });
   };
 
-  const editors = getEditors();
+  const editors = getEditors(projectInfo.database);
   return (
     <div className="w-100">
       <div className={styleClasses.divClass}>
@@ -40,7 +40,6 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           ))}
         </select>
       </div>
-      {projectInfo.database === 'OSM' ? (
       <>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
@@ -110,8 +109,7 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           </div>
         )}
       </div>
-      </>)
-      : ''}
+      </>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.randomTaskSelection} />
