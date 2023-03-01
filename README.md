@@ -13,3 +13,5 @@ The original Tasking Manager is a project of the [Humanitarian OpenStreetMap Tea
 **Questions, bug reports, feature requests:** If your issue is about Public Domain Map or another OSMUS feature, or if you're not sure, please [post it here](https://github.com/osmus/tasking-manager/issues). Generic Tasking Manager issues belong [here](https://github.com/hotosm/tasking-manager/issues) while iD editor issues live [here](https://github.com/openstreetmap/iD/issues).
 
 **Development:** [Setup the TM for development](./docs/developers/development-setup.md).
+
+**Privacy Policy:** Available [here](https://github.com/osmus/tasking-manager/blob/develop/PRIVACY.md).
