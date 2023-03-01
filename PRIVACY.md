@@ -114,4 +114,4 @@ If you have a question about this Privacy Policy, please contact us at [team@ope
 We may modify this Privacy Policy from time to time. All such changes will be reflected on this page and the date of revision will be noted at the bottom of the Privacy Policy. Please check the Policy periodically for updates.
 
 ## Changelog 
-_February 23, 2023_ – Initial version
+_March 1, 2023_ – Initial version
