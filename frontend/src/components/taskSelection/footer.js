@@ -138,7 +138,7 @@ const TaskSelectionFooter = ({ defaultUserEditor, project, tasks, taskAction, se
       project.mappingEditors &&
       (taskAction.startsWith('validate') || taskAction === 'resumeValidation')
     ) {
-      const validationEditorOptions = getEditors(project.validationEditors, project.customEditor);
+      const validationEditorOptions = getEditors(project.database, project.validationEditors, project.customEditor);
       setEditorOptions(validationEditorOptions);
       if (!project.validationEditors.includes(editor)) {
         // activate defaultUserEditor if it's allowed. If not, use the first allowed editor for validation
@@ -149,7 +149,7 @@ const TaskSelectionFooter = ({ defaultUserEditor, project, tasks, taskAction, se
         }
       }
     } else {
-      const mappingEditorOptions = getEditors(project.mappingEditors, project.customEditor);
+      const mappingEditorOptions = getEditors(project.database, project.mappingEditors, project.customEditor);
       setEditorOptions(mappingEditorOptions);
       if (!project.mappingEditors.includes(editor)) {
         // activate defaultUserEditor if it's allowed. If not, use the first allowed editor

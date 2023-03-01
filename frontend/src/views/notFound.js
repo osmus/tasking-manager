@@ -6,7 +6,7 @@ import messages from './messages';
 export const NotFound = (props) => {
   useEffect(() => {
     // eslint-disable-next-line
-    if (opener.authComplete) {
+    if (opener && opener.authComplete) {
       // eslint-disable-next-line
       opener.authComplete(window.location.href);
       window.close();
