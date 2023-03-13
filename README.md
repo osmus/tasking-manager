@@ -2,7 +2,7 @@
 
 This is the [OpenStreetMap US](https://openstreetmap.us) (OSMUS) fork of [hotosm/tasking-manager](https://github.com/hotosm/tasking-manager), a tool for coordinating [OpenStreetMap](https://openstreetmap.org/about) mapping campaigns. Check out the live instance at https://tasks.openstreetmap.us.
 
-The OSMUS Tasking Manager incorporates a number of changes to better serve mapping efforts in the United States (though it's also open to the global community). Notably, [Public Domain Map](https://publicdomainmap.org) projects are integrated alongside OpenStreetMap projects, allowing mappers to browse and contribute to government mapping campaigns.
+The OSMUS Tasking Manager incorporates a number of changes to better serve mapping efforts in the United States (though it's also open to the global community). Notably, [Public Domain Map](https://publicdomainmap.org) projects are integrated alongside OpenStreetMap projects, allowing mappers to browse and contribute to government mapping campaigns. Public Domain Map contributions are subject to the license specified at [publicdomainmap.org/license](https://publicdomainmap.org/license/).
 
 The original Tasking Manager is a project of the [Humanitarian OpenStreetMap Team](https://www.hotosm.org) and is Free and Open Source Software.
 
