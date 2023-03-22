@@ -7,7 +7,8 @@ COPY frontend .
 RUN npm install
 
 # SERVE
-COPY tasking-manager.env ..
+# workaround to only copy if tasking-manager.env exists: https://stackoverflow.com/questions/31528384/conditional-copy-add-in-dockerfile
+COPY example.env tasking-manager.en[v] ../
 RUN npm run build
 
 FROM nginx:stable-alpine
