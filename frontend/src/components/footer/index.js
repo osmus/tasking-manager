@@ -91,14 +91,15 @@ export function Footer() {
         <div className="flex justify-between flex-column flex-row-ns">
           <div className="pt2 mb2 f6 w-50-l w-100">
             <div className="pb3 lh-title mw6">
-              <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/">
-                <img
-                  className="mb1"
-                  src="https://i.creativecommons.org/l/by-sa/4.0/88x31.png"
-                  alt="Creative Commons License"
-                />
+              <a
+                className="link white"
+                href="https://publicdomainmap.org/license"
+                rel="license"
+              >
+                Public Domain Map data is subject to the CC0 1.0 Universal (CC0 1.0) license.
               </a>
-              <br />
+              <br/>
+              <br/>
               <a
                 className="link white"
                 href="https://creativecommons.org/licenses/by-sa/4.0/"
