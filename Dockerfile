@@ -2,6 +2,8 @@ FROM node:18 as build
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
+# create env file if it doesn't exist
+RUN touch tasking-manager.env
 COPY tasking-manager.env ..
 
 ## SETUP
