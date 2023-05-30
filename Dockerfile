@@ -4,7 +4,7 @@ WORKDIR /usr/src/app/frontend
 COPY frontend .
 # create env file if it doesn't exist
 RUN touch tasking-manager.env
-COPY tasking-manager.env ..
+COPY example.env tasking-manager.en[v] ../
 
 ## SETUP
 # --legacy-peer-deps is a temporary hack to make `react-placeholder` install with react v18
