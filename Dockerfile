@@ -1,9 +1,5 @@
 FROM node:18 as build
 
-# we need to install gettext-base in order to use the envsubst command
-RUN sudo apt-get update
-RUN sudo apt-get -y install gettext-base
-
 WORKDIR /usr/src/app/frontend
 COPY frontend .
 # create env file if it doesn't exist
