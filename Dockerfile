@@ -1,5 +1,8 @@
 FROM node:18 as build
 
+# there's maybe some issue with docker cacheing so run everything uncached
+ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
+
 WORKDIR /usr/src/app/frontend
 COPY frontend .
 # create env file if it doesn't exist
