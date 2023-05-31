@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import * as RapiD from 'RapiD/dist/iD.legacy';
+import * as RapiD from 'RapiD/dist/iD.legacy.js';
 import 'RapiD/dist/RapiD.css';
 
 import { OSM_CLIENT_ID, OSM_CLIENT_SECRET, OSM_REDIRECT_URI, OSM_SERVER_URL } from '../config';
