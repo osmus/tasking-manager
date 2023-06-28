@@ -80,7 +80,7 @@ def create_app(env="backend.config.EnvironmentConfig"):
     add_api_endpoints(app)
 
     # Enables CORS on all API routes, meaning API is callable from anywhere
-    CORS(app, origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://tasks.openstreetmap.us"])
+    CORS(app)
 
     # Add basic oauth setup
     app.secret_key = app.config[

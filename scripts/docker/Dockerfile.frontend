@@ -7,6 +7,8 @@ COPY frontend .
 RUN npm install
 
 # SERVE
+# create env file if it doesn't exist
+RUN touch tasking-manager.env
 COPY tasking-manager.env ..
 RUN npm run build
 
