@@ -78,12 +78,8 @@ export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gp
         .setsDocumentTitle(false)
         .containerNode(document.getElementById('id-container'));
       
-      if (iDContext.entityFilter && layerTagValue) {
-        iDContext.entityFilter({
-          tags: {
-            "PDM:LAYER": layerTagValue
-          } 
-        });
+      if (iDContext.layerTagValue && layerTagValue) {
+        iDContext.layerTagValue(layerTagValue);
       }
       // init the ui or restart if it was loaded previously
       if (iDContext.ui() !== undefined) {
