@@ -248,6 +248,7 @@ class ProjectDTO(Model):
     private = BooleanType(required=True)
     changeset_comment = StringType(serialized_name="changesetComment")
     osmcha_filter_id = StringType(serialized_name="osmchaFilterId")
+    layer_tag_value = StringType(serialized_name="layerTagValue")
     due_date = UTCDateTimeType(serialized_name="dueDate")
     imagery = StringType()
     josm_preset = StringType(serialized_name="josmPreset", serialize_when_none=False)
@@ -519,6 +520,7 @@ class ProjectSummary(Model):
     organisation_logo = StringType(serialized_name="organisationLogo")
     country_tag = ListType(StringType, serialized_name="countryTag")
     osmcha_filter_id = StringType(serialized_name="osmchaFilterId")
+    layer_tag_value = StringType(serialized_name="layerTagValue")
     mapping_types = ListType(
         StringType, serialized_name="mappingTypes", validators=[is_known_mapping_type]
     )

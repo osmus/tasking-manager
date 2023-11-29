@@ -406,6 +406,14 @@ export default defineMessages({
     id: 'projects.formInputs.name',
     defaultMessage: 'Name of the project',
   },
+  layerTagValue: {
+    id: 'projects.formInputs.layerTagValue',
+    defaultMessage: 'Public Domain Map layer tag',
+  },
+  layerTagValueDescription: {
+    id: 'projects.formInputs.layerTagValueDescription',
+    defaultMessage: 'Restrict which features are displayed and editable by specifying a "PDM:LAYER" tag value',
+  },
   dueDate: {
     id: 'projects.formInputs.dueDate',
     defaultMessage: 'Due date',

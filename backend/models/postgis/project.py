@@ -147,6 +147,9 @@ class Project(db.Model):
     osmcha_filter_id = db.Column(
         db.String
     )  # Optional custom filter id for filtering on OSMCha
+    layer_tag_value = db.Column(
+        db.String
+    )  # Optional layer tag to filter data in PDMap
     due_date = db.Column(db.DateTime)
     imagery = db.Column(db.String)
     josm_preset = db.Column(db.String)
@@ -385,6 +388,7 @@ class Project(db.Model):
         self.private = project_dto.private
         self.difficulty = ProjectDifficulty[project_dto.difficulty.upper()].value
         self.changeset_comment = project_dto.changeset_comment
+        self.layer_tag_value = project_dto.layer_tag_value
         self.due_date = project_dto.due_date
         self.imagery = project_dto.imagery
         self.josm_preset = project_dto.josm_preset
@@ -847,6 +851,7 @@ class Project(db.Model):
         summary.created = self.created
         summary.last_updated = self.last_updated
         summary.osmcha_filter_id = self.osmcha_filter_id
+        summary.layer_tag_value = self.layer_tag_value
         summary.difficulty = ProjectDifficulty(self.difficulty).name
         summary.mapping_permission = MappingPermission(self.mapping_permission).name
         summary.validation_permission = ValidationPermission(
@@ -1020,6 +1025,7 @@ class Project(db.Model):
         base_dto.difficulty = ProjectDifficulty(self.difficulty).name
         base_dto.changeset_comment = self.changeset_comment
         base_dto.osmcha_filter_id = self.osmcha_filter_id
+        base_dto.layer_tag_value = self.layer_tag_value
         base_dto.due_date = self.due_date
         base_dto.imagery = self.imagery
         base_dto.josm_preset = self.josm_preset

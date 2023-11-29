@@ -5,7 +5,7 @@ import '@publicdomainmap/editor/dist/iD.css';
 
 import { PD_CONSUMER_KEY, PD_CONSUMER_SECRET, PD_SERVER_URL } from '../config';
 
-export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gpxUrl }) {
+export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gpxUrl, layerTagValue }) {
 
   const dispatch = useDispatch();
   const session = useSelector((state) => state.auth.session);
@@ -77,6 +77,14 @@ export default function PDEditor({ setDisable, comment, presets,/* imagery,*/ gp
         .locale(locale)
         .setsDocumentTitle(false)
         .containerNode(document.getElementById('id-container'));
+      
+      if (iDContext.entityFilter && layerTagValue) {
+        iDContext.entityFilter({
+          tags: {
+            "PDM:LAYER": layerTagValue
+          } 
+        });
+      }
       // init the ui or restart if it was loaded previously
       if (iDContext.ui() !== undefined) {
         iDContext.reset();

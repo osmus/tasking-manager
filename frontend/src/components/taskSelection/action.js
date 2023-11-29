@@ -259,6 +259,7 @@ export function TaskMapAction({
                     presets={project.idPresets}
                     //imagery={formatImageryUrlCallback(project.imagery)}
                     gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                    layerTagValue={project.layerTagValue}
                   />
                 )
               }

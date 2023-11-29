@@ -57,6 +57,28 @@ export const DescriptionForm = ({ languages }) => {
           <FormattedMessage {...messages.databaseInfo} />
         </p>
       </div>
+      {projectInfo.database === 'PDMAP' ? (
+        <div className={styleClasses.divClass}>
+          <label className={styleClasses.labelClass}>
+            <FormattedMessage {...messages.layerTagValue} />
+          </label>
+          <input
+            name="layerTagValue"
+            type="text"
+            maxLength={256}
+            value={projectInfo.layerTagValue || ''}
+            onChange={(e) => {
+              setProjectInfo({
+                ...projectInfo,
+                layerTagValue: e.target.value,
+              });
+            }}
+          />
+          <p className={styleClasses.pClass}>
+            <FormattedMessage {...messages.layerTagValueDescription} />
+          </p>
+        </div>
+      ) : null}
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.status} />
