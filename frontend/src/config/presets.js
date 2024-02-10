@@ -22,6 +22,7 @@ export const ID_PRESETS = {
       'building/commercial',
       'building/industrial',
       'building/residential',
+      'demolished/building',
     ],
   },
   'category-landuse': {
