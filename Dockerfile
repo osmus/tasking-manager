@@ -7,8 +7,7 @@ RUN touch tasking-manager.env
 COPY example.env tasking-manager.en[v] ../
 
 ## SETUP
-# --legacy-peer-deps is a temporary hack to make `react-placeholder` install with react v18
-RUN npm install --legacy-peer-deps
+RUN yarn
 
 # need to list all environment variables here or Digital Ocean won't insert them  
 ARG TM_APP_BASE_URL
