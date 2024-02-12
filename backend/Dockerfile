@@ -9,7 +9,8 @@ RUN apk update && apk add postgresql-dev gcc g++ python3-dev musl-dev libffi-dev
 
 # Setup backend Python dependencies
 COPY requirements.txt .
-RUN pip install --prefix=/install --no-warn-script-location -r requirements.txt
+COPY cython_constraint.txt .
+RUN PIP_CONSTRAINT=cython_constraint.txt pip install --prefix=/install --no-warn-script-location -r requirements.txt
 
 ## DEPLOY
 FROM base
