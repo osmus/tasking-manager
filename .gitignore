@@ -13,6 +13,8 @@ frontend/.eslintcache
 frontend/coverage/
 
 # Don't ignore dist folder as this contains the minimized build for deploy
+#backend/web/static/dist
+#backend/web/static/dist/
 #server/web/static/dist
 #server/web/static/dist/
 
