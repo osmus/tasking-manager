@@ -1,6 +1,6 @@
 FROM node:18 as build
 
-WORKDIR /usr/src/app/frontend
+WORKDIR /usr/src/app
 COPY . .
 # create env file if it doesn't exist
 RUN touch tasking-manager.env
@@ -61,8 +61,8 @@ ARG PD_SERVER_URL
 RUN npm run build
 
 FROM nginx:stable-alpine
-COPY --from=build /usr/src/app/frontend/build /usr/share/nginx/html
-COPY --from=build /usr/src/app/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /usr/src/app/build /usr/share/nginx/html
+COPY --from=build /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
