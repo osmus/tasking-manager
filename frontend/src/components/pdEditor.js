@@ -89,11 +89,9 @@ export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl
       }
 
       iDContext.connection().switch({
-        urlroot: PD_SERVER_URL,
-        oauth_consumer_key: PD_CLIENT_ID,
-        oauth_secret: PD_CLIENT_SECRET,
-      //  oauth_token: session.osm_oauth_token,
-      //  oauth_token_secret: session.osm_oauth_token_secret,
+        url: PD_SERVER_URL,
+        client_id: PD_CLIENT_ID,
+        client_secret: PD_CLIENT_SECRET,
       });
 
       const thereAreChanges = (changes) =>
