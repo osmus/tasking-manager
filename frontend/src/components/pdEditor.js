@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as iD from '@publicdomainmap/editor';
 import '@publicdomainmap/editor/dist/iD.css';
 
-import { PD_CLIENT_ID, PD_CLIENT_SECRET, PD_SERVER_URL } from '../config';
+import { PD_CLIENT_ID, PD_CLIENT_SECRET, PD_SERVER_URL, OSM_REDIRECT_URI } from '../config';
 
 export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl }) {
 
