@@ -51,8 +51,8 @@ export const HOMEPAGE_VIDEO_URL = process.env.REACT_APP_HOMEPAGE_VIDEO_URL || ''
 export const SENTRY_FRONTEND_DSN = process.env.REACT_APP_SENTRY_FRONTEND_DSN;
 
 // Public Domain Map
-export const PD_CONSUMER_KEY = process.env.REACT_APP_PD_CONSUMER_KEY || '';
-export const PD_CONSUMER_SECRET = process.env.REACT_APP_PD_CONSUMER_SECRET || '';
+export const PD_CLIENT_ID = process.env.REACT_APP_PD_CLIENT_ID || '';
+export const PD_CLIENT_SECRET = process.env.REACT_APP_PD_CLIENT_SECRET || '';
 export const PD_SERVER_URL = process.env.REACT_APP_PD_SERVER_URL || '';
 
 // OSM API and Editor URLs

@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as iD from '@publicdomainmap/editor';
 import '@publicdomainmap/editor/dist/iD.css';
 
-import { PD_CONSUMER_KEY, PD_CONSUMER_SECRET, PD_SERVER_URL } from '../config';
+import { PD_CLIENT_ID, PD_CLIENT_SECRET, PD_SERVER_URL } from '../config';
 
 export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl }) {
 
@@ -90,8 +90,8 @@ export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl
 
       iDContext.connection().switch({
         urlroot: PD_SERVER_URL,
-        oauth_consumer_key: PD_CONSUMER_KEY,
-        oauth_secret: PD_CONSUMER_SECRET,
+        oauth_consumer_key: PD_CLIENT_ID,
+        oauth_secret: PD_CLIENT_SECRET,
       //  oauth_token: session.osm_oauth_token,
       //  oauth_token_secret: session.osm_oauth_token_secret,
       });
