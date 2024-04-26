@@ -1,4 +1,5 @@
 // API ENDPOINTS
+export const BASE_URL = process.env.REACT_APP_BASE_URL || 'v2';
 export const API_VERSION = process.env.REACT_APP_API_VERSION || 'v2';
 export const API_URL = process.env.REACT_APP_API_URL
   ? new URL('/api/' + API_VERSION + '/', process.env.REACT_APP_API_URL)

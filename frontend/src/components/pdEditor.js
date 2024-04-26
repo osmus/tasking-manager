@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as iD from '@publicdomainmap/editor';
 import '@publicdomainmap/editor/dist/iD.css';
 
-import { PD_CLIENT_ID, PD_CLIENT_SECRET, PD_SERVER_URL, TM_APP_BASE_URL } from '../config';
+import { PD_CLIENT_ID, PD_CLIENT_SECRET, PD_SERVER_URL, BASE_URL } from '../config';
 
 export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl }) {
 
@@ -92,7 +92,7 @@ export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl
         url: PD_SERVER_URL,
         client_id: PD_CLIENT_ID,
         client_secret: PD_CLIENT_SECRET,
-        redirect_uri: TM_APP_BASE_URL + '/static/id/land.html',
+        redirect_uri: BASE_URL + '/static/id/land.html',
       });
 
       const thereAreChanges = (changes) =>
