@@ -288,7 +288,7 @@ export default defineMessages({
   apiKeyDescription: {
     id: 'user.settings.apiKey.description',
     defaultMessage:
-      'With this API Key, you can authenticate and use all the resources of the Tasking Manager API. For more details, checkout the {link}.',
+      'With this API Key, you can authenticate and use all the resources of the Tasking Manager API. For more details, check out the {link}.',
   },
   emailConfirmationMsg: {
     id: 'user.settings.email.confirmation',
@@ -333,6 +333,16 @@ export default defineMessages({
   setLevel: {
     id: 'users.list.actions.setLevel',
     defaultMessage: 'Set mapper level',
+  },
+  userAttributeUpdationSuccess: {
+    id: 'users.list.attribute.updation.success',
+    defaultMessage:
+      'User {attribute, select, role {role} mapperLevel {mapper level} other {attribute}} updated',
+  },
+  userAttributeUpdationFailure: {
+    id: 'users.list.attribute.updation.failure',
+    defaultMessage:
+      'Failed to update user {attribute, select, role {role} mapperLevel {mapper level} other {attribute}}. Please try again.',
   },
   mapperLevelALL: {
     id: 'user.mapper_level.options.all',

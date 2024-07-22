@@ -1,6 +1,7 @@
 import re
 import time
 import datetime
+import bleach
 
 from cachetools import TTLCache, cached
 from typing import List
@@ -8,10 +9,11 @@ from flask import current_app
 from sqlalchemy import text, func
 from markdown import markdown
 
-from backend import create_app, db
+from backend import db, create_app
+from backend.exceptions import NotFound
 from backend.models.dtos.message_dto import MessageDTO, MessagesDTO
 from backend.models.dtos.stats_dto import Pagination
-from backend.models.postgis.message import Message, MessageType, NotFound
+from backend.models.postgis.message import Message, MessageType
 from backend.models.postgis.notification import Notification
 from backend.models.postgis.project import Project, ProjectInfo
 from backend.models.postgis.task import TaskStatus, TaskAction, TaskHistory
@@ -119,7 +121,8 @@ class MessageService:
     @staticmethod
     def send_message_to_all_contributors(project_id: int, message_dto: MessageDTO):
         """Sends supplied message to all contributors on specified project.  Message all contributors can take
-        over a minute to run, so this method is expected to be called on its own thread"""
+        over a minute to run, so this method is expected to be called on its own thread
+        """
 
         app = (
             create_app()
@@ -241,6 +244,34 @@ class MessageService:
             task_link = MessageService.get_task_link(project_id, task_id)
             project_link = MessageService.get_project_link(project_id, project_name)
 
+            # Clean comment and convert to html
+            allowed_tags = [
+                "a",
+                "b",
+                "blockquote",
+                "br",
+                "code",
+                "em",
+                "h1",
+                "h2",
+                "h3",
+                "img",
+                "i",
+                "li",
+                "ol",
+                "p",
+                "pre",
+                "strong",
+                "ul",
+            ]
+            allowed_atrributes = {"a": ["href", "rel"], "img": ["src", "alt"]}
+            clean_comment = bleach.clean(
+                markdown(comment, output_format="html"),
+                tags=allowed_tags,
+                attributes=allowed_atrributes,
+            )  # Bleach input to ensure no nefarious script tags etc
+            clean_comment = bleach.linkify(clean_comment)
+
             messages = []
             for username in usernames:
                 try:
@@ -258,7 +289,7 @@ class MessageService:
                     f"You were mentioned in a comment in {task_link} "
                     + f"of Project {project_link}"
                 )
-                message.message = comment
+                message.message = clean_comment
                 messages.append(
                     dict(message=message, user=user, project_name=project_name)
                 )
@@ -384,7 +415,7 @@ class MessageService:
         message.message = f"{user_link} has requested to join the {team_link} team.\
             Access the team management page to accept or reject that request."
         MessageService._push_messages(
-            [dict(message=message, user=User.query.get(to_user))]
+            [dict(message=message, user=db.session.get(User, to_user))]
         )
 
     @staticmethod
@@ -464,8 +495,13 @@ class MessageService:
         chat_from: int, chat: str, project_id: int, project_name: str
     ):
         """Send alert to user if they were @'d in a chat message"""
-        # Because message-all run on background thread it needs it's own app context
-        app = create_app()
+        app = (
+            create_app()
+        )  # Because message-all run on background thread it needs it's own app context
+        if (
+            app.config["ENVIRONMENT"] == "test"
+        ):  # Don't send in test mode as this will cause tests to fail.
+            return
         with app.app_context():
             usernames = MessageService._parse_message_for_username(chat, project_id)
             if len(usernames) != 0:
@@ -494,10 +530,9 @@ class MessageService:
 
                 MessageService._push_messages(messages)
 
-            query = """ select user_id from project_favorites where project_id = :project_id"""
-            favorited_users_results = db.engine.execute(
-                text(query), project_id=project_id
-            )
+            query = f""" select user_id from project_favorites where project_id ={project_id}"""
+            with db.engine.connect() as conn:
+                favorited_users_results = conn.execute(text(query))
             favorited_users = [r[0] for r in favorited_users_results]
 
             # Notify all contributors except the user that created the comment.
@@ -571,9 +606,10 @@ class MessageService:
             project_name = ProjectInfo.get_dto_for_locale(
                 project.id, project.default_locale
             ).name
-            last_active_users = db.engine.execute(
-                text(query_last_active_users), project_id=project.id
-            )
+            with db.engine.connect() as conn:
+                last_active_users = conn.execute(
+                    text(query_last_active_users), project_id=project.id
+                )
 
             for recent_user_id in last_active_users:
                 recent_user_details = UserService.get_user_by_id(recent_user_id)
@@ -602,6 +638,8 @@ class MessageService:
     def resend_email_validation(user_id: int):
         """Resends the email validation email to the logged in user"""
         user = UserService.get_user_by_id(user_id)
+        if user.email_address is None:
+            raise ValueError("EmailNotSet- User does not have an email address")
         SMTPService.send_verification_email(user.email_address, user.username)
 
     @staticmethod
@@ -612,7 +650,7 @@ class MessageService:
         parsed = parser.findall(message)
 
         usernames = []
-        project = Project.query.get(project_id)
+        project = db.session.get(Project, project_id)
 
         if project is None:
             return usernames
@@ -716,7 +754,7 @@ class MessageService:
         results = (
             query.filter(Message.to_user_id == user_id)
             .order_by(sort_column)
-            .paginate(page, page_size, True)
+            .paginate(page=page, per_page=page_size, error_out=True)
         )
         # if results.total == 0:
         #     raise NotFound()
@@ -739,10 +777,10 @@ class MessageService:
     @staticmethod
     def get_message(message_id: int, user_id: int) -> Message:
         """Gets the specified message"""
-        message = Message.query.get(message_id)
+        message = db.session.get(Message, message_id)
 
         if message is None:
-            raise NotFound()
+            raise NotFound(sub_code="MESSAGE_NOT_FOUND", message_id=message_id)
 
         if message.to_user_id != int(user_id):
             raise MessageServiceError(
@@ -751,6 +789,29 @@ class MessageService:
             )
 
         return message
+
+    @staticmethod
+    def mark_all_messages_read(user_id: int, message_type: str = None):
+        """Marks all messages as read for the user
+        -----------------------------------------
+        :param user_id: The user id
+        :param message_type: The message types to mark as read
+        returns: None
+        """
+        if message_type is not None:
+            # Wrap in list for unit tests to work
+            message_type = list(map(int, message_type.split(",")))
+        Message.mark_all_messages_read(user_id, message_type)
+
+    @staticmethod
+    def mark_multiple_messages_read(message_ids: list, user_id: int):
+        """Marks the specified messages as read for the user
+        ---------------------------------------------------
+        :param message_ids: List of message ids to mark as read
+        :param user_id: The user id
+        returns: None
+        """
+        Message.mark_multiple_messages_read(message_ids, user_id)
 
     @staticmethod
     def get_message_as_dto(message_id: int, user_id: int):
@@ -769,6 +830,19 @@ class MessageService:
     def delete_multiple_messages(message_ids: list, user_id: int):
         """Deletes the specified messages to the user"""
         Message.delete_multiple_messages(message_ids, user_id)
+
+    @staticmethod
+    def delete_all_messages(user_id: int, message_type: str = None):
+        """Deletes all messages to the user
+        ----------------------------------
+        :param user_id: The user id
+        :param message_type: The message types to delete (comma separated)
+        returns: None
+        """
+        if message_type is not None:
+            # Wrap in list for unit tests to work
+            message_type = list(map(int, message_type.split(",")))
+        Message.delete_all_messages(user_id, message_type)
 
     @staticmethod
     def get_task_link(

@@ -1,20 +1,12 @@
-import React from 'react';
-import { Link } from '@gatsbyjs/reach-router';
-
-export const NavLink = ({ partial = true, ...props }) => (
-  <Link
-    {...props}
-    getProps={({ isCurrent, isPartiallyCurrent }) => {
-      const isActive = partial ? isPartiallyCurrent : isCurrent;
-      return { className: `${isActive && 'bg-blue-dark white'} ${props.className}` };
-    }}
-  />
-);
+import { Link, useMatch } from 'react-router-dom';
 
 export const TopNavLink = (props) => {
   const { isActive, ...otherProps } = props;
+  const linkCombo = 'link mh3 barlow-condensed blue-dark f4 ttu lh-solid nowrap pv2';
+  let match = useMatch(props.to + '/*');
+
   return (
-    <Link getProps={isActive} {...otherProps}>
+    <Link className={match ? `${linkCombo} bb b--blue-dark bw1` : linkCombo} {...otherProps}>
       {props.children}
     </Link>
   );

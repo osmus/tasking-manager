@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import MDEditor from '@uiw/react-md-editor';
 import Tribute from 'tributejs';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useDropzone } from 'react-dropzone';
 
 import 'tributejs/tribute.css';
@@ -16,20 +16,24 @@ import { DROPZONE_SETTINGS } from '../../config';
 import { htmlFromMarkdown, formatUserNamesToLink } from '../../utils/htmlFromMarkdown';
 import { iconConfig } from './editorIconConfig';
 import messages from './messages';
+import { CurrentUserAvatar } from '../user/avatar';
 
-export const CommentInputField = ({
+function CommentInputField({
   comment,
   setComment,
   contributors,
   enableHashtagPaste = false,
-  autoFocus,
-  isShowPreview = false,
-  isProjectDetailCommentSection = false,
+  isShowTabNavs = false,
+  isShowFooter = false,
   enableContributorsHashtag = false,
-}: Object) => {
+  isShowUserPicture = false,
+  placeholderMsg = messages.leaveAComment,
+  markdownTextareaProps = {},
+}: Object) {
   const token = useSelector((state) => state.auth.token);
   const textareaRef = useRef();
   const isBundle = useRef(false);
+  const [isShowPreview, setIsShowPreview] = useState(false);
 
   const appendImgToComment = (url) => setComment(`${comment}\n![image](${url})\n`);
   const [uploadError, uploading, onDrop] = useOnDrop(appendImgToComment);
@@ -44,6 +48,12 @@ export const CommentInputField = ({
     values: async (query, cb) => {
       try {
         if (!query) return cb(contributors.map((username) => ({ username })));
+
+        // address trigger js allowSpaces=true issue
+        // which triggers this function every keystroke
+        const isUsernameAlreadyFetched = /^\[.*?\]\s/.test(query);
+        if (isUsernameAlreadyFetched) return;
+
         const res = await fetchLocalJSONAPI(`users/queries/filter/${query}/`, token);
         cb(res.usernames.map((username) => ({ username })));
       } catch (e) {
@@ -56,6 +66,7 @@ export const CommentInputField = ({
     itemClass: 'w-100 pv2 ph3 bg-tan hover-bg-blue-grey blue-grey hover-white pointer base-font',
     requireLeadingSpace: true,
     noMatchTemplate: null,
+    allowSpaces: true,
     searchOpts: {
       skip: true,
     },
@@ -78,7 +89,32 @@ export const CommentInputField = ({
 
   return (
     <div {...getRootProps()}>
-      <div className={`${isShowPreview ? 'dn' : ''}`} data-color-mode="light">
+      {isShowTabNavs && (
+        <div className={`flex items-center gap-1 ${isShowUserPicture ? 'mb3' : ''}`}>
+          {isShowUserPicture && <CurrentUserAvatar className="w3 h3" />}
+          <div className="pv3-ns ph3 ph3-m bg-grey-light dib">
+            <span
+              role="button"
+              className={`pointer db dib-ns pb1 bb bw1 ${
+                !isShowPreview ? 'b--blue-dark' : 'b--grey-light'
+              }`}
+              onClick={() => setIsShowPreview(false)}
+            >
+              <FormattedMessage {...messages.write} />
+            </span>
+            <span
+              role="button"
+              className={`pointer ml3 db dib-ns pb1 bb bw1 ${
+                isShowPreview ? 'b--blue-dark' : 'b--grey-light'
+              }`}
+              onClick={() => setIsShowPreview(true)}
+            >
+              <FormattedMessage {...messages.preview} />
+            </span>
+          </div>
+        </div>
+      )}
+      <div className={`${isShowPreview ? 'dn' : ''} bg-white`} data-color-mode="light">
         <MDEditor
           ref={textareaRef}
           preview="edit"
@@ -87,7 +123,13 @@ export const CommentInputField = ({
           height={200}
           value={comment}
           onChange={setComment}
-          textareaProps={{ ...getInputProps(), spellCheck: 'true' }}
+          textareaProps={{
+            ...getInputProps(),
+            spellCheck: 'true',
+            placeholder: useIntl().formatMessage(placeholderMsg),
+            ...markdownTextareaProps,
+          }}
+          defaultTabEnable
         />
         <input
           type="file"
@@ -96,8 +138,8 @@ export const CommentInputField = ({
           accept="image/*"
           onChange={handleImagePick}
         />
-        {isProjectDetailCommentSection && (
-          <div className="flex justify-between ba bt-0 w-100 ph2 pv1 relative b--blue-grey textareaDetail">
+        {isShowFooter && (
+          <div className="dn flex-ns justify-between ba bt-0 w-100 ph2 pv1 relative b--blue-grey textareaDetail">
             <span className="f7 lh-copy gray">
               <FormattedMessage {...messages.attachImage} />
             </span>
@@ -108,7 +150,7 @@ export const CommentInputField = ({
         )}
       </div>
       {isShowPreview && (
-        <div className="cf db">
+        <div className="db ba ph3" style={{ minHeight: 200, borderColor: '#F0EEEE' }}>
           {comment && (
             <div
               style={{ wordWrap: 'break-word' }}
@@ -117,14 +159,14 @@ export const CommentInputField = ({
             />
           )}
           {!comment && (
-            <span className="mt5">
+            <span className="db mt3">
               <FormattedMessage {...messages.nothingToPreview} />
             </span>
           )}
         </div>
       )}
-      {comment && enableHashtagPaste && !isShowPreview && (
-        <span className="blue-grey f6 pt2">
+      {enableHashtagPaste && !isShowPreview && (
+        <span className="db blue-grey f6 pt2">
           <HashtagPaste text={comment} setFn={setComment} hashtag="#managers" />
           <span>, </span>
           <HashtagPaste text={comment} setFn={setComment} hashtag="#author" />
@@ -143,4 +185,6 @@ export const CommentInputField = ({
       <FileRejections files={fileRejections} />
     </div>
   );
-};
+}
+
+export default CommentInputField;

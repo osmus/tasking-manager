@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { useSelector } from 'react-redux';
-import { navigate, useLocation } from '@gatsbyjs/reach-router';
+import { useNavigate, useLocation } from 'react-router-dom';
 import ReactPlaceholder from 'react-placeholder';
 import Popup from 'reactjs-popup';
+import toast from 'react-hot-toast';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import messages from './messages';
@@ -17,7 +18,6 @@ import { getTaskContributors } from '../../utils/getTaskContributors';
 import { TaskHistory } from './taskActivity';
 import { ChangesetCommentTags } from './changesetComment';
 import { useSetProjectPageTitleTag } from '../../hooks/UseMetaTags';
-import { useFetch } from '../../hooks/UseFetch';
 import { useReadTaskComments } from '../../hooks/UseReadTaskComments';
 import { useDisableBadImagery } from '../../hooks/UseDisableBadImagery';
 import { DueDateBox } from '../projectCard/dueDateBox';
@@ -28,32 +28,27 @@ import {
   ReopenEditor,
   UnsavedMapChangesModalContent,
 } from './actionSidebars';
-import { fetchLocalJSONAPI } from '../../network/genericJSONRequest';
 import { MultipleTaskHistoriesAccordion } from './multipleTaskHistories';
 import { ResourcesTab } from './resourcesTab';
 import { ActionTabsNav } from './actionTabsNav';
 import { LockedTaskModalContent } from './lockedTasks';
 import { SessionAboutToExpire, SessionExpired } from './extendSession';
 import { MappingTypes } from '../mappingTypes';
-const Editor = React.lazy(() => import('../editor'));
-const RapiDEditor = React.lazy(() => import('../rapidEditor'));
+import { usePriorityAreasQuery, useTaskDetail } from '../../api/projects';
+
+const Editor = lazy(() => import('../editor'));
+const RapiDEditor = lazy(() => import('../rapidEditor'));
 const PDEditor = React.lazy(() => import('../pdEditor'));
 
 const MINUTES_BEFORE_DIALOG = 5;
 
-export function TaskMapAction({
-  project,
-  projectIsReady,
-  tasks,
-  activeTasks,
-  getTasks,
-  action,
-  editor,
-}) {
+export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, editor }) {
+  useSetProjectPageTitleTag(project);
+  const intl = useIntl();
+  const navigate = useNavigate();
   const location = useLocation();
   const aboutToExpireTimeoutRef = useRef();
   const expiredTimeoutRef = useRef();
-  useSetProjectPageTitleTag(project);
   const userDetails = useSelector((state) => state.auth.userDetails);
   const token = useSelector((state) => state.auth.token);
   const [activeSection, setActiveSection] = useState('completion');
@@ -78,27 +73,25 @@ export function TaskMapAction({
   const [validationComments, setValidationComments] = useState({});
   const [validationStatus, setValidationStatus] = useState({});
   const [historyTabChecked, setHistoryTabChecked] = useState(false);
-  const [multipleTasksInfo, setMultipleTasksInfo] = useState({});
   const [showMapChangesModal, setShowMapChangesModal] = useState(false);
   const [showSessionExpiringDialog, setShowSessionExpiringDialog] = useState(false);
   const [showSessionExpiredDialog, setSessionTimeExpiredDialog] = useState(false);
-  const intl = useIntl();
 
-  const activeTask = activeTasks && activeTasks[0];
+  const activeTask = activeTasks?.[0];
   const timer = new Date(activeTask.lastUpdated);
   timer.setSeconds(timer.getSeconds() + activeTask.autoUnlockSeconds);
   //eslint-disable-next-line
-  const [taskHistoryError, taskHistoryLoading, taskHistory] = useFetch(
-    `projects/${project.projectId}/tasks/${tasksIds[0]}/`,
-    project.projectId && tasksIds && tasksIds.length === 1,
+  const { data: taskDetail } = useTaskDetail(project.projectId, tasksIds[0]);
+  const { data: priorityArea, isError: isPriorityAreaError } = usePriorityAreasQuery(
+    project.projectId,
   );
 
-  const contributors = taskHistory?.taskHistory
-    ? getTaskContributors(taskHistory.taskHistory, userDetails.username)
+  const contributors = taskDetail?.taskHistory
+    ? getTaskContributors(taskDetail.taskHistory, userDetails.username)
     : [];
 
-  const readTaskComments = useReadTaskComments(taskHistory);
-  const disableBadImagery = useDisableBadImagery(taskHistory);
+  const readTaskComments = useReadTaskComments(taskDetail);
+  const disableBadImagery = useDisableBadImagery(taskDetail);
 
   const getTaskGpxUrlCallback = useCallback((project, tasks) => getTaskGpxUrl(project, tasks), []);
   const formatImageryUrlCallback = useCallback((imagery) => formatImageryUrl(imagery), []);
@@ -106,18 +99,6 @@ export function TaskMapAction({
   const historyTabSwitch = () => {
     setHistoryTabChecked(true);
     setActiveSection('history');
-  };
-
-  const handleTaskHistories = (taskIds) => {
-    if (taskIds.length < 1) return;
-
-    taskIds.forEach((id) => {
-      if (!Object.keys(multipleTasksInfo).includes(id.toString())) {
-        fetchLocalJSONAPI(`projects/${project.projectId}/tasks/${id}/`, token).then((data) =>
-          setMultipleTasksInfo({ ...multipleTasksInfo, [id]: data }),
-        );
-      }
-    });
   };
 
   useEffect(() => {
@@ -144,7 +125,7 @@ export function TaskMapAction({
   }, [activeTask.autoUnlockSeconds, activeTask.lastUpdated]);
 
   useEffect(() => {
-    if (!editor && projectIsReady && userDetails.defaultEditor && tasks && tasksIds) {
+    if (!editor && userDetails.defaultEditor && tasks && tasksIds) {
       let editorToUse;
       if (action === 'MAPPING') {
         editorToUse = project.mappingEditors.includes(userDetails.defaultEditor)
@@ -170,7 +151,7 @@ export function TaskMapAction({
         navigate(`./?editor=${editorToUse[0]}`);
       }
     }
-  }, [editor, project, projectIsReady, userDetails.defaultEditor, action, tasks, tasksIds]);
+  }, [editor, project, userDetails.defaultEditor, action, tasks, tasksIds, navigate]);
 
   useEffect(() => {
     if (location.state?.directedFrom) {
@@ -180,6 +161,12 @@ export function TaskMapAction({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    isPriorityAreaError &&
+      !['ID', 'RAPID'].includes(editor) &&
+      toast.error(<FormattedMessage {...messages.priorityAreasLoadingError} />);
+  }, [editor, isPriorityAreaError]);
 
   const callEditor = async (arr) => {
     setIsJosmError(false);
@@ -218,10 +205,10 @@ export function TaskMapAction({
   return (
     <>
       <Portal>
-        <div className="cf w-100 vh-minus-77-ns overflow-y-hidden">
+        <div className="cf w-100 vh-minus-69-ns overflow-y-hidden">
           <div className={`fl h-100 relative ${showSidebar ? 'w-70' : 'w-100-minus-4rem'}`}>
             {['ID', 'RAPID'].includes(editor) ? (
-              <React.Suspense
+              <Suspense
                 fallback={
                   <div className={`w7 h5 center`}>
                     <ReactPlaceholder
@@ -250,6 +237,7 @@ export function TaskMapAction({
                       imagery={formatImageryUrlCallback(project.imagery)}
                       gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
                       powerUser={project.rapidPowerUser}
+                      showSidebar={showSidebar}
                     />
                   )
                 ) : (
@@ -262,14 +250,14 @@ export function TaskMapAction({
                   />
                 )
               }
-              </React.Suspense>
+              </Suspense>
             ) : (
               <ReactPlaceholder
                 showLoadingAnimation={true}
                 type="media"
                 rows={26}
                 delay={10}
-                ready={tasks !== undefined && tasks.features !== undefined}
+                ready={Boolean(tasks?.features !== undefined)}
               >
                 <TasksMap
                   mapResults={tasks}
@@ -278,6 +266,7 @@ export function TaskMapAction({
                   animateZoom={false}
                   selected={tasksIds}
                   showTaskIds={action === 'VALIDATION'}
+                  priorityAreas={priorityArea}
                 />
               </ReactPlaceholder>
             )}
@@ -290,7 +279,7 @@ export function TaskMapAction({
                 ready={typeof project.projectId === 'number' && project.projectId > 0}
               >
                 {(activeEditor === 'ID' || activeEditor === 'RAPID') && (
-                  <SidebarToggle setShowSidebar={setShowSidebar} />
+                  <SidebarToggle setShowSidebar={setShowSidebar} activeEditor={activeEditor} />
                 )}
                 <HeaderLine
                   author={project.author}
@@ -299,7 +288,7 @@ export function TaskMapAction({
                 />
                 <div className="cf pb3">
                   <h3
-                    className="f2 fw6 mt2 mb1 ttu barlow-condensed blue-dark"
+                    className="f2 fw5 lh-title mt2 mb1 ttu barlow-condensed blue-dark"
                     lang={project.projectInfo && project.projectInfo.locale}
                   >
                     {project.projectInfo && project.projectInfo.name}
@@ -326,13 +315,11 @@ export function TaskMapAction({
                     setActiveSection={setActiveSection}
                     activeTasks={activeTasks}
                     historyTabSwitch={historyTabSwitch}
-                    taskHistoryLength={
-                      taskHistory && taskHistory.taskHistory && taskHistory.taskHistory.length
-                    }
+                    taskHistoryLength={taskDetail?.taskHistory?.length}
                     action={action}
                   />
                 </div>
-                <div className="pt1">
+                <div className="pt0">
                   {activeSection === 'completion' && (
                     <>
                       {action === 'MAPPING' && (
@@ -401,6 +388,12 @@ export function TaskMapAction({
                             )}
                             closeOnEscape={true}
                             closeOnDocumentClick={true}
+                            onOpen={() => {
+                              isPriorityAreaError &&
+                                toast.error(
+                                  <FormattedMessage {...messages.priorityAreasLoadingError} />,
+                                );
+                            }}
                           >
                             {(close) => (
                               <div className="vh-75">
@@ -411,6 +404,7 @@ export function TaskMapAction({
                                   animateZoom={false}
                                   selected={tasksIds}
                                   showTaskIds={action === 'VALIDATION'}
+                                  priorityAreas={priorityArea}
                                 />
                               </div>
                             )}
@@ -431,16 +425,11 @@ export function TaskMapAction({
                     <>
                       {activeTasks.length === 1 && (
                         <>
-                          <TaskHistory
-                            projectId={project.projectId}
-                            taskId={tasksIds[0]}
-                            commentPayload={taskHistory}
-                          />
+                          <TaskHistory projectId={project.projectId} taskId={tasksIds[0]} />
                         </>
                       )}
                       {action === 'VALIDATION' && activeTasks.length > 1 && (
                         <MultipleTaskHistoriesAccordion
-                          handleChange={handleTaskHistories}
                           tasks={activeTasks}
                           projectId={project.projectId}
                         />

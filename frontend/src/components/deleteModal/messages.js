@@ -24,6 +24,10 @@ export default defineMessages({
     id: 'deleteModal.status.success.organisations',
     defaultMessage: 'Organisation deleted successfully.',
   },
+  success_partners: {
+    id: 'deleteModal.status.success.partners',
+    defaultMessage: 'Partner deleted successfully.',
+  },
   success_interests: {
     id: 'deleteModal.status.success.interests',
     defaultMessage: 'Interest deleted successfully.',
@@ -31,6 +35,10 @@ export default defineMessages({
   success_licenses: {
     id: 'deleteModal.status.success.licenses',
     defaultMessage: 'License deleted successfully.',
+  },
+  success_comments: {
+    id: 'deleteModal.status.success.comments',
+    defaultMessage: 'Comment deleted successfully.',
   },
   success_campaigns: {
     id: 'deleteModal.status.success.campaigns',
@@ -43,6 +51,10 @@ export default defineMessages({
   failure_organisations: {
     id: 'deleteModal.status.failure.organisations',
     defaultMessage: 'An error occurred when trying to delete this organization.',
+  },
+  failure_partners: {
+    id: 'deleteModal.status.failure.partners',
+    defaultMessage: 'An error occurred when trying to delete this partners.',
   },
   failure_interests: {
     id: 'deleteModal.status.failure.interests',
@@ -63,6 +75,10 @@ export default defineMessages({
   failure_teams: {
     id: 'deleteModal.status.failure.teams',
     defaultMessage: 'An error occurred when trying to delete this team.',
+  },
+  failure_comments: {
+    id: 'deleteModal.status.failure.comments',
+    defaultMessage: 'An error occurred when trying to delete this comment.',
   },
   delete: {
     id: 'deleteModal.button.delete',
@@ -89,6 +105,10 @@ export default defineMessages({
     id: 'deleteModal.title.organisation',
     defaultMessage: 'Are you sure you want to delete this organization?',
   },
+  confirmDeleteTitle_partners: {
+    id: 'deleteModal.title.partners',
+    defaultMessage: 'Are you sure you want to delete this partner?',
+  },
   confirmDeleteTitle_licenses: {
     id: 'deleteModal.title.licenses',
     defaultMessage: 'Are you sure you want to delete this license?',
@@ -108,6 +128,10 @@ export default defineMessages({
   confirmDeleteTitle_teams: {
     id: 'deleteModal.title.teams',
     defaultMessage: 'Are you sure you want to delete this team?',
+  },
+  confirmDeleteTitle_comments: {
+    id: 'deleteModal.title.comments',
+    defaultMessage: 'Are you sure you want to delete this comment?',
   },
   OrgHasProjectsError: {
     id: 'deleteModal.error.OrgHasProjectsError',

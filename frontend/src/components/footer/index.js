@@ -1,6 +1,6 @@
-import React, { Fragment } from 'react';
+import { Fragment } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useMatch as matchPath } from '@gatsbyjs/reach-router';
+import { Link, matchRoutes, useLocation } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import {
   TwitterIcon,
@@ -11,7 +11,7 @@ import {
   ExternalLinkIcon,
 } from '../svgIcons';
 import messages from '../messages';
-import { getMenuItensForUser } from '../header';
+import { getMenuItemsForUser } from '../header';
 import {
   ORG_TWITTER,
   ORG_GITHUB,
@@ -23,7 +23,7 @@ import {
 import './styles.scss';
 
 const socialNetworks = [
-  { link: ORG_TWITTER, icon: <TwitterIcon style={{ height: '20px', width: '20px' }} /> },
+  { link: ORG_TWITTER, icon: <TwitterIcon style={{ height: '20px', width: '20px' }} noBg /> },
   { link: ORG_FB, icon: <FacebookIcon style={{ height: '20px', width: '20px' }} /> },
   { link: ORG_YOUTUBE, icon: <YoutubeIcon style={{ height: '20px', width: '20px' }} /> },
   { link: ORG_INSTAGRAM, icon: <InstagramIcon style={{ height: '20px', width: '20px' }} /> },
@@ -31,30 +31,33 @@ const socialNetworks = [
 ];
 
 export function Footer() {
+  const location = useLocation();
   const userDetails = useSelector((state) => state.auth.userDetails);
 
   const footerDisabledPaths = [
     'projects/:id/tasks',
     'projects/:id/map',
     'projects/:id/validate',
+    'projects/:id/live',
     'manage/organisations/new/',
     'manage/teams/new',
     'manage/campaigns/new',
     'manage/projects/new',
     'manage/categories/new',
     'manage/licenses/new',
+    'manage/partners/new',
     'teams/:id/membership',
     '/api-docs/',
   ];
-  let isFooterEnabled = true;
-  footerDisabledPaths.forEach((path) => {
-    const match = matchPath(path);
-    if (match !== null) {
-      isFooterEnabled = false;
-    }
-  });
 
-  if (!isFooterEnabled) {
+  const matchedRoute = matchRoutes(
+    footerDisabledPaths.map((path) => ({
+      path,
+    })),
+    location,
+  );
+
+  if (matchedRoute) {
     return null;
   } else {
     return (
@@ -64,7 +67,7 @@ export function Footer() {
             <FormattedMessage {...messages.definition} />
           </p>
           <div className="menuItems">
-            {getMenuItensForUser(userDetails).map((item) => (
+            {getMenuItemsForUser(userDetails).map((item) => (
               <Fragment key={item.label.id}>
                 {!item.serviceDesk ? (
                   <Link
@@ -88,6 +91,18 @@ export function Footer() {
             ))}
           </div>
         </div>
+
+        {/* AWS logo */}
+        <div className="flex justify-end-ns">
+          <a href="https://aws.amazon.com/what-is-cloud-computing" target="_blank" rel="noreferrer">
+            <img
+              src="https://d0.awsstatic.com/logos/powered-by-aws-white.png"
+              alt="Powered by AWS Cloud Computing"
+              style={{ height: '3rem' }}
+            />
+          </a>
+        </div>
+
         <div className="flex justify-between flex-column flex-row-ns">
           <div className="pt2 mb2 f6 w-50-l w-100">
             <div className="pb3 lh-title mw6">
@@ -111,11 +126,13 @@ export function Footer() {
             <Link to={'about'} className="link white">
               <FormattedMessage {...messages.credits} />
             </Link>
-            <div className="pt2 f6 lh-title">
-              <a href={`https://${ORG_PRIVACY_POLICY_URL}`} className="link white">
-                <FormattedMessage {...messages.privacyPolicy} />
-              </a>
-            </div>
+            {ORG_PRIVACY_POLICY_URL && (
+              <div className="pt2 f6 lh-title">
+                <a href={`${ORG_PRIVACY_POLICY_URL}`} className="link white">
+                  <FormattedMessage {...messages.privacyPolicy} />
+                </a>
+              </div>
+            )}
           </div>
           <div className="pt2 f6 mb2 w-50-l w-100 tl tr-l self-end flex flex-column items-start items-end-ns ">
             <p className="pb3 flex socials">

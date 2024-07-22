@@ -1,5 +1,7 @@
 import { defineMessages } from 'react-intl';
 
+//import projectCreateMessages from '../projectCreate/messages';
+
 /**
  * Internationalized messages for use on project edit.
  */
@@ -246,6 +248,43 @@ export default defineMessages({
     defaultMessage:
       'This will copy all descriptions, instructions, metadata etc to a new project. The Area of Interest, tasks and the priority areas will not be copied. You will have to redraw/import these. Your newly cloned project will be in draft status.',
   },
+  revertVALIDATEDTasks: {
+    id: 'projects.actions.revert_validated_tasks.button',
+    defaultMessage: 'Revert validated tasks',
+  },
+  revertVALIDATEDTasksTitle: {
+    id: 'projects.actions.revert_validated_tasks.title',
+    defaultMessage: 'Revert validated tasks',
+  },
+  revertVALIDATEDTasksDescription: {
+    id: 'projects.actions.revert_validated_tasks.description',
+    defaultMessage: 'Revert all validated tasks by a specified user and mark it as mapped',
+  },
+  revertVALIDATEDTasksSuccess: {
+    id: 'projects.actions.revert_validated_tasks.success',
+    defaultMessage: 'The tasks were reverted successfully.',
+  },
+  revertBADIMAGERYTasks: {
+    id: 'projects.actions.revert_unavailable_tasks.button',
+    defaultMessage: 'Revert unavailable tasks',
+  },
+  revertBADIMAGERYTasksTitle: {
+    id: 'projects.actions.revert_unavailable_tasks.title',
+    defaultMessage: 'Revert unavailable tasks',
+  },
+  revertBADIMAGERYTasksDescription: {
+    id: 'projects.actions.revert_unavailable_tasks.description',
+    defaultMessage:
+      'Revert all tasks marked as unavailable by a specified user and mark it as ready to map',
+  },
+  revertBADIMAGERYTasksSuccess: {
+    id: 'projects.actions.revert_unavailable_tasks.success',
+    defaultMessage: 'The tasks were reverted successfully.',
+  },
+  revertTasksError: {
+    id: 'projects.actions.revert_validated_tasks.error',
+    defaultMessage: 'The tasks reversion failed.',
+  },
   transferProject: {
     id: 'projects.actions.transfer_project.button',
     defaultMessage: 'Transfer project',
@@ -332,6 +371,10 @@ export default defineMessages({
     id: 'projects.formInputs.language',
     defaultMessage: 'Default language',
   },
+  typeHere: {
+    id: 'projects.formInputs.type',
+    defaultMessage: 'Type here...',
+  },
   translations: {
     id: 'projects.formInputs.language.translations',
     defaultMessage: 'Translations',
@@ -406,6 +449,10 @@ export default defineMessages({
     id: 'projects.formInputs.name',
     defaultMessage: 'Name of the project',
   },
+  projectNameValidationError: {
+    id: 'management.projects.edit.errors.project_name_validation_error',
+    defaultMessage: 'Project name should start with an alphabet.',
+ },
   dueDate: {
     id: 'projects.formInputs.dueDate',
     defaultMessage: 'Due date',

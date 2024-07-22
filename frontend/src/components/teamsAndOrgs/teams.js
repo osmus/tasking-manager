@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from '@gatsbyjs/reach-router';
+import { Link } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';
 import { Form, Field, useFormState } from 'react-final-form';
-import ReactTooltip from 'react-tooltip';
+import { Tooltip } from 'react-tooltip';
 
 import messages from './messages';
 import { InfoIcon } from '../svgIcons';
@@ -14,6 +14,7 @@ import { AddButton, ViewAllLink, Management, VisibilityBox, JoinMethodBox } from
 import { RadioField, OrganisationSelectInput, TextField } from '../formInputs';
 import { Button, EditButton } from '../button';
 import { nCardPlaceholders } from './teamsPlaceholder';
+import { Alert } from '../alert';
 
 export function TeamsManagement({
   teams,
@@ -21,19 +22,18 @@ export function TeamsManagement({
   managementView,
   userTeamsOnly,
   setUserTeamsOnly,
-  isTeamsFetched,
+  teamsStatus,
+  query,
+  setQuery,
 }: Object) {
-  const [query, setQuery] = useState('');
-
   const isOrgManager = useSelector(
     (state) => state.auth.organisations && state.auth.organisations.length > 0,
   );
 
-  const onSearchInputChange = (e) => setQuery(e.target.value);
+  const onSearchInputChange = (e) =>
+    setQuery({ ...query, searchQuery: e.target.value || undefined, page: 1 }, 'pushIn');
 
-  const filteredTeams = teams?.filter((team) =>
-    team.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  const clearSearchQuery = () => setQuery({ ...query, searchQuery: undefined, page: 1 }, 'pushIn');
 
   return (
     <Management
@@ -54,31 +54,39 @@ export function TeamsManagement({
       setUserOnly={setUserTeamsOnly}
       userOnlyLabel={<FormattedMessage {...messages.myTeams} />}
     >
-      {isTeamsFetched && (
-        <div className="w-20-l w-25-m">
-          <TextField
-            value={query}
-            placeholderMsg={messages.searchTeams}
-            onChange={onSearchInputChange}
-            onCloseIconClick={() => setQuery('')}
+      <div className="w-20-l w-25-m">
+        <TextField
+          value={query.searchQuery || ''}
+          placeholderMsg={messages.searchTeams}
+          onChange={onSearchInputChange}
+          onCloseIconClick={clearSearchQuery}
+        />
+      </div>
+      <div className={`${teamsStatus !== 'error' ? 'cards-container' : ''} mt2`}>
+        {teamsStatus === 'loading' && (
+          <ReactPlaceholder
+            showLoadingAnimation={true}
+            customPlaceholder={nCardPlaceholders(4)}
+            delay={10}
+            ready={false}
           />
-        </div>
-      )}
-      <div className="cards-container mt2">
-        <ReactPlaceholder
-          showLoadingAnimation={true}
-          customPlaceholder={nCardPlaceholders(4)}
-          delay={10}
-          ready={isTeamsFetched}
-        >
-          {filteredTeams?.length ? (
-            filteredTeams.map((team, n) => <TeamCard team={team} key={n} />)
-          ) : (
-            <div className="pb3 pt2">
-              <FormattedMessage {...messages.noTeams} />
-            </div>
-          )}
-        </ReactPlaceholder>
+        )}
+        {teamsStatus === 'error' && (
+          <Alert type="error">
+            <FormattedMessage {...messages.errorLoadingTeams} />
+          </Alert>
+        )}
+        {teamsStatus === 'success' && (
+          <>
+            {teams?.length ? (
+              teams.map((team) => <TeamCard team={team} key={team.teamId} />)
+            ) : (
+              <div className="pb3 pt2">
+                <FormattedMessage {...messages.noTeams} />
+              </div>
+            )}
+          </>
+        )}
       </div>
     </Management>
   );
@@ -99,8 +107,10 @@ export function Teams({ teams, viewAllQuery, showAddButton = false, isReady, bor
         {viewAllQuery && <ViewAllLink link={`/manage/teams/${viewAllQuery ? viewAllQuery : ''}`} />}
         <div className="cards-container pt4">
           <ReactPlaceholder customPlaceholder={nCardPlaceholders(4)} delay={10} ready={isReady}>
-            {teams && teams.slice(0, 6).map((team, n) => <TeamCard team={team} key={n} />)}
-            {teams && teams.length === 0 && (
+            {teams?.slice(0, 6).map((team) => (
+              <TeamCard key={team.teamId} team={team} />
+            ))}
+            {teams?.length === 0 && (
               <span className="blue-grey">
                 <FormattedMessage {...messages.noTeamsFound} />
               </span>
@@ -132,6 +142,7 @@ export function TeamCard({ team }: Object) {
               textColor="white"
               users={team.members.filter((user) => user.function === 'MANAGER' && user.active)}
               maxLength={8}
+              totalCount={team.managersCount}
             />
           </div>
           <h4 className="f6 fw5 mv2 ttu blue-light">
@@ -143,6 +154,7 @@ export function TeamCard({ team }: Object) {
               textColor="white"
               users={team.members.filter((user) => user.function !== 'MANAGER' && user.active)}
               maxLength={8}
+              totalCount={team.membersCount}
             />
           </div>
         </div>
@@ -193,7 +205,7 @@ export function TeamInformation(props) {
           <FormattedMessage {...messages.joinMethod} />
         </label>
         {Object.keys(joinMethods).map((method) => (
-          <div className="pv2">
+          <div className="pv2" key={method}>
             <RadioField name="joinMethod" value={method} required />
             <span className="f5">
               <FormattedMessage {...messages[joinMethods[method]]} />
@@ -202,9 +214,12 @@ export function TeamInformation(props) {
               width={12}
               height={12}
               className="blue-grey v-mid pb1 ml2"
-              data-tip={intl.formatMessage(messages[`${joinMethods[method]}Description`])}
+              data-tooltip-id={'joinMethodDescriptionTooltip'}
+              data-tooltip-content={intl.formatMessage(
+                messages[`${joinMethods[method]}Description`],
+              )}
             />
-            <ReactTooltip place="bottom" className="mw6" effect="solid" />
+            <Tooltip place="bottom" className="mw6" id={'joinMethodDescriptionTooltip'} />
           </div>
         ))}
       </div>
@@ -222,7 +237,8 @@ export function TeamInformation(props) {
               width={12}
               height={12}
               className="blue-grey v-mid pb1 ml2"
-              data-tip={intl.formatMessage(messages['publicDescription'])}
+              data-tooltip-id={'visibilityDescriptionTooltip'}
+              data-tooltip-content={intl.formatMessage(messages['publicDescription'])}
             />
           </div>
           <div className="pv2">
@@ -234,9 +250,10 @@ export function TeamInformation(props) {
               width={12}
               height={12}
               className="blue-grey v-mid pb1 ml2"
-              data-tip={intl.formatMessage(messages['privateDescription'])}
+              data-tooltip-id={'visibilityDescriptionTooltip'}
+              data-tooltip-content={intl.formatMessage(messages['privateDescription'])}
             />
-            <ReactTooltip place="bottom" className="mw6" effect="solid" />
+            <Tooltip place="bottom" className="mw6" id={'visibilityDescriptionTooltip'} />
           </div>
         </div>
       )}
@@ -301,17 +318,21 @@ export function TeamForm(props) {
 
 export function TeamSideBar({ team, members, managers, requestedToJoin }: Object) {
   const [isUserTeamManager] = useEditTeamAllowed(team);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const searchMembers = () =>
+    searchQuery !== ''
+      ? members.filter((member) => {
+          return member.username.toLowerCase().includes(searchQuery.toLowerCase());
+        })
+      : members;
 
   return (
     <ReactPlaceholder
       showLoadingAnimation={true}
       type="media"
       rows={20}
-      ready={
-        typeof team.teamId === 'number' &&
-        typeof organisations !== undefined &&
-        typeof pmTeams !== undefined
-      }
+      ready={typeof team.teamId === 'number'}
     >
       <div className="cf pb2">
         <div className="w-20 pv2 dib fl">
@@ -358,9 +379,9 @@ export function TeamSideBar({ team, members, managers, requestedToJoin }: Object
             </span>
           ) : (
             <div className="cf db mt3">
-              {managers.map((user, n) => (
+              {managers.map((user) => (
                 <UserAvatar
-                  key={n}
+                  key={user.username}
                   username={user.username}
                   picture={user.pictureUrl}
                   size="large"
@@ -377,16 +398,26 @@ export function TeamSideBar({ team, members, managers, requestedToJoin }: Object
               <FormattedMessage {...messages.noMembers} />
             </span>
           ) : (
-            <div className="cf db mt3">
-              {members.map((user, n) => (
-                <UserAvatar
-                  key={n}
-                  username={user.username}
-                  picture={user.pictureUrl}
-                  colorClasses="white bg-blue-grey mv1"
-                />
-              ))}
-            </div>
+            <>
+              <div className="cf db mt3">
+                <div className="mb3 w5">
+                  <TextField
+                    value={searchQuery}
+                    placeholderMsg={messages.searchMembers}
+                    onChange={({ target: { value } }) => setSearchQuery(value)}
+                    onCloseIconClick={() => setSearchQuery('')}
+                  />
+                </div>
+                {searchMembers().map((user) => (
+                  <UserAvatar
+                    key={user.username}
+                    username={user.username}
+                    picture={user.pictureUrl}
+                    colorClasses="white bg-blue-grey mv1"
+                  />
+                ))}
+              </div>
+            </>
           )}
           <div className="cf db mt3">
             {requestedToJoin && (
@@ -405,10 +436,10 @@ export function TeamsBoxList({ teams }: Object) {
   const mappingTeams = teams.filter((team) => team.role === 'MAPPER');
   const validationTeams = teams.filter((team) => team.role === 'VALIDATOR');
   return (
-    <>
+    <div className="flex flex-column flex-row-l gap-1">
       {mappingTeams.length > 0 && (
-        <>
-          <h4 className="mb2 fw6">
+        <div className="w-100 w-30-l">
+          <h4 className="mb1 fw6 mt0">
             <FormattedMessage {...messages.mappingTeams} />
           </h4>
           <div>
@@ -416,21 +447,19 @@ export function TeamsBoxList({ teams }: Object) {
               <TeamBox key={team.teamId} team={team} className="dib pv2 ph3 mt2 ba f6 tc" />
             ))}
           </div>
-        </>
+        </div>
       )}
       {validationTeams.length > 0 && (
-        <>
-          <h4 className="mb2 fw6">
+        <div className="w-100 w-30-l">
+          <h4 className="mb1 fw6 mt0">
             <FormattedMessage {...messages.validationTeams} />
           </h4>
-          <div>
-            {validationTeams.map((team) => (
-              <TeamBox key={team.teamId} team={team} className="dib pv2 ph3 mt2 ba f6 tc" />
-            ))}
-          </div>
-        </>
+          {validationTeams.map((team) => (
+            <TeamBox key={team.teamId} team={team} className="dib pv2 ph3 mt2 ba f6 tc" />
+          ))}
+        </div>
       )}
-    </>
+    </div>
   );
 }
 

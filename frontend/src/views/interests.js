@@ -1,9 +1,10 @@
-import React from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFetch } from '../hooks/UseFetch';
-import { Link, useNavigate } from '@gatsbyjs/reach-router';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Form } from 'react-final-form';
 import { FormattedMessage } from 'react-intl';
+import toast from 'react-hot-toast';
 
 import messages from './messages';
 import { InterestsManagement, InterestForm, InterestInformation } from '../components/interests';
@@ -12,16 +13,32 @@ import { Projects } from '../components/teamsAndOrgs/projects';
 import { DeleteModal } from '../components/deleteModal';
 import { pushToLocalJSONAPI } from '../network/genericJSONRequest';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
+import { updateEntity } from '../utils/management';
+import { EntityError } from '../components/alert';
 
 export const CreateInterest = () => {
   useSetTitleTag('Create new category');
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
+  const [isError, setIsError] = useState(false);
 
   const createInterest = (payload) => {
-    pushToLocalJSONAPI('interests/', JSON.stringify(payload), token, 'POST').then((result) =>
-      navigate(`/manage/categories/${result.id}`),
-    );
+    setIsError(false);
+    pushToLocalJSONAPI('interests/', JSON.stringify(payload), token, 'POST')
+      .then((result) => {
+        toast.success(
+          <FormattedMessage
+            {...messages.entityCreationSuccess}
+            values={{
+              entity: 'category',
+            }}
+          />,
+        );
+        navigate(`/manage/categories/${result.id}`);
+      })
+      .catch(() => {
+        setIsError(true);
+      });
   };
 
   return (
@@ -41,6 +58,7 @@ export const CreateInterest = () => {
                   </h3>
                   <InterestInformation />
                 </div>
+                {isError && <EntityError entity="category" />}
               </div>
               <div className="w-40-l w-100 fl pl5-l pl0 "></div>
             </div>
@@ -85,20 +103,23 @@ export const ListInterests = () => {
   );
 };
 
-export const EditInterest = (props) => {
+export const EditInterest = () => {
+  const { id } = useParams();
   const userDetails = useSelector((state) => state.auth.userDetails);
   const token = useSelector((state) => state.auth.token);
-  const [error, loading, interest] = useFetch(`interests/${props.id}/`);
+  const [isError, setIsError] = useState(false);
+  const [error, loading, interest] = useFetch(`interests/${id}/`);
   useSetTitleTag(`Edit ${interest.name}`);
 
   const [projectsError, projectsLoading, projects] = useFetch(
-    `projects/?interests=${props.id}&omitMapResults=true`,
-    props.id,
+    `projects/?interests=${id}&omitMapResults=true`,
+    id,
   );
 
-  const updateInterest = (payload) => {
-    pushToLocalJSONAPI(`interests/${props.id}/`, JSON.stringify(payload), token, 'PATCH');
-  };
+  const onFailure = () => setIsError(true);
+
+  const updateInterest = (payload) =>
+    updateEntity(`interests/${id}/`, 'category', payload, token, null, onFailure);
 
   return (
     <div className="cf pv4 bg-tan">
@@ -115,11 +136,12 @@ export const EditInterest = (props) => {
           updateInterest={updateInterest}
           disabledForm={error || loading}
         />
+        {isError && <EntityError entity="category" action="updation" />}
       </div>
       <div className="w-60-l w-100 mt4 pl5-l pl0 fr">
         <Projects
           projects={!projectsLoading && !projectsError && projects}
-          viewAllEndpoint={`/manage/projects/?interests=${props.id}`}
+          viewAllEndpoint={`/manage/projects/?interests=${id}`}
           ownerEntity="category"
         />
       </div>

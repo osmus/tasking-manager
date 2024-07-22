@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from '@gatsbyjs/reach-router';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
@@ -9,7 +9,7 @@ import { useInboxQueryParams, stringify } from '../../hooks/UseInboxQueryAPI';
 import { ProjectSearchBox } from '../projects/projectSearchBox';
 import { NotificationOrderBySelector } from './notificationOrderBy';
 
-const filters = [
+export const filters = [
   {
     messageId: 'all',
     isActiveConstraint: 'All',
@@ -49,7 +49,8 @@ const isActiveButton = (buttonName, projectQuery) => {
   }
 };
 
-export const InboxNavMini = (props) => {
+export const InboxNavMini = ({ setPopoutFocus }) => {
+  const unreadNotificationCount = useSelector((state) => state.notifications.unreadCount);
   return (
     /* mb1 mb2-ns (removed for map, but now small gap for more-filters) */
     <header className="notifications-header">
@@ -57,20 +58,20 @@ export const InboxNavMini = (props) => {
         <h3 className="f4 fw7 ma0 f125">
           <FormattedMessage {...messages.notifications} />
         </h3>
-        {props.newMsgCount > 0 && (
+        {unreadNotificationCount > 0 && (
           <Link
             to="/inbox?orderBy=read&orderByType=DESC"
             onClick={(e) => {
-              props.setPopoutFocus(false);
+              setPopoutFocus(false);
             }}
           >
             <div className="flex justify-between items-center fr br2 bg-red f7 lh-solid white ph2 pv1">
-              {props.newMsgCount === 1 ? (
+              {unreadNotificationCount === 1 ? (
                 <FormattedMessage {...messages.oneNewNotification} />
               ) : (
                 <FormattedMessage
-                  {...messages.newNotifications}
-                  values={{ n: props.newMsgCount }}
+                  {...messages.unreadNotifications}
+                  values={{ n: unreadNotificationCount }}
                 />
               )}
             </div>

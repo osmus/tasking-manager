@@ -1,34 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { backendToQueryConversion, useInboxQueryParams } from '../hooks/UseInboxQueryAPI';
+
+import { useInboxQueryParams } from '../hooks/UseInboxQueryAPI';
 import { InboxNav, InboxNavMini, InboxNavMiniBottom } from '../components/notifications/inboxNav';
 import {
   NotificationResults,
   NotificationResultsMini,
 } from '../components/notifications/notificationResults';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
-import { Login } from './login';
-import { remapParamsToAPI } from '../utils/remapParamsToAPI';
 import Paginator from '../components/notifications/paginator';
-import { fetchLocalJSONAPI } from '../network/genericJSONRequest';
-
-function serializeParams(queryState) {
-  const obj = remapParamsToAPI(queryState, backendToQueryConversion);
-
-  Object.keys(obj).forEach((key) => {
-    if (obj[key] === undefined) {
-      delete obj[key];
-    }
-  });
-
-  return Object.entries(obj)
-    .map(([key, val]) => `${key}=${val}`)
-    .join('&');
-}
+import { useNotificationsQuery } from '../api/notifications';
 
 export const NotificationPopout = (props) => {
   // Small screen size, as defined by tachyons
-  let smallScreenSize = !window.matchMedia('(min-width: 30em)').matches;
+  let smallScreenSize = !window.matchMedia('(min-width: 30em)')?.matches;
   // Notification popout position and margin. The popout is anchored outside of the screen and centered on small screens.
   const popoutPosition = {
     left: `${smallScreenSize ? '-2rem' : Math.max(0, props.position - 320).toString() + 'px'}`,
@@ -49,23 +35,14 @@ export const NotificationPopout = (props) => {
         className={`fr ${props.isPopoutFocus ? '' : 'dn '}br2 absolute bg-white`}
       >
         <InboxNavMini
-          newMsgCount={
-            props.state &&
-            props.state.notifications &&
-            props.state.notifications.filter((n) => !n.read).length
-          }
-        />
-        <NotificationResultsMini
-          liveUnreadCount={props.liveUnreadCount}
-          retryFn={props.forceUpdate}
-          state={props.state}
+          unreadNotificationCount={props.notifications.pagination?.total}
           setPopoutFocus={props.setPopoutFocus}
-          className="tl"
         />
+        <NotificationResultsMini {...props} className="tl" />
         <InboxNavMiniBottom
           className="tl"
           setPopoutFocus={props.setPopoutFocus}
-          msgCount={props.state && props.state.notifications && props.state.notifications.length}
+          msgCount={props.notifications.userMessages?.length}
         />
       </div>
       <div
@@ -78,42 +55,35 @@ export const NotificationPopout = (props) => {
   );
 };
 
-export const NotificationsPage = (props) => {
+export const NotificationsPage = () => {
   useSetTitleTag('Notifications');
+  const navigate = useNavigate();
+  const location = useLocation();
   const userToken = useSelector((state) => state.auth.token);
   const [inboxQuery, setInboxQuery] = useInboxQueryParams();
-  const [notifications, setNotifications] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchNotifications = () => {
-    return fetchLocalJSONAPI(`notifications/?${serializeParams(inboxQuery)}`, userToken)
-      .then((result) => setNotifications(result))
-      .catch((e) => setError(e));
-  };
+  const { data: notifications, isError, isLoading, refetch } = useNotificationsQuery(inboxQuery);
 
   useEffect(() => {
-    fetchNotifications().then(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inboxQuery]);
-
-  if (!userToken) {
-    return <Login redirectTo={window.location.pathname} />;
-  }
+    if (!userToken) {
+      navigate('/login', {
+        state: {
+          from: location.pathname,
+        },
+      });
+    }
+  }, [location.pathname, navigate, userToken]);
 
   return (
     <div className="pb5 ph6-l ph2 pt180 pull-center bg-washed-blue notifications-container">
-      {
-        props.children
-        /* This is where the full notification body component is rendered using the router, as a child route. */
-      }
       <section>
         <InboxNav />
         <NotificationResults
-          error={error}
-          loading={loading}
+          isError={isError}
+          isLoading={isLoading}
           notifications={notifications}
-          retryFn={fetchNotifications}
+          inboxQuery={inboxQuery}
+          retryFn={refetch}
+          setInboxQuery={setInboxQuery}
         />
         <div className="flex justify-end mw8">
           <Paginator
@@ -125,8 +95,4 @@ export const NotificationsPage = (props) => {
       </section>
     </div>
   );
-};
-
-export const NotificationPageIndex = () => {
-  return null;
 };

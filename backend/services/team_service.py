@@ -1,27 +1,30 @@
 from flask import current_app
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from markdown import markdown
 
 from backend import create_app, db
+from backend.exceptions import NotFound
 from backend.models.dtos.team_dto import (
     TeamDTO,
     NewTeamDTO,
     TeamsListDTO,
     ProjectTeamDTO,
     TeamDetailsDTO,
+    TeamSearchDTO,
 )
 
 from backend.models.dtos.message_dto import MessageDTO
+from backend.models.dtos.stats_dto import Pagination
 from backend.models.postgis.message import Message, MessageType
 from backend.models.postgis.team import Team, TeamMembers
 from backend.models.postgis.project import ProjectTeams
 from backend.models.postgis.project_info import ProjectInfo
-from backend.models.postgis.utils import NotFound
 from backend.models.postgis.statuses import (
     TeamJoinMethod,
     TeamMemberFunctions,
     TeamVisibility,
     TeamRoles,
+    UserRole,
 )
 from backend.services.organisation_service import OrganisationService
 from backend.services.users.user_service import UserService
@@ -47,6 +50,7 @@ class TeamJoinNotAllowed(Exception):
 class TeamService:
     @staticmethod
     def request_to_join_team(team_id: int, user_id: int):
+        team = TeamService.get_team_by_id(team_id)
         # If user has team manager permission add directly to the team without request.E.G. Admins, Org managers
         if TeamService.is_user_team_member(team_id, user_id):
             raise TeamServiceError(
@@ -58,7 +62,6 @@ class TeamService:
             )
             return
 
-        team = TeamService.get_team_by_id(team_id)
         # Cannot send join request to BY_INVITE team
         if team.join_method == TeamJoinMethod.BY_INVITE.value:
             raise TeamServiceError(
@@ -142,7 +145,7 @@ class TeamService:
         team = TeamService.get_team_by_id(team_id)
 
         if not TeamService.is_user_team_member(team_id, to_user_id):
-            raise NotFound("Join request not found")
+            raise NotFound(sub_code="JOIN_REQUEST_NOT_FOUND", username=username)
 
         if action not in ["accept", "reject"]:
             raise TeamServiceError("Invalid action type")
@@ -184,7 +187,11 @@ class TeamService:
         user = UserService.get_user_by_username(username)
         team_member = TeamMembers.query.filter(
             TeamMembers.team_id == team_id, TeamMembers.user_id == user.id
-        ).one()
+        ).one_or_none()
+        if not team_member:
+            raise NotFound(
+                sub_code="USER_NOT_IN_TEAM", username=username, team_id=team_id
+            )
         team_member.delete()
 
     @staticmethod
@@ -203,28 +210,17 @@ class TeamService:
         project.delete()
 
     @staticmethod
-    def get_all_teams(
-        user_id: int = None,
-        team_name_filter: str = None,
-        team_role_filter: str = None,
-        member_filter: int = None,
-        member_request_filter: int = None,
-        manager_filter: int = None,
-        organisation_filter: int = None,
-        omit_members: bool = False,
-    ) -> TeamsListDTO:
-
+    def get_all_teams(search_dto: TeamSearchDTO) -> TeamsListDTO:
         query = db.session.query(Team)
 
         orgs_query = None
-        is_admin = UserService.is_user_an_admin(user_id)
-
-        if organisation_filter:
-            orgs_query = query.filter(Team.organisation_id == organisation_filter)
-
-        if manager_filter and not (manager_filter == user_id and is_admin):
+        user = UserService.get_user_by_id(search_dto.user_id)
+        is_admin = UserRole(user.role) == UserRole.ADMIN
+        if search_dto.organisation:
+            orgs_query = query.filter(Team.organisation_id == search_dto.organisation)
+        if search_dto.manager and search_dto.manager == search_dto.user_id:
             manager_teams = query.filter(
-                TeamMembers.user_id == manager_filter,
+                TeamMembers.user_id == search_dto.manager,
                 TeamMembers.active == True,  # noqa
                 TeamMembers.function == TeamMemberFunctions.MANAGER.value,
                 Team.id == TeamMembers.team_id,
@@ -234,21 +230,23 @@ class TeamService:
                 Team.organisation_id.in_(
                     [
                         org.id
-                        for org in OrganisationService.get_organisations(manager_filter)
+                        for org in OrganisationService.get_organisations(
+                            search_dto.manager
+                        )
                     ]
                 )
             )
 
             query = manager_teams.union(manager_orgs_teams)
 
-        if team_name_filter:
+        if search_dto.team_name:
             query = query.filter(
-                Team.name.ilike("%" + team_name_filter + "%"),
+                Team.name.ilike("%" + search_dto.team_name + "%"),
             )
 
-        if team_role_filter:
+        if search_dto.team_role:
             try:
-                role = TeamRoles[team_role_filter.upper()].value
+                role = TeamRoles[search_dto.team_role.upper()].value
                 project_teams = (
                     db.session.query(ProjectTeams)
                     .filter(ProjectTeams.role == role)
@@ -258,21 +256,22 @@ class TeamService:
             except KeyError:
                 pass
 
-        if member_filter:
+        if search_dto.member:
             team_member = (
                 db.session.query(TeamMembers)
                 .filter(
-                    TeamMembers.user_id == member_filter, TeamMembers.active.is_(True)
+                    TeamMembers.user_id == search_dto.member,
+                    TeamMembers.active.is_(True),
                 )
                 .subquery()
             )
             query = query.join(team_member)
 
-        if member_request_filter:
+        if search_dto.member_request:
             team_member = (
                 db.session.query(TeamMembers)
                 .filter(
-                    TeamMembers.user_id == member_request_filter,
+                    TeamMembers.user_id == search_dto.member_request,
                     TeamMembers.active.is_(False),
                 )
                 .subquery()
@@ -281,9 +280,26 @@ class TeamService:
         if orgs_query:
             query = query.union(orgs_query)
 
+        # Only show public teams and teams that the user is a member of
+        if not is_admin:
+            query = query.filter(
+                or_(
+                    Team.visibility == TeamVisibility.PUBLIC.value,
+                    # Since user.teams returns TeamMembers, we need to get the team_id
+                    Team.id.in_([team.team_id for team in user.teams]),
+                )
+            )
         teams_list_dto = TeamsListDTO()
 
-        for team in query.all():
+        if search_dto.paginate:
+            paginated = query.paginate(
+                page=search_dto.page, per_page=search_dto.per_page, error_out=True
+            )
+            teams_list_dto.pagination = Pagination(paginated)
+            teams_list = paginated.items
+        else:
+            teams_list = query.all()
+        for team in teams_list:
             team_dto = TeamDTO()
             team_dto.team_id = team.id
             team_dto.name = team.name
@@ -294,20 +310,24 @@ class TeamService:
             team_dto.organisation = team.organisation.name
             team_dto.organisation_id = team.organisation.id
             team_dto.members = []
-            is_team_member = TeamService.is_user_an_active_team_member(team.id, user_id)
             # Skip if members are not included
-            if not omit_members:
-                team_members = team.members
-
+            if not search_dto.omit_members:
+                if search_dto.full_members_list:
+                    team_members = team.members
+                else:
+                    team_managers = team.get_team_managers(10)
+                    team_members = team.get_team_members(10)
+                    team_members.extend(team_managers)
                 team_dto.members = [
                     team.as_dto_team_member(member) for member in team_members
                 ]
-
-            if team_dto.visibility == "PRIVATE" and not is_admin:
-                if is_team_member:
-                    teams_list_dto.teams.append(team_dto)
-            else:
-                teams_list_dto.teams.append(team_dto)
+                team_dto.members_count = team.get_members_count_by_role(
+                    TeamMemberFunctions.MEMBER
+                )
+                team_dto.managers_count = team.get_members_count_by_role(
+                    TeamMemberFunctions.MANAGER
+                )
+            teams_list_dto.teams.append(team_dto)
         return teams_list_dto
 
     @staticmethod
@@ -317,7 +337,7 @@ class TeamService:
         team = TeamService.get_team_by_id(team_id)
 
         if team is None:
-            raise NotFound()
+            raise NotFound(sub_code="TEAM_NOT_FOUND", team_id=team_id)
 
         team_dto = TeamDetailsDTO()
         team_dto.team_id = team.id
@@ -367,7 +387,7 @@ class TeamService:
         )
 
         if projects is None:
-            raise NotFound()
+            raise NotFound(sub_code="PROJECTS_NOT_FOUND", team_id=team_id)
 
         return projects
 
@@ -409,7 +429,7 @@ class TeamService:
         team = Team.get(team_id)
 
         if team is None:
-            raise NotFound()
+            raise NotFound(sub_code="TEAM_NOT_FOUND", team_id=team_id)
 
         return team
 
@@ -418,7 +438,7 @@ class TeamService:
         team = Team.get_team_by_name(team_name)
 
         if team is None:
-            raise NotFound()
+            raise NotFound(sub_code="TEAM_NOT_FOUND", team_name=team_name)
 
         return team
 
@@ -466,7 +486,7 @@ class TeamService:
                 try:
                     UserService.get_user_by_username(member["name"])
                 except NotFound:
-                    raise NotFound(f'User {member["name"]} does not exist')
+                    raise NotFound(sub_code="USER_NOT_FOUND", username=member["name"])
                 if member["function"] == TeamMemberFunctions.MANAGER.name:
                     managers += 1
 
@@ -521,7 +541,7 @@ class TeamService:
     @staticmethod
     def is_user_team_manager(team_id: int, user_id: int):
         # Admin manages all teams
-        team = Team.get(team_id)
+        team = TeamService.get_team_by_id(team_id)
         if UserService.is_user_an_admin(user_id):
             return True
 
@@ -546,8 +566,12 @@ class TeamService:
 
         if team.can_be_deleted():
             team.delete()
+            return {"Success": "Team deleted"}, 200
         else:
-            raise TeamServiceError("Team has projects, cannot be deleted")
+            return {
+                "Error": "Team has projects, cannot be deleted",
+                "SubCode": "This team has projects associated. Before deleting team, unlink any associated projects.",
+            }, 400
 
     @staticmethod
     def check_team_membership(project_id: int, allowed_roles: list, user_id: int):
@@ -568,7 +592,8 @@ class TeamService:
         team_id: int, team_name: str, message_dto: MessageDTO
     ):
         """Sends supplied message to all contributors in a team.  Message all team members can take
-        over a minute to run, so this method is expected to be called on its own thread"""
+        over a minute to run, so this method is expected to be called on its own thread
+        """
         app = (
             create_app()
         )  # Because message-all run on background thread it needs it's own app context

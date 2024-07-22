@@ -16,6 +16,9 @@ export default defineMessages({
     id: 'management.fields.managers',
     defaultMessage: 'Managers',
   },
+  remove: { id: 'management.fields.managers.remove', defaultMessage: 'Remove' },
+  add: { id: 'management.fields.managers.add', defaultMessage: 'Add' },
+  link: { id: 'management.fields.managers.link', defaultMessage: 'Link' },
   noManagers: {
     id: 'management.fields.managers.empty',
     defaultMessage: 'There are no managers yet.',
@@ -27,6 +30,14 @@ export default defineMessages({
   editTeam: {
     id: 'management.link.edit.team',
     defaultMessage: 'Edit team',
+  },
+  partners: {
+    id: 'management.partners.menu',
+    defaultMessage: 'Partners',
+  },
+  resourcesButton:{
+    id: 'management.edit.resourcesButton',
+    defaultMessage: 'Resources link',
   },
   edit: {
     id: 'management.members.edit',
@@ -68,6 +79,14 @@ export default defineMessages({
     id: 'management.teams.members.send_message',
     defaultMessage: 'Team messaging',
   },
+  sendMessageSuccess: {
+    id: 'management.teams.members.send_message.success',
+    defaultMessage: 'Message sent',
+  },
+  sendMessageFailure: {
+    id: 'management.teams.members.send_message.failure',
+    defaultMessage: 'Failed to send message. Please try again.',
+  },
   send: {
     id: 'management.teams.members.send_message.button',
     defaultMessage: 'Send',
@@ -91,6 +110,18 @@ export default defineMessages({
   team: {
     id: 'management.team',
     defaultMessage: 'Team',
+  },
+  leaveTheTeam: {
+    id: 'user.team.leaveTeam',
+    defaultMessage: 'Leave the team',
+  },
+  leaveTheTeamDescription: {
+    id: 'user.team.leaveTeam.description',
+    defaultMessage: 'Are you sure you want to leave <b>{name}</b>?',
+  },
+  leave: {
+    id: 'user.team.leaveTeam.button.leave',
+    defaultMessage: 'Leave',
   },
   projects: {
     id: 'management.projects',
@@ -156,6 +187,30 @@ export default defineMessages({
     id: 'management.filter.textarea.searchOrganisations',
     defaultMessage: 'Search organisations...',
   },
+  buildingsStats: {
+    id: 'management.filter.stats.buildingsStats',
+    defaultMessage: 'Building Edits',
+  },
+  contributors: {
+    id: 'management.contributors',
+    defaultMessage: 'Contributors',
+  },
+  roadsStats: {
+    id: 'management.filter.stats.roadsStats',
+    defaultMessage: 'km of Roads',
+  },
+  editsStats: {
+    id: 'management.filter.stats.editsStats',
+    defaultMessage: 'Total Edits',
+  },
+  communityStats: {
+    id: 'management.filter.stats.communityStats',
+    defaultMessage: 'Community stats',
+  },
+  mappersStats: {
+    id: 'management.filter.stats.mappersStats',
+    defaultMessage: 'Contributors',
+  },
   searchTeams: {
     id: 'management.filter.textarea.searchTeams',
     defaultMessage: 'Search teams...',
@@ -179,6 +234,10 @@ export default defineMessages({
   myTeams: {
     id: 'management.myTeams',
     defaultMessage: 'My teams',
+  },
+  errorLoadingTeams: {
+    id: 'teams.loading.error',
+    defaultMessage: 'An error occured while loading teams.',
   },
   new: {
     id: 'management.buttons.new',
@@ -413,6 +472,10 @@ export default defineMessages({
     id: 'management.placeholder.search_users',
     defaultMessage: 'Search for Tasking Manager users',
   },
+  searchMembers: {
+    id: 'management.placeholder.search_members',
+    defaultMessage: 'Search team members...',
+  },
   save: {
     id: 'management.button.save',
     defaultMessage: 'Save',
@@ -528,5 +591,9 @@ export default defineMessages({
   overview: {
     id: 'management.stats.overview',
     defaultMessage: 'Overview',
+  },
+  totalFeatures: {
+    id: 'management.stats.features',
+    defaultMessage: 'Total features',
   },
 });

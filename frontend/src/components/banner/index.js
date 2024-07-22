@@ -1,4 +1,3 @@
-import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
@@ -34,7 +33,7 @@ export function Banner() {
 
   const privacyPolicyLink = (
     <a
-      href={`https://${ORG_PRIVACY_POLICY_URL}`}
+      href={`${ORG_PRIVACY_POLICY_URL}`}
       className="red underline link fw6"
       target="_blank"
       rel="noopener noreferrer"
@@ -53,7 +52,7 @@ export function Banner() {
           <a
             id="privlink"
             className="red link f4 fw6"
-            href={`https://${ORG_PRIVACY_POLICY_URL}`}
+            href={`${ORG_PRIVACY_POLICY_URL}`}
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
-import { Link } from '@gatsbyjs/reach-router';
+import { Link } from 'react-router-dom';
 
 import messages from './messages';
 import { RelativeTimeWithUnit } from '../../utils/formattedRelativeTime';
@@ -88,7 +88,7 @@ export function ProjectCard({
   );
 
   return (
-    <div
+    <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={`relative blue-dark db-${database}`}
@@ -113,8 +113,7 @@ export function ProjectCard({
                   <PriorityBox
                     priority={priority}
                     extraClasses={'pv1 ph2 dib'}
-                    hideMediumAndLow={!showBottomButtons}
-                    showIcon={priority !== 'URGENT'} // inside the cards, don't show the icon for urgent, due to the space required
+                    showIcon={!['URGENT', 'MEDIUM'].includes(priority)} // inside the cards, don't show the icon for urgent or medium, due to the space required
                   />
                 )}
               </div>
@@ -157,6 +156,6 @@ export function ProjectCard({
         </div>
       </Link>
       {showBottomButtonsHovered && bottomButtons}
-    </div>
+    </article>
   );
 }

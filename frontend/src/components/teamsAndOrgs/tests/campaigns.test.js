@@ -1,6 +1,6 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { IntlProviders } from '../../../utils/testWithIntl';
+import { IntlProviders, renderWithRouter } from '../../../utils/testWithIntl';
 import { CampaignsManagement } from '../campaigns';
 
 const dummyCampaigns = [
@@ -16,7 +16,7 @@ const dummyCampaigns = [
 
 describe('CampaignsManagement component', () => {
   it('renders loading placeholder when API is being fetched', () => {
-    const { container, getByRole } = render(
+    const { container, getByRole } = renderWithRouter(
       <IntlProviders>
         <CampaignsManagement userDetails={{ role: 'ADMIN' }} isCampaignsFetched={false} />
       </IntlProviders>,
@@ -35,7 +35,7 @@ describe('CampaignsManagement component', () => {
   });
 
   it('does not render loading placeholder after API is fetched', () => {
-    const { container } = render(
+    const { container } = renderWithRouter(
       <IntlProviders>
         <CampaignsManagement userDetails={{ role: 'ADMIN' }} isCampaignsFetched={true} />
       </IntlProviders>,
@@ -44,7 +44,7 @@ describe('CampaignsManagement component', () => {
   });
 
   it('renders campaigns list card after API is fetched', async () => {
-    const { container, getByText } = render(
+    const { container, getByText } = renderWithRouter(
       <IntlProviders>
         <CampaignsManagement
           campaigns={dummyCampaigns}
@@ -65,8 +65,8 @@ describe('CampaignsManagement component', () => {
     expect(container.querySelectorAll('svg').length).toBe(5);
   });
 
-  it('filters campaigns list by the search query', () => {
-    render(
+  it('filters campaigns list by the search query', async () => {
+    const { user } = renderWithRouter(
       <IntlProviders>
         <CampaignsManagement
           campaigns={dummyCampaigns}
@@ -76,17 +76,11 @@ describe('CampaignsManagement component', () => {
       </IntlProviders>,
     );
     const textField = screen.getByRole('textbox');
-    fireEvent.change(textField, {
-      target: {
-        value: '2',
-      },
-    });
+    await user.clear(textField);
+    await user.type(textField, '2');
     expect(screen.getByRole('heading', { name: 'Campaign 2' })).toHaveTextContent('Campaign 2');
-    fireEvent.change(textField, {
-      target: {
-        value: 'not 2',
-      },
-    });
+    await user.clear(textField);
+    await user.type(textField, 'not 2');
     expect(screen.queryByRole('heading', { name: 'Campaign 2' })).not.toBeInTheDocument();
     expect(screen.queryByText('There are no campaigns yet.')).toBeInTheDocument();
   });

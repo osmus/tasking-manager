@@ -1,9 +1,8 @@
-import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import { DueDateBox } from '../../../components/projectCard/dueDateBox';
+import { DueDateBox } from '../dueDateBox';
 import { ReduxIntlProviders } from '../../../utils/testWithIntl';
 
 describe('test DueDate', () => {
@@ -19,16 +18,18 @@ describe('test DueDate', () => {
     expect(screen.getByRole('img')).toBeInTheDocument();
   });
 
-  it('with tooltip message', () => {
+  it('with tooltip message', async () => {
     // five days of milliseconds plus a few seconds for the test
     const fiveDaysOut = 5 * 86400 * 1000 + 10000 + Date.now();
+    const user = userEvent.setup();
     const { container } = render(
       <ReduxIntlProviders>
         <DueDateBox dueDate={fiveDaysOut} tooltipMsg="Tooltip works" />
       </ReduxIntlProviders>,
     );
     expect(screen.queryByText('Tooltip works')).not.toBeInTheDocument();
-    userEvent.hover(screen.getByText('5 days left'));
+    await user.hover(screen.getByText('5 days left'));
+    await waitFor(() => expect(screen.getByText('Tooltip works')).toBeInTheDocument());
     expect(screen.getByText('Tooltip works')).toBeInTheDocument();
     expect(container.querySelectorAll('span')[0].className).toContain('bg-tan blue-grey');
     expect(container.querySelectorAll('span')[0].className).not.toContain('bg-red white fw6');

@@ -1,11 +1,10 @@
-import React from 'react';
+import { forwardRef } from 'react';
 
 import { MenuIcon, CloseIcon } from '../svgIcons';
 
-export const BurgerMenu = React.forwardRef((props, ref) => (
+export const BurgerMenu = forwardRef((props, ref) => (
   <button
-    className="blue-dark bg-white br1 f5 bn pointer"
-    style={{ padding: '0.5rem 1.5rem' }}
+    className="blue-dark bg-white br1 f5 bn pointer ml3"
     ref={ref}
     aria-label="Menu"
     {...props}

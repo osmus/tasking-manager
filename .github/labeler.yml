@@ -1,12 +1,12 @@
-"Component: Frontend":
+"scope: frontend":
   - frontend/**/*
-"Component: Backend":
+"scope: backend":
   - backend/**/*
   - tests/**/*
   - migrations/**/*
   - ./manage.py
-  - ./requirements.txt
-"Component: Infrastructure":
+  - ./pyproject.toml
+"scope: infrastructure":
   - .circleci/*
   - .github/**/*
   - scripts/aws/**/*
@@ -15,10 +15,6 @@
   - docker-*.yml
 "dependencies":
   - frontend/yarn.lock
-  - ./requirements.txt
-"javascript":
-  - frontend/yarn.lock
-"python":
-  - ./requirements.txt
-"Type: Translations":
+  - ./pyproject.toml
+"scope: translations":
   - frontend/src/locales/*

@@ -1,6 +1,11 @@
 from flask import current_app
 from sqlalchemy import text
+from multiprocessing.dummy import Pool as ThreadPool
+from sqlalchemy.orm import scoped_session, sessionmaker
+import os
 
+from backend import db
+from backend.exceptions import NotFound
 from backend.models.dtos.mapping_dto import TaskDTOs
 from backend.models.dtos.stats_dto import Pagination
 from backend.models.dtos.validator_dto import (
@@ -10,6 +15,7 @@ from backend.models.dtos.validator_dto import (
     StopValidationDTO,
     InvalidatedTask,
     InvalidatedTasks,
+    RevertUserTasksDTO,
 )
 from backend.models.postgis.statuses import ValidatingNotAllowed
 from backend.models.postgis.task import (
@@ -19,12 +25,13 @@ from backend.models.postgis.task import (
     TaskInvalidationHistory,
     TaskMappingIssue,
 )
-from backend.models.postgis.utils import NotFound, UserLicenseError, timestamp
+from backend.models.postgis.utils import UserLicenseError, timestamp
 from backend.models.postgis.project_info import ProjectInfo
 from backend.services.messaging.message_service import MessageService
-from backend.services.project_service import ProjectService
+from backend.services.project_service import ProjectService, ProjectAdminService
 from backend.services.stats_service import StatsService
 from backend.services.users.user_service import UserService
+from backend.services.mapping_service import MappingService
 
 
 class ValidatorServiceError(Exception):
@@ -48,7 +55,11 @@ class ValidatorService:
             task = Task.get(task_id, validation_dto.project_id)
 
             if task is None:
-                raise NotFound(f"Task {task_id} not found")
+                raise NotFound(
+                    sub_code="TASK_NOT_FOUND",
+                    task_id=task_id,
+                    project_id=validation_dto.project_id,
+                )
             if not (
                 task.locked_by == validation_dto.user_id
                 and TaskStatus(task.task_status) == TaskStatus.LOCKED_FOR_VALIDATION
@@ -95,7 +106,7 @@ class ValidatorService:
                     )
             else:
                 raise ValidatorServiceError(
-                    f"Validation not allowed because: {error_reason}"
+                    f"ValidtionNotAllowed- Validation not allowed because: {error_reason}"
                 )
 
         # Lock all tasks for validation
@@ -128,25 +139,24 @@ class ValidatorService:
             return False
 
     @staticmethod
-    def unlock_tasks_after_validation(
-        validated_dto: UnlockAfterValidationDTO,
-    ) -> TaskDTOs:
-        """
-        Unlocks supplied tasks after validation
-        :raises ValidatorServiceError
-        """
-        validated_tasks = validated_dto.validated_tasks
-        project_id = validated_dto.project_id
-        user_id = validated_dto.user_id
-        tasks_to_unlock = ValidatorService.get_tasks_locked_by_user(
-            project_id, validated_tasks, user_id
-        )
-
-        # Unlock all tasks
-        dtos = []
-        message_sent_to = []
-        for task_to_unlock in tasks_to_unlock:
+    def _process_tasks(args):
+        (
+            app_context,
+            task_to_unlock,
+            project_id,
+            validated_dto,
+            message_sent_to,
+            dtos,
+        ) = args
+        with app_context:
+            Session = scoped_session(sessionmaker(bind=db.engine))
+            local_session = Session()
             task = task_to_unlock["task"]
+            task = (
+                local_session.query(Task)
+                .filter_by(id=task.id, project_id=project_id)
+                .one()
+            )
 
             if task_to_unlock["comment"]:
                 # Parses comment to see if any users have been @'d
@@ -184,6 +194,7 @@ class ValidatorService:
                     validated_dto.user_id,
                     prev_status,
                     task_to_unlock["new_state"],
+                    local_session=local_session,
                 )
             task_mapping_issues = ValidatorService.get_task_mapping_issues(
                 task_to_unlock
@@ -193,8 +204,51 @@ class ValidatorService:
                 task_to_unlock["new_state"],
                 task_to_unlock["comment"],
                 issues=task_mapping_issues,
+                local_session=local_session,
             )
             dtos.append(task.as_dto_with_instructions(validated_dto.preferred_locale))
+            local_session.commit()
+            Session.remove()
+
+    @staticmethod
+    def unlock_tasks_after_validation(
+        validated_dto: UnlockAfterValidationDTO,
+    ) -> TaskDTOs:
+        """
+        Unlocks supplied tasks after validation
+        :raises ValidatorServiceError
+        """
+        validated_tasks = validated_dto.validated_tasks
+        project_id = validated_dto.project_id
+        user_id = validated_dto.user_id
+        tasks_to_unlock = ValidatorService.get_tasks_locked_by_user(
+            project_id, validated_tasks, user_id
+        )
+
+        # Unlock all tasks
+        dtos = []
+        message_sent_to = []
+        args_list = []
+        for task_to_unlock in tasks_to_unlock:
+            args = (
+                current_app.app_context(),
+                task_to_unlock,
+                project_id,
+                validated_dto,
+                message_sent_to,
+                dtos,
+            )
+            args_list.append(args)
+
+        # Create a pool and Process the tasks in parallel
+        pool = ThreadPool(os.cpu_count())
+        pool.map(ValidatorService._process_tasks, args_list)
+
+        # Close the pool and wait for the threads to finish
+        pool.close()
+        pool.join()
+
+        # Send email on project progress
         ProjectService.send_email_on_project_progress(validated_dto.project_id)
         task_dtos = TaskDTOs()
         task_dtos.tasks = dtos
@@ -252,7 +306,11 @@ class ValidatorService:
             task = Task.get(unlock_task.task_id, project_id)
 
             if task is None:
-                raise NotFound(f"Task {unlock_task.task_id} not found")
+                raise NotFound(
+                    sub_code="TASK_NOT_FOUND",
+                    task_id=unlock_task.task_id,
+                    project_id=project_id,
+                )
 
             current_state = TaskStatus(task.task_status)
             if current_state != TaskStatus.LOCKED_FOR_VALIDATION:
@@ -315,7 +373,7 @@ class ValidatorService:
             query = query.filter_by(project_id=project_id)
 
         results = query.order_by(text(sort_by + " " + sort_direction)).paginate(
-            page, page_size, True
+            page=page, per_page=page_size, error_out=True
         )
         project_names = {}
         invalidated_tasks_dto = InvalidatedTasks()
@@ -396,3 +454,34 @@ class ValidatorService:
                 filter(lambda issue_dto: issue_dto.count > 0, task_to_unlock["issues"]),
             )
         )
+
+    @staticmethod
+    def revert_user_tasks(revert_dto: RevertUserTasksDTO):
+        """
+        Reverts tasks with supplied action to previous state by specific user
+        :raises ValidatorServiceError
+        """
+        if ProjectAdminService.is_user_action_permitted_on_project(
+            revert_dto.action_by, revert_dto.project_id
+        ):
+            query = Task.query.filter(
+                Task.project_id == revert_dto.project_id,
+                Task.task_status == TaskStatus[revert_dto.action].value,
+            )
+            if TaskStatus[revert_dto.action].value == TaskStatus.BADIMAGERY.value:
+                query = query.filter(Task.mapped_by == revert_dto.user_id)
+            else:
+                query = query.filter(Task.validated_by == revert_dto.user_id)
+
+            tasks_to_revert = query.all()
+            for task in tasks_to_revert:
+                task = MappingService.undo_mapping(
+                    revert_dto.project_id,
+                    task.id,
+                    revert_dto.user_id,
+                    revert_dto.preferred_locale,
+                )
+        else:
+            raise ValidatorServiceError(
+                "UserActionNotPermitted- User not permitted to revert tasks"
+            )

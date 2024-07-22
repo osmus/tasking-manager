@@ -11,6 +11,8 @@ frontend/package-lock.json
 frontend/.env
 frontend/.eslintcache
 frontend/coverage/
+# Sentry Auth Token
+frontend/.sentryclirc
 
 # Don't ignore dist folder as this contains the minimized build for deploy
 #backend/web/static/dist
@@ -28,10 +30,14 @@ logs/
 #python
 venv/
 *pyc
+.pdm.toml
+.pdm-python
+__pypackages__/
 
 # Editor generated files #
 .idea/
 .vscode/
+.trunk/
 [._]*.s[a-v][a-z]
 [._]*.sw[a-p]
 [._]s[a-rt-v][a-z]
@@ -52,3 +58,15 @@ venv_aws/
 # Backend coverage generated files
 htmlcov/
 .coverage
+
+# Terraform
+.terraform
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Terragrunt
+.terragrunt-cache
+
+# Docker & Docker compose
+docker-compose.override.yml

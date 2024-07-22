@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import ReactPlaceholder from 'react-placeholder';
 import { FormattedMessage } from 'react-intl';
 import messages from './messages';
@@ -12,7 +12,7 @@ import {
 } from '../projects/filterSelectFields';
 import { TasksStatsSummary } from './tasksStatsSummary';
 
-const TasksStatsChart = React.lazy(() =>
+const TasksStatsChart = lazy(() =>
   import('./tasksStatsChart' /* webpackChunkName: "taskStatsChart" */),
 );
 
@@ -83,6 +83,7 @@ export const TasksStats = ({ query, setQuery, stats, error, loading, retryFn }) 
             options={countriesAPIState}
             setQueryForChild={setQuery}
             allQueryParamsForChild={query}
+            payloadKey="value"
           />
         </div>
       </div>

@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from '@gatsbyjs/reach-router';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { FormattedMessage } from 'react-intl';
 
@@ -27,6 +26,41 @@ export const MyProjectNav = (props) => {
 
   const isActiveButton = (buttonName, projectQuery) =>
     JSON.stringify(projectQuery).indexOf(buttonName) !== -1 ? true : false;
+
+  const projectStatusMenus = [
+    {
+      isActiveArg: 'PUBLISHED',
+      label: <FormattedMessage {...messages.active} />,
+      queryParams: {
+        status: 'PUBLISHED',
+        stale: undefined,
+      },
+    },
+    {
+      isActiveArg: 'DRAFT',
+      label: <FormattedMessage {...messages.draft} />,
+      queryParams: {
+        status: 'DRAFT',
+        stale: undefined,
+      },
+    },
+    {
+      isActiveArg: 'ARCHIVED',
+      label: <FormattedMessage {...messages.archived} />,
+      queryParams: {
+        status: 'ARCHIVED',
+        stale: undefined,
+      },
+    },
+    {
+      isActiveArg: 'stale',
+      label: <FormattedMessage {...messages.stale} />,
+      queryParams: {
+        status: undefined,
+        stale: 1,
+      },
+    },
+  ];
 
   return (
     <header className="bt bb b--tan">
@@ -145,50 +179,17 @@ export const MyProjectNav = (props) => {
             {props.management && (userDetails.role === 'ADMIN' || isOrgManager) && (
               <>
                 <div className="dib pr4">
-                  <FilterButton
-                    query={fullProjectsQuery}
-                    newQueryParams={{
-                      status: 'PUBLISHED',
-                      stale: undefined,
-                    }}
-                    setQuery={setQuery}
-                    isActive={isActiveButton('PUBLISHED', fullProjectsQuery)}
-                  >
-                    <FormattedMessage {...messages.active} />
-                  </FilterButton>
-                  <FilterButton
-                    query={fullProjectsQuery}
-                    newQueryParams={{
-                      status: 'DRAFT',
-                      stale: undefined,
-                    }}
-                    setQuery={setQuery}
-                    isActive={isActiveButton('DRAFT', fullProjectsQuery)}
-                  >
-                    <FormattedMessage {...messages.draft} />
-                  </FilterButton>
-                  <FilterButton
-                    query={fullProjectsQuery}
-                    newQueryParams={{
-                      status: 'ARCHIVED',
-                      stale: undefined,
-                    }}
-                    setQuery={setQuery}
-                    isActive={isActiveButton('ARCHIVED', fullProjectsQuery)}
-                  >
-                    <FormattedMessage {...messages.archived} />
-                  </FilterButton>
-                  <FilterButton
-                    query={fullProjectsQuery}
-                    newQueryParams={{
-                      status: undefined,
-                      stale: 1,
-                    }}
-                    setQuery={setQuery}
-                    isActive={isActiveButton('stale', fullProjectsQuery)}
-                  >
-                    <FormattedMessage {...messages.stale} />
-                  </FilterButton>
+                  {projectStatusMenus.map((menu) => (
+                    <FilterButton
+                      key={menu.isActiveArg}
+                      query={fullProjectsQuery}
+                      newQueryParams={menu.queryParams}
+                      setQuery={setQuery}
+                      isActive={isActiveButton(menu.isActiveArg, fullProjectsQuery)}
+                    >
+                      {menu.label}
+                    </FilterButton>
+                  ))}
                 </div>
                 <FilterButton
                   query={fullProjectsQuery}
@@ -218,12 +219,17 @@ export const MyProjectNav = (props) => {
           {props.management && <ProjetListViewToggle />}
         </div>
       </div>
-      {props.children}
     </header>
   );
 };
 
-function FilterButton({ currentQuery, newQueryParams, setQuery, isActive, children }: Object) {
+export function FilterButton({
+  currentQuery,
+  newQueryParams,
+  setQuery,
+  isActive,
+  children,
+}: Object) {
   const linkCombo = 'di mh1 link ph3 f6 pv2 mv1 ba b--grey-light';
   return (
     <CustomButton

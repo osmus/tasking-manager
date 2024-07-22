@@ -137,13 +137,9 @@ export default defineMessages({
     id: 'project.detail.questionsAndComments.login',
     defaultMessage: 'Log in to be able to post comments.',
   },
-  write: {
-    id: 'project.detail.questionsAndComments.write',
-    defaultMessage: 'Write',
-  },
-  preview: {
-    id: 'project.detail.questionsAndComments.preview',
-    defaultMessage: 'Preview',
+  errorLoadingComments: {
+    id: 'project.detail.questionsAndComments.fetching.error',
+    defaultMessage: 'An error occured while loading questions and comments.',
   },
   post: {
     id: 'project.detail.questionsAndComments.button',
@@ -231,9 +227,30 @@ export default defineMessages({
     id: 'project.detail.sections.contributionsTimeline',
     defaultMessage: 'Contributions timeline',
   },
+  downloadOsmData: {
+    id: 'project.detail.sections.downloadOsmData',
+    defaultMessage: 'Download OSM Data',
+  },
+  errorDownloadOsmData: {
+    id: 'project.detail.sections.errorDownloadOsmData',
+    defaultMessage: 'Data Extraction Unavailable',
+  },
+  errorDownloadOsmDataDescription: {
+    id: 'project.detail.sections.errorDownloadOsmDataDescription',
+    defaultMessage:
+      'The data extract you are attempting to download is currently inactive or unavailable. Please ensure that the extract is active and try again later.',
+  },
   viewInOsmcha: {
     id: 'project.detail.sections.contributions.osmcha',
     defaultMessage: 'Changesets in OSMCha',
+  },
+  live: {
+    id: 'project.detail.sections.contributions.live',
+    defaultMessage: 'Live',
+  },
+  liveMonitoring: {
+    id: 'project.detail.sections.contributions.liveMonitoring',
+    defaultMessage: 'Live monitoring',
   },
   changesets: {
     id: 'project.detail.sections.contributions.changesets',
@@ -243,9 +260,13 @@ export default defineMessages({
     id: 'project.detail.sections.contributors',
     defaultMessage: 'Contributors',
   },
-  relatedProjects: {
-    id: 'project.detail.sections.relatedProjects',
-    defaultMessage: 'Related projects',
+  similarProjects: {
+    id: 'project.detail.sections.similarProjects',
+    defaultMessage: 'Similar projects',
+  },
+  contributorsError: {
+    id: 'project.detail.sections.contributors.error',
+    defaultMessage: 'An error occured while loading contributors',
   },
   timelineNotAvailable: {
     id: 'project.detail.sections.contributions.timelineError',
@@ -322,5 +343,9 @@ export default defineMessages({
   exploreOtherProjects: {
     id: 'project.inaccessible.exploreOtherProjects',
     defaultMessage: 'Explore other projects',
+  },
+  noSimilarProjectsFound: {
+    id: 'project.noSimilarProjectsFound',
+    defaultMessage: 'Could not find any similar projects for this project',
   },
 });

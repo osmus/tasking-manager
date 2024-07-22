@@ -1,4 +1,3 @@
-import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
@@ -10,7 +9,6 @@ export const DownloadAOIButton = ({ projectId, className }: Object) => (
   <a
     href={`${API_URL}projects/${projectId}/queries/aoi/?as_file=true`}
     download={`project-${projectId}-aoi.geojson`}
-    className="ph2"
   >
     <CustomButton className={className} icon={<MappedIcon className="h1 v-mid" />}>
       <FormattedMessage {...messages.downloadProjectAOI} />
@@ -22,7 +20,6 @@ export const DownloadTaskGridButton = ({ projectId, className }: Object) => (
   <a
     href={`${API_URL}projects/${projectId}/tasks/?as_file=true`}
     download={`project-${projectId}-tasks.geojson`}
-    className="ph2"
   >
     <CustomButton className={className} icon={<NineCellsGridIcon className="h1 v-mid" />}>
       <FormattedMessage {...messages.downloadTaskGrid} />

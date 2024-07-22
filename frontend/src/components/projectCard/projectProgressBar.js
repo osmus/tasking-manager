@@ -1,4 +1,3 @@
-import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
@@ -9,6 +8,7 @@ export default function ProjectProgressBar({
   percentValidated,
   percentBadImagery,
   className,
+  small = true,
 }: Object) {
   return (
     <>
@@ -17,6 +17,7 @@ export default function ProjectProgressBar({
         firstBarValue={percentMapped}
         secondBarValue={percentValidated}
         height="half"
+        small={small}
       >
         <p className="f6 lh-copy ma0 white f7 fw4">
           <FormattedMessage

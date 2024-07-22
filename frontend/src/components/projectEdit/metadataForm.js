@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Select from 'react-select';
 import { FormattedMessage } from 'react-intl';
@@ -162,7 +162,10 @@ export const MetadataForm = () => {
             values={{ link: <IdDocsLink /> }}
           />
         </p>
-        <ExtraIdParams value={projectInfo.extraIdParams} setProjectInfo={setProjectInfo} />
+        <ExtraIdParams
+          value={projectInfo.extraIdParams ? projectInfo.extraIdParams : ''}
+          setProjectInfo={setProjectInfo}
+        />
       </div>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>

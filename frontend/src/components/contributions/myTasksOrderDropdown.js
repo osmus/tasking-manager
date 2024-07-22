@@ -1,4 +1,3 @@
-import React from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Dropdown } from '../dropdown';
 import messages from './messages';
@@ -15,20 +14,15 @@ export default function MyTasksOrderDropdown({ className, setQuery, allQueryPara
     },
   ];
 
-  const onSortSelect = (arr) => {
-    if (arr.length === 1) {
-      setQuery(
-        {
-          ...allQueryParams,
-          page: undefined,
-          orderBy: arr[0].value,
-        },
-        'pushIn',
-      );
-    } else if (arr.length > 1) {
-      throw new Error('filter select array is bigger.');
-    }
-  };
+  const onSortSelect = (arr) =>
+    setQuery(
+      {
+        ...allQueryParams,
+        page: undefined,
+        orderBy: arr[0].value,
+      },
+      'pushIn',
+    );
 
   return (
     <Dropdown
