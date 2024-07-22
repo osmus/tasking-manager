@@ -740,7 +740,7 @@ function CompletionInstructions({ setVisibility }: Object) {
 export function ReopenEditor({ project, action, editor, callEditor }: Object) {
   const editorOptions = getEditors(project.database, 
     action === 'MAPPING' ? project.mappingEditors : project.validationEditors,
-    project.customEditor
+    project.customEditor,
   );
 
   return (
