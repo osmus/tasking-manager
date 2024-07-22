@@ -14,11 +14,9 @@ frontend/coverage/
 # Sentry Auth Token
 frontend/.sentryclirc
 
-# Don't ignore dist folder as this contains the minimized build for deploy
-#backend/web/static/dist
-#backend/web/static/dist/
-#server/web/static/dist
-#server/web/static/dist/
+# Ignore dist folder as this contains the minimized build for deploy
+backend/web/static/dist
+backend/web/static/dist/
 
 # Ignore local logs
 logs/
