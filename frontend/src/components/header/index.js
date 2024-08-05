@@ -35,7 +35,7 @@ export const Header = () => {
   const organisations = useSelector((state) => state.auth.organisations);
   const showOrgBar = useSelector((state) => state.orgBarVisibility.isVisible);
 
-  const linkCombo = 'link mh3 barlow-condensed blue-dark f4 ttu lh-solid nowrap pv2';
+  const linkCombo = 'link mh3 blue-dark f5 lh-solid nowrap pv2';
 
   const isActive = ({ isPartiallyCurrent }) => {
     return isPartiallyCurrent
@@ -111,19 +111,22 @@ export const Header = () => {
           </div>
         </div>
       )}
-      <div className="mv3 ph2 dib w-100 flex justify-between items-center">
+      <div className="pv2 ph2 dib w-100 flex justify-between items-center">
         <Link to={'/'} className="link mv-1 flex flex-nowrap items-center">
           <img
             src={ORG_LOGO || logo}
             alt={`${ORG_NAME} logo`}
-            className="h2 ml2 v-mid"
+            className="h2 ml2 v-mid main-logo"
             onError={({ currentTarget }) => {
               // fallback to HOT logo if ORG_LOGO is broken
               currentTarget.onerror = null;
               currentTarget.src = logo;
             }}
           />
-          <span className="barlow-condensed f3 fw6 ml2 blue-dark nowrap">Tasking Manager</span>
+          <div className="wordmark barlow-condensed f4 ml2 blue-dark nowrap">
+            <span className="fw6">OpenStreetMap US</span>
+            <span className="">Tasking Manager</span>
+          </div>
         </Link>
         <HorizontalScroll
           className={'dn dib-l ml5-l mr4-l pl6-xl'}
