@@ -38,7 +38,7 @@ import { usePriorityAreasQuery, useTaskDetail } from '../../api/projects';
 
 const Editor = lazy(() => import('../editor'));
 const RapiDEditor = lazy(() => import('../rapidEditor'));
-const PDEditor = React.lazy(() => import('../pdEditor'));
+const PDEditor = lazy(() => import('../pdEditor'));
 
 const MINUTES_BEFORE_DIALOG = 5;
 
