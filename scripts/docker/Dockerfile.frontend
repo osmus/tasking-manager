@@ -4,7 +4,7 @@ WORKDIR /usr/src/app/frontend
 COPY frontend .
 
 ## SETUP
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # SERVE
 # create env file if it doesn't exist

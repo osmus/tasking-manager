@@ -4,7 +4,7 @@ WORKDIR /usr/src/app
 
 COPY ./frontend .
 ## SETUP
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # SERVE
 CMD ["npm", "start"]
