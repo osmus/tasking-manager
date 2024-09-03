@@ -272,8 +272,18 @@ class Project(db.Model):
         url = "{0}/reverse?format=jsonv2&lat={1}&lon={2}&accept-language=en".format(
             current_app.config["OSM_NOMINATIM_SERVER_URL"], lat, lng
         )
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/58.0.3029.110 Safari/537.3"
+            ),
+            "Referer": os.environ.get("TM_APP_BASE_URL", "https://example.com"),
+        }
         try:
-            country_info = requests.get(url).json()  # returns a dict
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            country_info = response.json()  # returns a dict
             if country_info["address"].get("country") is not None:
                 self.country = [country_info["address"]["country"]]
         except (KeyError, AttributeError, requests.exceptions.ConnectionError):
