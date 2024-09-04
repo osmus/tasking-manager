@@ -9,7 +9,7 @@ export function getEditors(database, filterList, customEditor) {
     }
   ] : [
     {
-      label: 'Rapid',
+      label: 'RapiD',
       value: 'RAPID',
       url: RAPID_EDITOR_URL,
     },
