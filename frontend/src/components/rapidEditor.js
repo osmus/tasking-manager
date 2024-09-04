@@ -7,6 +7,7 @@ import {
   OSM_CLIENT_ID,
   OSM_CLIENT_SECRET,
   OSM_REDIRECT_URI,
+  OSM_SERVER_API_URL,
   OSM_SERVER_URL,
 } from '../config';
 import { types } from '../store/actions/editor';
@@ -195,7 +196,7 @@ function RapidEditor({
       context.apiConnections = [
         {
           url: OSM_SERVER_URL,
-          apiUrl: 'https://api.openstreetmap.org',
+          apiUrl: OSM_SERVER_API_URL,
           client_id: OSM_CLIENT_ID,
           client_secret: OSM_CLIENT_SECRET,
           redirect_uri: OSM_REDIRECT_URI,
@@ -276,7 +277,7 @@ function RapidEditor({
     if (context && session) {
       context.preauth = {
         url: OSM_SERVER_URL,
-        apiUrl: 'https://api.openstreetmap.org',
+        apiUrl: OSM_SERVER_API_URL,
         client_id: OSM_CLIENT_ID,
         client_secret: OSM_CLIENT_SECRET,
         redirect_uri: OSM_REDIRECT_URI,
