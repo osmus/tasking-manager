@@ -2,10 +2,9 @@ FROM node:18.19.1 as build
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
-
 # create env file if it doesn't exist
 RUN touch tasking-manager.env
-COPY tasking-manager.env ..
+COPY example.env tasking-manager.en[v] ../
 
 ## SETUP
 RUN git config --global url.https://github.com/.insteadOf git@github.com: \
