@@ -8,7 +8,7 @@ COPY example.env tasking-manager.en[v] ../
 
 ## SETUP
 RUN git config --global url.https://github.com/.insteadOf git@github.com: \
-    && npm install --ignore-scripts
+    && yarn
 
 # SERVE
 RUN npm run build
