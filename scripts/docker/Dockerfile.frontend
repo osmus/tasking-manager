@@ -1,5 +1,3 @@
-FROM node:18.19.1 as build
-
 # Need to list all environment variables here so Digital Ocean can see them
 ARG ENABLE_PROXYFIX
 ARG OSM_SERVER_URL
@@ -44,6 +42,8 @@ ARG TM_DEFAULT_CHANGESET_COMMENT
 ARG TM_DEFAULT_LOCALE
 ARG TM_IMPORT_MAX_FILESIZE
 ARG TZ
+
+FROM node:18.19.1 as build
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
