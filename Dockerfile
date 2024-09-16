@@ -1,4 +1,9 @@
-# Need to list all environment variables here so Digital Ocean can see them
+ARG DEBIAN_IMG_TAG=slim-bookworm
+ARG PYTHON_IMG_TAG=3.10
+
+FROM docker.io/python:${PYTHON_IMG_TAG}-${DEBIAN_IMG_TAG} as base
+
+# Copy environment variables from Digital Ocean
 ARG ENABLE_PROXYFIX
 ARG OSM_SERVER_URL
 ARG OSM_NOMINATIM_SERVER_URL
@@ -43,10 +48,6 @@ ARG TM_DEFAULT_LOCALE
 ARG TM_IMPORT_MAX_FILESIZE
 ARG TZ
 
-ARG DEBIAN_IMG_TAG=slim-bookworm
-ARG PYTHON_IMG_TAG=3.10
-
-FROM docker.io/python:${PYTHON_IMG_TAG}-${DEBIAN_IMG_TAG} as base
 ARG APP_VERSION=0.1.0
 ARG DOCKERFILE_VERSION=0.5.0
 ARG ALPINE_IMG_TAG
