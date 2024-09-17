@@ -72,7 +72,8 @@ RUN pip install --no-cache-dir --upgrade pip
 WORKDIR /opt/python
 COPY pyproject.toml pdm.lock README.md /opt/python/
 RUN pip install --no-cache-dir pdm==2.7.4
-RUN pdm export --prod --without-hashes > requirements.txt
+# don't use the --prod argument since we need dev dependencies to run migrations later
+RUN pdm export --without-hashes > requirements.txt
 
 
 
@@ -94,6 +95,10 @@ USER appuser:appuser
 RUN pip install --user --no-warn-script-location \
     --no-cache-dir -r /opt/python/requirements.txt
 
+
+# run migrations every time
+FROM base as migrations
+CMD ["python", "manage.py", "db", "upgrade"]
 
 
 FROM base as runtime
@@ -142,8 +147,6 @@ RUN apt-get update && \
 # Pre-compile packages to .pyc (init speed gains)
 RUN python -c "import compileall; compileall.compile_path(maxlevels=10, quiet=1)"
 RUN python -m compileall .
-# run migrations every time
-RUN python manage.py db upgrade
 EXPOSE 5000/tcp
 USER appuser:appuser
 CMD ["gunicorn", "-c", "python:backend.gunicorn", "manage:application", \
