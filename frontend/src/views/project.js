@@ -46,6 +46,8 @@ export const ProjectsPage = () => {
   const isMapShown = useSelector((state) => state.preferences['mapShown']);
   const searchResultWidth = isMapShown ? 'two-column' : 'one-column';
 
+  if (!projects) projects = [];
+
   const {
     data: projects,
     status,
