@@ -46,8 +46,6 @@ export const ProjectsPage = () => {
   const isMapShown = useSelector((state) => state.preferences['mapShown']);
   const searchResultWidth = isMapShown ? 'two-column' : 'one-column';
 
-  if (!projects) projects = [];
-
   const {
     data: projects,
     status,
@@ -57,6 +55,10 @@ export const ProjectsPage = () => {
     enabled: !pathname.includes('/explore/filters/'),
     cacheTime: 0,
   });
+
+  console.log(projects);
+
+  if (!projects) projects = [];
 
   return (
     <div className="pull-center" id="projects-container">
