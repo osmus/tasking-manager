@@ -11,7 +11,7 @@ import { Footer } from '../components/footer';
 export function Root() {
   return (
     <div className="flex flex-column">
-      <TopBanner />
+      {/* <TopBanner /> */}
       <Header />
       <QueryParamProvider adapter={ReactRouter6Adapter}>
         <Outlet />

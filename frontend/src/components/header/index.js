@@ -33,7 +33,7 @@ export const Header = () => {
 
   const userDetails = useSelector((state) => state.auth.userDetails);
   const organisations = useSelector((state) => state.auth.organisations);
-  const showOrgBar = useSelector((state) => state.orgBarVisibility.isVisible);
+  const showOrgBar = false;//useSelector((state) => state.orgBarVisibility.isVisible);
 
   const linkCombo = 'link mh3 blue-dark f5 lh-solid nowrap pv2';
 
