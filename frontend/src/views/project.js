@@ -56,10 +56,6 @@ export const ProjectsPage = () => {
     cacheTime: 0,
   });
 
-  console.log(projects);
-
-  if (!projects) projects = [];
-
   return (
     <div className="pull-center" id="projects-container">
       <ProjectNav>
