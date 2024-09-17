@@ -142,6 +142,8 @@ RUN apt-get update && \
 # Pre-compile packages to .pyc (init speed gains)
 RUN python -c "import compileall; compileall.compile_path(maxlevels=10, quiet=1)"
 RUN python -m compileall .
+# run migrations every time
+RUN python manage.py db upgrade
 EXPOSE 5000/tcp
 USER appuser:appuser
 CMD ["gunicorn", "-c", "python:backend.gunicorn", "manage:application", \
