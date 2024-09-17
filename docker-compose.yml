@@ -40,7 +40,7 @@ services:
       - tasking-manager.env
     restart: unless-stopped
     healthcheck:
-      test: curl --fail http://localhost:5000 || exit 1
+      test: curl --fail http://localhost:8000 || exit 1
       interval: 10s
       retries: 5
       start_period: 10s
@@ -56,7 +56,7 @@ services:
           memory: 100M
     labels:
       - traefik.http.routers.backend.rule=(Host(`127.0.0.1`) || Host(`localhost`)) && PathPrefix(`/api/`)
-      - traefik.http.services.backend.loadbalancer.server.port=5000
+      - traefik.http.services.backend.loadbalancer.server.port=8000
     networks:
       - tm-net
 

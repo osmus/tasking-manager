@@ -12,7 +12,7 @@ services:
     # Backend binds to 8001 by default, change to use other ports.
     # Make sure to update, TM_APP_API_URL=http://127.0.0.1:8001 in tasking-manager.env accordingly.
     ports:
-      - 5000:5000
+      - 8000:8000
 
   tm-frontend:
     build:
