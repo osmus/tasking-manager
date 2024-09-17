@@ -1,4 +1,9 @@
 module.exports = {
+  devServer: {
+    client: {
+      overlay: false,
+    },
+  },
   webpack: {
     configure: (webpackConfig, { env, paths }) => {
       // Fix CRA #11770
