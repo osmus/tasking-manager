@@ -1,6 +1,6 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { IntlProviders } from '../../../utils/testWithIntl';
+import { screen, waitFor } from '@testing-library/react';
+import { IntlProviders, renderWithRouter } from '../../../utils/testWithIntl';
 import { InterestsManagement } from '../index';
 
 const dummyInterests = [
@@ -16,7 +16,7 @@ const dummyInterests = [
 
 describe('InterestsManagement component', () => {
   it('renders loading placeholder when API is being fetched', () => {
-    const { container, getByRole } = render(
+    const { container, getByRole } = renderWithRouter(
       <IntlProviders>
         <InterestsManagement isInterestsFetched={false} />
       </IntlProviders>,
@@ -35,7 +35,7 @@ describe('InterestsManagement component', () => {
   });
 
   it('does not render loading placeholder after API is fetched', () => {
-    const { container } = render(
+    const { container } = renderWithRouter(
       <IntlProviders>
         <InterestsManagement isInterestsFetched={true} />
       </IntlProviders>,
@@ -44,7 +44,7 @@ describe('InterestsManagement component', () => {
   });
 
   it('renders interests list card after API is fetched', async () => {
-    const { container, getByText } = render(
+    const { container, getByText } = renderWithRouter(
       <IntlProviders>
         <InterestsManagement interests={dummyInterests} isInterestsFetched={true} />
       </IntlProviders>,
@@ -62,7 +62,7 @@ describe('InterestsManagement component', () => {
   });
 
   it('filters interests list by the search query', async () => {
-    const { container } = render(
+    const { user, container } = renderWithRouter(
       <IntlProviders>
         <InterestsManagement interests={dummyInterests} isInterestsFetched={true} />
       </IntlProviders>,
@@ -73,11 +73,8 @@ describe('InterestsManagement component', () => {
       expect(screen.getByText(/Interest 1/i));
     });
     expect(container.querySelectorAll('svg').length).toBe(5);
-    fireEvent.change(textField, {
-      target: {
-        value: 2,
-      },
-    });
+    await user.clear(textField);
+    await user.type(textField, '2');
     expect(screen.getByText(/Interest 2/i)).toBeInTheDocument();
     expect(screen.queryByText(/Interest 1/i)).not.toBeInTheDocument();
   });

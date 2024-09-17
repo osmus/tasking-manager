@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from '@gatsbyjs/reach-router';
+import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 import ReactPlaceholder from 'react-placeholder';
 
@@ -34,8 +33,8 @@ export function Projects({
           delay={10}
           ready={projects?.results}
         >
-          {projects?.results?.slice(0, 6).map((card, n) => (
-            <ProjectCard key={n} showBottomButtons={showManageButtons} {...card} />
+          {projects?.results?.slice(0, 6).map((card) => (
+            <ProjectCard key={card.projectId} showBottomButtons={showManageButtons} {...card} />
           ))}
           {projects?.results?.length === 0 && (
             <span className="blue-grey">

@@ -1,6 +1,5 @@
-import React, { useLayoutEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { navigate } from '@gatsbyjs/reach-router';
+import { createRef, useLayoutEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import MapboxLanguage from '@mapbox/mapbox-gl-language';
 import { FormattedMessage } from 'react-intl';
@@ -10,6 +9,7 @@ import { MAPBOX_TOKEN, MAP_STYLE, MAPBOX_RTL_PLUGIN_URL } from '../../config';
 import { mapboxLayerDefn } from '../projects/projectsMap';
 import { BarListChart } from './barListChart';
 import WebglUnsupported from '../webglUnsupported';
+import useMapboxSupportedLanguage from '../../hooks/UseMapboxSupportedLanguage';
 
 mapboxgl.accessToken = MAPBOX_TOKEN;
 try {
@@ -19,10 +19,11 @@ try {
 }
 
 const UserCountriesMap = ({ projects }) => {
-  const locale = useSelector((state) => state.preferences['locale']);
+  const navigate = useNavigate();
+  const mapboxSupportedLanguage = useMapboxSupportedLanguage();
 
   const [map, setMap] = useState(null);
-  const mapRef = React.createRef();
+  const mapRef = createRef();
 
   useLayoutEffect(() => {
     mapboxgl.supported() &&
@@ -35,7 +36,7 @@ const UserCountriesMap = ({ projects }) => {
           attributionControl: false,
         })
           .addControl(new mapboxgl.AttributionControl({ compact: false }))
-          .addControl(new MapboxLanguage({ defaultLanguage: locale.substr(0, 2) || 'en' })),
+          .addControl(new MapboxLanguage({ defaultLanguage: mapboxSupportedLanguage })),
       );
 
     return () => {
@@ -55,7 +56,7 @@ const UserCountriesMap = ({ projects }) => {
       map.resize(); //https://docs.mapbox.com/help/troubleshooting/blank-tiles/
       map.on('load', () => mapboxLayerDefn(map, geojson, (id) => navigate(`/projects/${id}/`)));
     }
-  }, [map, projects.mappedProjects]);
+  }, [map, navigate, projects.mappedProjects]);
 
   if (!mapboxgl.supported()) {
     return <WebglUnsupported className="w-two-thirds-l w-100 h-100 fl" />;

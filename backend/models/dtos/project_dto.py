@@ -45,8 +45,8 @@ def is_known_project_database(value):
 
 
 def is_known_project_status(value):
-    """ Validates that Project Status is known value """
-    if type(value) == list:
+    """Validates that Project Status is known value"""
+    if isinstance(value, list):
         return  # Don't validate the entire list, just the individual values
 
     try:
@@ -59,7 +59,7 @@ def is_known_project_status(value):
 
 
 def is_known_project_priority(value):
-    """ Validates Project priority is known value """
+    """Validates Project priority is known value"""
     try:
         ProjectPriority[value.upper()]
     except KeyError:
@@ -71,8 +71,8 @@ def is_known_project_priority(value):
 
 
 def is_known_mapping_type(value):
-    """ Validates Mapping Type is known value"""
-    if type(value) == list:
+    """Validates Mapping Type is known value"""
+    if isinstance(value, list):
         return  # Don't validate the entire list, just the individual values
 
     try:
@@ -86,8 +86,8 @@ def is_known_mapping_type(value):
 
 
 def is_known_editor(value):
-    """ Validates Editor is known value"""
-    if type(value) == list:
+    """Validates Editor is known value"""
+    if isinstance(value, list):
         return  # Don't validate the entire list, just the individual values
 
     try:
@@ -102,7 +102,7 @@ def is_known_editor(value):
 
 
 def is_known_task_creation_mode(value):
-    """ Validates Task Creation Mode is known value """
+    """Validates Task Creation Mode is known value"""
     try:
         TaskCreationMode[value.upper()]
     except KeyError:
@@ -113,7 +113,7 @@ def is_known_task_creation_mode(value):
 
 
 def is_known_mapping_permission(value):
-    """ Validates Mapping Permission String """
+    """Validates Mapping Permission String"""
     try:
         MappingPermission[value.upper()]
     except KeyError:
@@ -124,7 +124,7 @@ def is_known_mapping_permission(value):
 
 
 def is_known_validation_permission(value):
-    """ Validates Validation Permission String """
+    """Validates Validation Permission String"""
     try:
         ValidationPermission[value.upper()]
     except KeyError:
@@ -152,7 +152,7 @@ def is_known_project_difficulty(value):
 
 
 class DraftProjectDTO(Model):
-    """ Describes JSON model used for creating draft project """
+    """Describes JSON model used for creating draft project"""
 
     cloneFromProjectId = IntType(serialized_name="cloneFromProjectId")
     project_name = StringType(required=True, serialized_name="projectName")
@@ -170,7 +170,7 @@ class DraftProjectDTO(Model):
 
 
 class ProjectInfoDTO(Model):
-    """ Contains the localized project info"""
+    """Contains the localized project info"""
 
     locale = StringType(required=True)
     name = StringType(default="")
@@ -183,7 +183,7 @@ class ProjectInfoDTO(Model):
 
 
 class CustomEditorDTO(Model):
-    """ DTO to define a custom editor """
+    """DTO to define a custom editor"""
 
     name = StringType(required=True)
     description = StringType()
@@ -191,7 +191,7 @@ class CustomEditorDTO(Model):
 
 
 class ProjectDTO(Model):
-    """ Describes JSON model for a tasking manager project """
+    """Describes JSON model for a tasking manager project"""
 
     project_id = IntType(serialized_name="projectId")
     database = StringType(
@@ -309,14 +309,14 @@ class ProjectDTO(Model):
 
 
 class ProjectFavoriteDTO(Model):
-    """ DTO used to favorite a project """
+    """DTO used to favorite a project"""
 
     project_id = IntType(required=True)
     user_id = IntType(required=True)
 
 
 class ProjectFavoritesDTO(Model):
-    """ DTO to retrieve favorited projects """
+    """DTO to retrieve favorited projects"""
 
     def __init__(self):
         super().__init__()
@@ -328,7 +328,7 @@ class ProjectFavoritesDTO(Model):
 
 
 class ProjectSearchDTO(Model):
-    """ Describes the criteria users use to filter active projects"""
+    """Describes the criteria users use to filter active projects"""
 
     preferred_locale = StringType(default="en")
     difficulty = StringType(validators=[is_known_project_difficulty])
@@ -354,6 +354,7 @@ class ProjectSearchDTO(Model):
     mapped_by = IntType(required=False)
     favorited_by = IntType(required=False)
     managed_by = IntType(required=False)
+    based_on_user_interests = IntType(required=False)
     omit_map_results = BooleanType(required=False)
     last_updated_lte = StringType(required=False)
     last_updated_gte = StringType(required=False)
@@ -361,7 +362,7 @@ class ProjectSearchDTO(Model):
     created_gte = StringType(required=False)
 
     def __hash__(self):
-        """ Make object hashable so we can cache user searches"""
+        """Make object hashable so we can cache user searches"""
         hashable_mapping_types = ""
         if self.mapping_types:
             for mapping_type in self.mapping_types:
@@ -407,12 +408,12 @@ class ProjectSearchDTO(Model):
 class ProjectSearchBBoxDTO(Model):
     bbox = ListType(FloatType, required=True, min_size=4, max_size=4)
     input_srid = IntType(required=True, choices=[4326])
-    preferred_locale = StringType(required=True, default="en")
+    preferred_locale = StringType(required=False, default="en")
     project_author = IntType(required=False, serialized_name="projectAuthor")
 
 
 class ListSearchResultDTO(Model):
-    """ Describes one search result"""
+    """Describes one search result"""
 
     project_id = IntType(required=True, serialized_name="projectId")
     locale = StringType(required=True)
@@ -435,10 +436,10 @@ class ListSearchResultDTO(Model):
 
 
 class ProjectSearchResultsDTO(Model):
-    """ Contains all results for the search criteria """
+    """Contains all results for the search criteria"""
 
     def __init__(self):
-        """ DTO constructor initialise all arrays to empty"""
+        """DTO constructor initialise all arrays to empty"""
         super().__init__()
         self.results = []
         self.map_results = []
@@ -449,10 +450,10 @@ class ProjectSearchResultsDTO(Model):
 
 
 class LockedTasksForUser(Model):
-    """ Describes all tasks locked by an individual user"""
+    """Describes all tasks locked by an individual user"""
 
     def __init__(self):
-        """ DTO constructor initialise all arrays to empty"""
+        """DTO constructor initialise all arrays to empty"""
         super().__init__()
         self.locked_tasks = []
 
@@ -462,7 +463,7 @@ class LockedTasksForUser(Model):
 
 
 class ProjectComment(Model):
-    """ Describes an individual user comment on a project task """
+    """Describes an individual user comment on a project task"""
 
     comment = StringType()
     comment_date = UTCDateTimeType(serialized_name="commentDate")
@@ -471,10 +472,10 @@ class ProjectComment(Model):
 
 
 class ProjectCommentsDTO(Model):
-    """ Contains all comments on a project """
+    """Contains all comments on a project"""
 
     def __init__(self):
-        """ DTO constructor initialise all arrays to empty"""
+        """DTO constructor initialise all arrays to empty"""
         super().__init__()
         self.comments = []
 
@@ -491,10 +492,10 @@ class ProjectContribDTO(Model):
 
 
 class ProjectContribsDTO(Model):
-    """ Contains all contributions on a project by day"""
+    """Contains all contributions on a project by day"""
 
     def __init__(self):
-        """ DTO constructor initialise all arrays to empty"""
+        """DTO constructor initialise all arrays to empty"""
         super().__init__()
         self.mapping = []
         self.validation = []
@@ -503,7 +504,7 @@ class ProjectContribsDTO(Model):
 
 
 class ProjectSummary(Model):
-    """ Model used for PM dashboard """
+    """Model used for PM dashboard"""
 
     project_id = IntType(required=True, serialized_name="projectId")
     default_locale = StringType(serialized_name="defaultLocale")
@@ -578,10 +579,10 @@ class ProjectSummary(Model):
 
 
 class PMDashboardDTO(Model):
-    """ DTO for constructing the PM Dashboard """
+    """DTO for constructing the PM Dashboard"""
 
     def __init__(self):
-        """ DTO constructor initialise all arrays to empty"""
+        """DTO constructor initialise all arrays to empty"""
         super().__init__()
         self.draft_projects = []
         self.archived_projects = []
@@ -599,10 +600,10 @@ class PMDashboardDTO(Model):
 
 
 class ProjectTaskAnnotationsDTO(Model):
-    """ DTO for task annotations of a project """
+    """DTO for task annotations of a project"""
 
     def __init__(self):
-        """ DTO constructor set task arrays to empty """
+        """DTO constructor set task arrays to empty"""
         super().__init__()
         self.tasks = []
 
@@ -613,7 +614,7 @@ class ProjectTaskAnnotationsDTO(Model):
 
 
 class ProjectStatsDTO(Model):
-    """ DTO for detailed stats on a project """
+    """DTO for detailed stats on a project"""
 
     project_id = IntType(required=True, serialized_name="projectId")
     area = FloatType(serialized_name="projectArea(in sq.km)")
@@ -634,7 +635,7 @@ class ProjectStatsDTO(Model):
 
 
 class ProjectUserStatsDTO(Model):
-    """ DTO for time spent by users on a project """
+    """DTO for time spent by users on a project"""
 
     time_spent_mapping = IntType(serialized_name="timeSpentMapping")
     time_spent_validating = IntType(serialized_name="timeSpentValidating")

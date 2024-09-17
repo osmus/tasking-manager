@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocation } from '@gatsbyjs/reach-router';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import Popup from 'reactjs-popup';
 import { useQueryParam, NumberParam, StringParam } from 'use-query-params';
 import ReactPlaceholder from 'react-placeholder';
 import bbox from '@turf/bbox';
-import { useCopyClipboard } from '@lokibai/react-use-copy-clipboard';
 import { FormattedMessage, FormattedRelativeTime } from 'react-intl';
 
 import messages from './messages';
@@ -17,6 +16,7 @@ import { LockIcon, ListIcon, ZoomPlusIcon, CloseIcon, InternalLinkIcon } from '.
 import { PaginatorLine, howManyPages } from '../paginator';
 import { Dropdown } from '../dropdown';
 import { TextField } from '../formInputs';
+import useCloseOnDocumentClick from '../../hooks/UseCloseOnDocumentClick';
 
 export function TaskStatus({ status, lockHolder }: Object) {
   const isReadyOrLockedForMapping = ['READY', 'LOCKED_FOR_MAPPING'].includes(status);
@@ -50,17 +50,26 @@ export function TaskStatus({ status, lockHolder }: Object) {
   );
 }
 
-function TaskItem({
+export function TaskItem({
   data,
   project,
   setZoomedTaskId,
-  setActiveTaskModal,
   selectTask,
+  tasks,
+  updateActivities,
+  userCanValidate,
   selected = [],
 }: Object) {
-  const [isCopied, setCopied] = useCopyClipboard();
+  const [isCopied, setIsCopied] = useState(false);
   const location = useLocation();
   const { value, unit } = selectUnit(new Date(data.actionDate));
+
+  const closeOnDocumentClick = useCloseOnDocumentClick();
+
+  const handleCopyToClipboard = () =>
+    navigator.clipboard
+      .writeText(`${window.location.origin}${location.pathname}?search=${data.taskId}`)
+      .then(() => setIsCopied(true));
 
   return (
     <div
@@ -70,6 +79,7 @@ function TaskItem({
     >
       <div
         className="w-80 pv3 fl cf pointer"
+        role="button"
         onClick={() => selectTask(data.taskId, data.taskStatus)}
       >
         <div className="w-70-l w-40 fl dib truncate">
@@ -102,14 +112,27 @@ function TaskItem({
       <div className="w-20 pv3 fr tr dib blue-light truncate overflow-empty">
         <FormattedMessage {...messages.seeTaskHistory}>
           {(msg) => (
-            <div className="pr2 dib v-mid" title={msg}>
-              <ListIcon
-                width="18px"
-                height="18px"
-                className="pointer hover-blue-grey"
-                onClick={() => setActiveTaskModal(data.taskId)}
-              />
-            </div>
+            <Popup
+              modal
+              nested
+              trigger={
+                <div className="pr2 dib v-mid" title={msg}>
+                  <ListIcon width="18px" height="18px" className="pointer hover-blue-grey" />
+                </div>
+              }
+              closeOnDocumentClick={closeOnDocumentClick}
+            >
+              {(close) => (
+                <TaskActivityDetail
+                  close={close}
+                  project={project}
+                  tasks={tasks}
+                  taskId={data.taskId}
+                  updateActivities={updateActivities}
+                  userCanValidate={userCanValidate}
+                />
+              )}
+            </Popup>
           )}
         </FormattedMessage>
         <FormattedMessage {...messages.zoomToTask}>
@@ -119,6 +142,7 @@ function TaskItem({
                 width="18px"
                 height="18px"
                 className="pointer hover-blue-grey"
+                role="button"
                 onClick={() => setZoomedTaskId(data.taskId)}
               />
             </div>
@@ -128,12 +152,11 @@ function TaskItem({
           {(msg) => (
             <div className={`ph2 dib v-mid ${isCopied ? 'grey-light' : ''}`} title={msg}>
               <InternalLinkIcon
+                role="button"
                 width="18px"
                 height="18px"
                 className={`pointer ${isCopied ? '' : 'hover-blue-grey'}`}
-                onClick={() =>
-                  setCopied(`${location.origin}${location.pathname}?search=${data.taskId}`)
-                }
+                onClick={handleCopyToClipboard}
               />
             </div>
           )}
@@ -192,7 +215,6 @@ export function TaskList({
   setTextSearch,
 }: Object) {
   const [readyTasks, setTasks] = useState([]);
-  const [activeTaskModal, setActiveTaskModal] = useState(null);
   const [sortBy, setSortingOption] = useQueryParam('sortBy', StringParam);
   const [statusFilter, setStatusFilter] = useQueryParam('filter', StringParam);
 
@@ -304,71 +326,61 @@ export function TaskList({
             items={orderedTasks(sortBy)}
             ItemComponent={TaskItem}
             setZoomedTaskId={setZoomedTaskId}
-            setActiveTaskModal={setActiveTaskModal}
             selected={selected}
             selectTask={selectTask}
             project={project}
+            tasks={readyTasks}
+            updateActivities={updateActivities}
+            userCanValidate={userCanValidate}
           />
         )}
       </ReactPlaceholder>
-      {activeTaskModal && (
-        <TaskActivityModal
-          project={project}
-          tasks={readyTasks}
-          taskId={activeTaskModal}
-          setActiveTaskModal={setActiveTaskModal}
-          updateActivities={updateActivities}
-          userCanValidate={userCanValidate}
-        />
-      )}
     </div>
   );
 }
 
-function TaskActivityModal({
+function TaskActivityDetail({
   taskId,
-  setActiveTaskModal,
   tasks,
   project,
   updateActivities,
   userCanValidate,
+  close,
 }: Object) {
   const [taskData, setActiveTaskData] = useState();
+
   useEffect(() => {
     const filteredTasks = tasks.filter((task) => task.properties.taskId === taskId);
     setActiveTaskData(filteredTasks.length ? filteredTasks[0] : null);
   }, [tasks, taskId]);
+
   return (
-    <Popup open modal closeOnDocumentClick onClose={() => setActiveTaskModal(null)}>
-      {(close) => (
-        <>
-          {taskData ? (
-            <TaskActivity
-              taskId={taskId}
-              project={project}
-              status={taskData ? taskData.properties.taskStatus : 'READY'}
-              bbox={taskData ? bbox(taskData.geometry) : ''}
-              close={close}
-              updateActivities={updateActivities}
-              userCanValidate={userCanValidate}
+    <>
+      {taskData ? (
+        <TaskActivity
+          taskId={taskId}
+          project={project}
+          status={taskData ? taskData.properties.taskStatus : 'READY'}
+          bbox={taskData ? bbox(taskData.geometry) : ''}
+          close={close}
+          updateActivities={updateActivities}
+          userCanValidate={userCanValidate}
+        />
+      ) : (
+        <div className="w-100 pa4 blue-dark bg-white">
+          <CloseIcon className="h1 w1 fr pointer" onClick={close} />
+          <h3 className="ttu f3 pa0 ma0 barlow-condensed b mb4">
+            <FormattedMessage {...messages.taskUnavailable} />
+          </h3>
+          <p className="pb0">
+            <FormattedMessage
+              {...messages.taskSplitDescription}
+              values={{ id: <b>#{taskId}</b> }}
             />
-          ) : (
-            <div className="w-100 pa4 blue-dark bg-white">
-              <CloseIcon className="h1 w1 fr pointer" onClick={() => close()} />
-              <h3 className="ttu f3 pa0 ma0 barlow-condensed b mb4">
-                <FormattedMessage {...messages.taskUnavailable} />
-              </h3>
-              <p className="pb0">
-                <FormattedMessage
-                  {...messages.taskSplitDescription}
-                  values={{ id: <b>#{taskId}</b> }}
-                />
-              </p>
-            </div>
-          )}
-        </>
+          </p>
+        </div>
       )}
-    </Popup>
+    </>
   );
 }
 
@@ -378,9 +390,11 @@ function PaginatedList({
   pageSize,
   project,
   setZoomedTaskId,
-  setActiveTaskModal,
   selectTask,
   selected,
+  tasks,
+  updateActivities,
+  userCanValidate,
 }: Object) {
   const [page, setPage] = useQueryParam('page', NumberParam);
   const lastPage = howManyPages(items.length, pageSize);
@@ -415,15 +429,17 @@ function PaginatedList({
             <FormattedMessage {...messages.noTasksFound} />
           </div>
         )}
-        {items.slice(pageSize * ((page || 1) - 1), pageSize * (page || 1)).map((item, n) => (
+        {items.slice(pageSize * ((page || 1) - 1), pageSize * (page || 1)).map((item) => (
           <ItemComponent
-            key={n}
+            key={item.properties.taskId}
             data={item.properties}
             project={project}
             selectTask={selectTask}
             selected={selected}
             setZoomedTaskId={setZoomedTaskId}
-            setActiveTaskModal={setActiveTaskModal}
+            tasks={tasks}
+            updateActivities={updateActivities}
+            userCanValidate={userCanValidate}
           />
         ))}
       </div>

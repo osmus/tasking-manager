@@ -9,8 +9,10 @@ from sqlalchemy import desc, cast, func, distinct
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm.session import make_transient
 from geoalchemy2 import Geometry
-from backend import db
 from typing import List
+
+from backend import db
+from backend.exceptions import NotFound
 from backend.models.dtos.mapping_dto import TaskDTO, TaskHistoryDTO
 from backend.models.dtos.validator_dto import MappedTasksByUser, MappedTasks
 from backend.models.dtos.project_dto import (
@@ -28,7 +30,6 @@ from backend.models.postgis.utils import (
     ST_SetSRID,
     timestamp,
     parse_duration,
-    NotFound,
 )
 from backend.models.postgis.task_annotation import TaskAnnotation
 
@@ -96,21 +97,104 @@ class TaskInvalidationHistory(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_open_for_task(project_id, task_id):
-        return TaskInvalidationHistory.query.filter_by(
-            task_id=task_id, project_id=project_id, is_closed=False
-        ).one_or_none()
+    def get_open_for_task(project_id, task_id, local_session=None):
+        """
+        Retrieve the open TaskInvalidationHistory entry for the given project and task.
+
+        This method also handles a suspected concurrency issue by managing cases where multiple entries
+        are created when only one should exist. If multiple entries are found, it
+        recursively handles and closes duplicate entries to ensure only a single entry
+        remains open.
+
+        Args:
+            project_id (int): The ID of the project.
+            task_id (int): The ID of the task.
+            local_session (Session, optional): The SQLAlchemy session to use for the query.
+                                               If not provided, a default session is used.
+
+        Returns:
+            TaskInvalidationHistory or None: The open TaskInvalidationHistory entry, or
+                                             None if no open entry is found.
+
+        Raises:
+            None: This method handles the MultipleResultsFound exception internally.
+        """
+        try:
+            if local_session:
+                return (
+                    local_session.query(TaskInvalidationHistory)
+                    .filter_by(task_id=task_id, project_id=project_id, is_closed=False)
+                    .one_or_none()
+                )
+            return TaskInvalidationHistory.query.filter_by(
+                task_id=task_id, project_id=project_id, is_closed=False
+            ).one_or_none()
+
+        except MultipleResultsFound:
+            TaskInvalidationHistory.close_duplicate_invalidation_history_rows(
+                project_id, task_id, local_session
+            )
+
+            return TaskInvalidationHistory.get_open_for_task(
+                project_id, task_id, local_session
+            )
 
     @staticmethod
-    def close_all_for_task(project_id, task_id):
+    def close_duplicate_invalidation_history_rows(
+        project_id: int, task_id: int, local_session=None
+    ):
+        """
+        Closes duplicate TaskInvalidationHistory entries except for the latest one for the given project and task.
+
+        Args:
+            project_id (int): The ID of the project.
+            task_id (int): The ID of the task.
+            local_session (Session, optional): The SQLAlchemy session to use for the query.
+                                               If not provided, a default session is used.
+        """
+        if local_session:
+            oldest_dupe = (
+                local_session.query(TaskInvalidationHistory)
+                .filter_by(task_id=task_id, project_id=project_id, is_closed=False)
+                .order_by(TaskInvalidationHistory.id.asc())
+                .first()
+            )
+        else:
+            oldest_dupe = (
+                TaskInvalidationHistory.query.filter_by(
+                    task_id=task_id, project_id=project_id, is_closed=False
+                )
+                .order_by(TaskInvalidationHistory.id.asc())
+                .first()
+            )
+
+        if oldest_dupe:
+            oldest_dupe.is_closed = True
+            if local_session:
+                local_session.commit()
+            else:
+                db.session.commit()
+
+    @staticmethod
+    def close_all_for_task(project_id, task_id, local_session=None):
+        if local_session:
+            return (
+                local_session.query(TaskInvalidationHistory)
+                .filter_by(task_id=task_id, project_id=project_id, is_closed=False)
+                .update({"is_closed": True})
+            )
         TaskInvalidationHistory.query.filter_by(
             task_id=task_id, project_id=project_id, is_closed=False
         ).update({"is_closed": True})
 
     @staticmethod
-    def record_invalidation(project_id, task_id, invalidator_id, history):
+    def record_invalidation(
+        project_id, task_id, invalidator_id, history, local_session=None
+    ):
         # Invalidation always kicks off a new entry for a task, so close any existing ones.
-        TaskInvalidationHistory.close_all_for_task(project_id, task_id)
+        TaskInvalidationHistory.close_all_for_task(
+            project_id, task_id, local_session=local_session
+        )
 
         last_mapped = TaskHistory.get_last_mapped_action(project_id, task_id)
         if last_mapped is None:
@@ -123,11 +207,18 @@ class TaskInvalidationHistory(db.Model):
         entry.invalidator_id = invalidator_id
         entry.invalidated_date = history.action_date
         entry.updated_date = timestamp()
-        db.session.add(entry)
+        if local_session:
+            local_session.add(entry)
+        else:
+            db.session.add(entry)
 
     @staticmethod
-    def record_validation(project_id, task_id, validator_id, history):
-        entry = TaskInvalidationHistory.get_open_for_task(project_id, task_id)
+    def record_validation(
+        project_id, task_id, validator_id, history, local_session=None
+    ):
+        entry = TaskInvalidationHistory.get_open_for_task(
+            project_id, task_id, local_session=local_session
+        )
 
         # If no open invalidation to update, then nothing to do
         if entry is None:
@@ -258,7 +349,7 @@ class TaskHistory(db.Model):
 
     @staticmethod
     def update_task_locked_with_duration(
-        task_id: int, project_id: int, lock_action, user_id: int
+        task_id: int, project_id: int, lock_action, user_id: int, local_session=None
     ):
         """
         Calculates the duration a task was locked for and sets it on the history record
@@ -269,13 +360,26 @@ class TaskHistory(db.Model):
         :return:
         """
         try:
-            last_locked = TaskHistory.query.filter_by(
-                task_id=task_id,
-                project_id=project_id,
-                action=lock_action.name,
-                action_text=None,
-                user_id=user_id,
-            ).one()
+            if local_session:
+                last_locked = (
+                    local_session.query(TaskHistory)
+                    .filter_by(
+                        task_id=task_id,
+                        project_id=project_id,
+                        action=lock_action.name,
+                        action_text=None,
+                        user_id=user_id,
+                    )
+                    .one()
+                )
+            else:
+                last_locked = TaskHistory.query.filter_by(
+                    task_id=task_id,
+                    project_id=project_id,
+                    action=lock_action.name,
+                    action_text=None,
+                    user_id=user_id,
+                ).one()
         except NoResultFound:
             # We suspect there's some kind or race condition that is occasionally deleting history records
             # prior to user unlocking task. Most likely stemming from auto-unlock feature. However, given that
@@ -301,7 +405,10 @@ class TaskHistory(db.Model):
         last_locked.action_text = (
             (datetime.datetime.min + duration_task_locked).time().isoformat()
         )
-        db.session.commit()
+        if local_session:
+            local_session.commit()
+        else:
+            db.session.commit()
 
     @staticmethod
     def remove_duplicate_task_history_rows(
@@ -538,9 +645,12 @@ class Task(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def update(self):
+    def update(self, local_session=None):
         """Updates the DB with the current state of the Task"""
-        db.session.commit()
+        if local_session:
+            local_session.commit()
+        else:
+            db.session.commit()
 
     def delete(self):
         """Deletes the current model from the DB"""
@@ -563,9 +673,10 @@ class Task(db.Model):
         if type(task_geometry) is not geojson.MultiPolygon:
             raise InvalidGeoJson("MustBeMultiPloygon- Geometry must be a MultiPolygon")
 
-        is_valid_geojson = geojson.is_valid(task_geometry)
-        if is_valid_geojson["valid"] == "no":
-            raise InvalidGeoJson(f"InvalidMultiPolygon- {is_valid_geojson['message']}")
+        if not task_geometry.is_valid:
+            raise InvalidGeoJson(
+                "InvalidMultiPolygon - " + ", ".join(task_geometry.errors())
+            )
 
         task = cls()
         try:
@@ -590,7 +701,7 @@ class Task(db.Model):
         return task
 
     @staticmethod
-    def get(task_id: int, project_id: int):
+    def get(task_id: int, project_id: int, local_session=None):
         """
         Gets specified task
         :param task_id: task ID in scope
@@ -598,7 +709,12 @@ class Task(db.Model):
         :return: Task if found otherwise None
         """
         # LIKELY PROBLEM AREA
-
+        if local_session:
+            return (
+                local_session.query(Task)
+                .filter_by(id=task_id, project_id=project_id)
+                .one_or_none()
+            )
         return Task.query.filter_by(id=task_id, project_id=project_id).one_or_none()
 
     @staticmethod
@@ -779,7 +895,13 @@ class Task(db.Model):
         self.update()
 
     def unlock_task(
-        self, user_id, new_state=None, comment=None, undo=False, issues=None
+        self,
+        user_id,
+        new_state=None,
+        comment=None,
+        undo=False,
+        issues=None,
+        local_session=None,
     ):
         """Unlock task and ensure duration task locked is saved in History"""
         if comment:
@@ -796,8 +918,13 @@ class Task(db.Model):
             user_id=user_id,
             mapping_issues=issues,
         )
-
-        if (
+        # If undo, clear the mapped_by and validated_by fields
+        if undo:
+            if new_state == TaskStatus.MAPPED:
+                self.validated_by = None
+            elif new_state == TaskStatus.READY:
+                self.mapped_by = None
+        elif (
             new_state in [TaskStatus.MAPPED, TaskStatus.BADIMAGERY]
             and TaskStatus(self.task_status) != TaskStatus.LOCKED_FOR_VALIDATION
         ):
@@ -805,12 +932,12 @@ class Task(db.Model):
             self.mapped_by = user_id
         elif new_state == TaskStatus.VALIDATED:
             TaskInvalidationHistory.record_validation(
-                self.project_id, self.id, user_id, history
+                self.project_id, self.id, user_id, history, local_session=local_session
             )
             self.validated_by = user_id
         elif new_state == TaskStatus.INVALIDATED:
             TaskInvalidationHistory.record_invalidation(
-                self.project_id, self.id, user_id, history
+                self.project_id, self.id, user_id, history, local_session=local_session
             )
             self.mapped_by = None
             self.validated_by = None
@@ -818,12 +945,19 @@ class Task(db.Model):
         if not undo:
             # Using a slightly evil side effect of Actions and Statuses having the same name here :)
             TaskHistory.update_task_locked_with_duration(
-                self.id, self.project_id, TaskStatus(self.task_status), user_id
+                self.id,
+                self.project_id,
+                TaskStatus(self.task_status),
+                user_id,
+                local_session=local_session,
             )
 
         self.task_status = new_state.value
         self.locked_by = None
-        self.update()
+        if local_session:
+            self.update(local_session=local_session)
+        else:
+            self.update()
 
     def reset_lock(self, user_id, comment=None):
         """Removes a current lock from a task, resets to last status and
@@ -886,17 +1020,19 @@ class Task(db.Model):
         filters = [Task.project_id == project_id]
 
         if task_ids_str:
-            task_ids = map(int, task_ids_str.split(","))
+            task_ids = list(map(int, task_ids_str.split(",")))
             tasks = Task.get_tasks(project_id, task_ids)
             if not tasks or len(tasks) == 0:
-                raise NotFound()
+                raise NotFound(
+                    sub_code="TASKS_NOT_FOUND", tasks=task_ids, project_id=project_id
+                )
             else:
                 tasks_filters = [task.id for task in tasks]
             filters = [Task.project_id == project_id, Task.id.in_(tasks_filters)]
         else:
             tasks = Task.get_all_tasks(project_id)
             if not tasks or len(tasks) == 0:
-                raise NotFound()
+                raise NotFound(sub_code="TASKS_NOT_FOUND", project_id=project_id)
 
         if status:
             filters.append(Task.task_status == status)
@@ -1032,7 +1168,7 @@ class Task(db.Model):
             .group_by(Task.project_id)
         )
         if result.count() == 0:
-            raise NotFound()
+            raise NotFound(sub_code="TASKS_NOT_FOUND", project_id=project_id)
         for row in result:
             return row[0]
 
@@ -1051,7 +1187,7 @@ class Task(db.Model):
         task_dto.task_history = task_history
         task_dto.last_updated = last_updated if last_updated else None
         task_dto.auto_unlock_seconds = Task.auto_unlock_delta().total_seconds()
-        task_dto.comments_number = comments if type(comments) == int else None
+        task_dto.comments_number = comments if isinstance(comments, int) else None
         return task_dto
 
     def as_dto_with_instructions(self, preferred_locale: str = "en") -> TaskDTO:
@@ -1126,7 +1262,10 @@ class Task(db.Model):
 
         try:
             instructions = instructions.format(**properties)
-        except KeyError:
+        except (KeyError, ValueError, IndexError):
+            # KeyError is raised if a format string contains a key that is not in the dictionary, e.g. {foo}
+            # ValueError is raised if a format string contains a single { or }
+            # IndexError is raised if a format string contains empty braces, e.g. {}
             pass
         return instructions
 

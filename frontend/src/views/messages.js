@@ -32,6 +32,22 @@ export default defineMessages({
     id: 'project.stats.timeline',
     defaultMessage: 'Project timeline',
   },
+  timelineDataError: {
+    id: 'project.stats.contributions.timeline.fetching.error',
+    defaultMessage: 'An error occured while loading contributions data',
+  },
+  editsStatsError: {
+    id: 'project.detail.stats.timeline.fetching.error',
+    defaultMessage: 'An error occured while loading edits stats',
+  },
+  tasksStatsError: {
+    id: 'project.detail.stats.tasks.error',
+    defaultMessage: 'An error occured while loading tasks stats',
+  },
+  contributionsStatsError: {
+    id: 'project.detail.stats.contributions.error',
+    defaultMessage: 'An error occured while loading contributions stats',
+  },
   sectionNotAllowed: {
     id: 'management.forbiddenAccess.title',
     defaultMessage: 'You are not allowed to access the management area.',
@@ -68,9 +84,9 @@ export default defineMessages({
     id: 'management.stats.users.title',
     defaultMessage: 'New users',
   },
-  totalFeatures: {
-    id: 'management.stats.features',
-    defaultMessage: 'Total features',
+  newPartner: {
+    id: 'management.partner.creation',
+    defaultMessage: 'Create new partner',
   },
   newOrganisation: {
     id: 'teamsAndOrgs.management.organisation.creation',
@@ -96,9 +112,62 @@ export default defineMessages({
     id: 'teamsAndOrgs.management.organisation.button.create',
     defaultMessage: 'Create organization',
   },
+  createPartner: {
+    id: 'management.partner.button.create',
+    defaultMessage: 'Create Partner',
+  },
+  learnToMap:{
+    id: 'management.partner.learnToMap',
+    defaultMessage: 'Learn to Map',
+  },
+  currentProjects:{
+    id: 'management.partner.currentProjects',
+    defaultMessage: 'Current Projects',
+  },
+  newToMapping:{
+    id: 'management.partner.newToMapping',
+    defaultMessage: '¿New to Mapping?',
+  },
+  activity: {
+    id: 'management.partner.activity',
+    defaultMessage: 'Activity',
+  },
+  resources: {
+    id: 'management.partner.resources',
+    defaultMessage: 'Resources',
+  },
+  entityCreationSuccess: {
+    id: 'management.entity.creation.success',
+    defaultMessage:
+      '{entity, select, organization {Organization} partner {Partner} license {License} project {Project} category {Category} campaign {Campaign} team {Team} other {}} created successfully',
+  },
+  entityCreationFailure: {
+    id: 'management.entity.creation.failure',
+    defaultMessage:
+      'Failed to create {entity, select, organization {organization} license {license} project {project} category {category} campaign {campaign} team {team} other {}}. Please try again.',
+  },
+  entityInfoUpdationSuccess: {
+    id: 'management.entity.updation.success',
+    defaultMessage:
+      '{entity, select, organization {Organization} license {License} project {Project} category {Category} campaign {Campaign} team {Team} other {}} information updated',
+  },
+  entityInfoUpdationFailure: {
+    id: 'management.entity.updation.failure',
+    defaultMessage:
+      'Failed to update {entity, select, organization {organization} license {license} project {project} category {category} campaign {campaign} team {team} other {}} information. Please try again',
+  },
   createTeam: {
     id: 'teamsAndOrgs.management.team.button.create',
     defaultMessage: 'Create team',
+  },
+  affiliationUpdationSuccess: {
+    id: 'management.team.affiliationUpdationSuccess',
+    defaultMessage: '{affiliation, select, managers {Managers} other {Members}} updated',
+  },
+  affiliationUpdationFailure: {
+    id: 'management.team.affiliationUpdationFailure',
+    defaultMessage:
+      'Failed to updated {affiliation, select, managers {Managers} other {Members}}. Please try again',
   },
   createCampaign: {
     id: 'teamsAndOrgs.management.campaign.button.create',
@@ -129,6 +198,16 @@ export default defineMessages({
     defaultMessage:
       'You are not a manager of this organization, so you are not allowed to edit it.',
   },
+  editPartnerNotAllowed: {
+    id: 'teamsAndOrgs.management.partner.manage.error',
+    defaultMessage:
+      'You are not a manager of this partner, so you are not allowed to edit it.',
+  },
+  notAllowedCreatePartners:{
+    id: 'teamsAndOrgs.management.partner.create.error',
+    defaultMessage:
+      'You are not allowed to access the management area.',
+  },
   tasksStatistics: {
     id: 'teamsAndOrgs.management.organisation.stats',
     defaultMessage: 'Tasks statistics',
@@ -156,6 +235,10 @@ export default defineMessages({
   manageOrganisation: {
     id: 'teamsAndOrgs.management.organisation.manage',
     defaultMessage: 'Manage organization',
+  },
+  managePartner: {
+    id: 'management.partner.manage',
+    defaultMessage: 'Manage partner',
   },
   manageTeam: {
     id: 'teamsAndOrgs.management.team.manage',
@@ -213,6 +296,10 @@ export default defineMessages({
   goToProjectButton: {
     id: 'taskAction.go_to_project.button',
     defaultMessage: 'Go to Project #{project}',
+  },
+  lockedTasksLoadingError: {
+    id: 'taskAction.locked_tasks.fetching.error',
+    defaultMessage: 'An error occurred when loading your tasks.',
   },
   profileSettings: {
     id: 'EmailVerification.link.profileSettings',

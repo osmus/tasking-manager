@@ -1,7 +1,5 @@
-import React from 'react';
 import humanizeDuration from 'humanize-duration';
-import ReactTooltip from 'react-tooltip';
-import { FormattedMessage } from 'react-intl';
+import { useIntl, FormattedMessage } from 'react-intl';
 
 import messages from './messages';
 import {
@@ -10,11 +8,12 @@ import {
   HomeIcon,
   WavesIcon,
   MarkerIcon,
-  QuestionCircleIcon,
   MappedIcon,
   ValidatedIcon,
 } from '../svgIcons';
-import { StatsCard } from '../statsCard';
+import { StatsCard, DetailedStatsCard } from '../statsCard';
+import { useOsmStatsMetadataQuery } from '../../api/stats';
+import { dateOptions } from '../statsTimestamp';
 
 export const TaskStats = ({ userStats, username }) => {
   const {
@@ -73,7 +72,7 @@ export const TaskStats = ({ userStats, username }) => {
           <div className="w-75 w-25-ns h-100 pa2 pa0-m red tc">{stat.icon}</div>
           <div className="w-75 mt3 tc f6 b">
             <div className=" w-100">
-              <p className="mb1 mt3 mt1-ns f3 fw6">
+              <p className="mb1 mt3 mt1-ns f3 fw6" style={{ letterSpacing: '1.25px' }}>
                 <FormattedMessage
                   {...stat.title}
                   values={{ user: username ? username : <FormattedMessage {...messages.you} /> }}
@@ -115,6 +114,7 @@ export const shortEnglishHumanizer = humanizeDuration.humanizer({
 });
 
 export const ElementsMapped = ({ userStats, osmStats }) => {
+  const intl = useIntl();
   const duration = shortEnglishHumanizer(userStats.timeSpentMapping * 1000, {
     round: true,
     delimiter: ' ',
@@ -125,6 +125,8 @@ export const ElementsMapped = ({ userStats, osmStats }) => {
   const iconClass = 'h-50 w-50';
   const iconStyle = { height: '45px' };
 
+  const { data: osmStatsMetadata } = useOsmStatsMetadataQuery();
+
   return (
     <div>
       <div className="w-100 relative stats-cards-container">
@@ -134,38 +136,62 @@ export const ElementsMapped = ({ userStats, osmStats }) => {
           description={<FormattedMessage {...messages.timeSpentMapping} />}
           value={duration}
         />
-        <StatsCard
+        <DetailedStatsCard
           icon={<HomeIcon className={iconClass} style={iconStyle} />}
           description={<FormattedMessage {...messages.buildingsMapped} />}
-          value={osmStats.total_building_count_add || 0}
+          subDescription="Created - Deleted"
+          mapped={osmStats?.building?.value}
+          created={osmStats?.building?.added}
+          modified={osmStats?.building?.modified?.count_modified}
+          deleted={osmStats?.building?.deleted}
         />
-        <StatsCard
+        <DetailedStatsCard
           icon={<RoadIcon className={iconClass} style={iconStyle} />}
           description={<FormattedMessage {...messages.roadMapped} />}
-          value={osmStats.total_road_km_add || 0}
+          subDescription="Created + Modified - Deleted"
+          mapped={osmStats?.highway?.value}
+          created={osmStats?.highway?.added}
+          modified={osmStats?.highway?.modified?.count_modified}
+          deleted={osmStats?.highway?.deleted}
+          unitMore={osmStats?.highway?.modified?.unit_more}
+          unitLess={osmStats?.highway?.modified?.unit_less}
         />
-        <StatsCard
+        <DetailedStatsCard
           icon={<MarkerIcon className={iconClass} style={iconStyle} />}
           description={<FormattedMessage {...messages.poiMapped} />}
-          value={osmStats.total_poi_count_add || 0}
+          subDescription="Created - Deleted"
+          mapped={osmStats?.poi?.value}
+          created={osmStats?.poi?.added}
+          modified={osmStats?.poi?.modified?.count_modified}
+          deleted={osmStats?.poi?.deleted}
         />
-        <StatsCard
+        <DetailedStatsCard
           icon={<WavesIcon className={iconClass} style={iconStyle} />}
           description={<FormattedMessage {...messages.waterwaysMapped} />}
-          value={osmStats.total_waterway_km_add || 0}
+          subDescription="Created + Modified - Deleted"
+          mapped={osmStats?.waterway?.value}
+          created={osmStats?.waterway?.added}
+          modified={osmStats?.waterway?.modified?.count_modified}
+          deleted={osmStats?.waterway?.deleted}
+          unitMore={osmStats?.waterway?.modified?.unit_more}
+          unitLess={osmStats?.waterway?.modified?.unit_less}
         />
       </div>
-      <div className="cf w-100 relative tr pt3 pr3">
-        <FormattedMessage {...messages.delayPopup}>
-          {(msg) => (
-            <QuestionCircleIcon
-              className="pointer dib v-mid pl2 pb1 blue-light"
-              height="1.25rem"
-              data-tip={msg}
-            />
-          )}
-        </FormattedMessage>
-        <ReactTooltip />
+      <div className="cf w-100 relative tr pt3">
+        <span className="ma0 f7 fw4 blue-grey mb1 i">
+          These statistics come from{' '}
+          <a
+            className="blue-grey fw7"
+            href="https://stats.now.ohsome.org/about"
+            target="_blank"
+            rel="noreferrer"
+          >
+            ohsomeNow Stats
+          </a>{' '}
+          and were last updated at{' '}
+          <strong>{intl.formatDate(osmStatsMetadata?.max_timestamp, dateOptions)}</strong> (
+          {intl.timeZone}).
+        </span>
       </div>
     </div>
   );

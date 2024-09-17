@@ -1,6 +1,6 @@
-import React, { Fragment } from 'react';
-import { connect } from 'react-redux';
-import { Link, navigate } from '@gatsbyjs/reach-router';
+import { Fragment, useRef, forwardRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Popup from 'reactjs-popup';
 import { FormattedMessage } from 'react-intl';
 
@@ -21,8 +21,151 @@ import { logout } from '../../store/actions/auth';
 import { createLoginWindow } from '../../utils/login';
 import { NotificationBell } from './notificationBell';
 import { useDebouncedCallback } from '../../hooks/UseThrottle';
+import { HorizontalScroll } from '../horizontalScroll';
 
-function getMenuItensForUser(userDetails, organisations) {
+import './styles.scss';
+
+export const Header = () => {
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const menuItemsContainerRef = useRef(null);
+
+  const userDetails = useSelector((state) => state.auth.userDetails);
+  const organisations = useSelector((state) => state.auth.organisations);
+  const showOrgBar = false;//useSelector((state) => state.orgBarVisibility.isVisible);
+
+  const linkCombo = 'link mh3 blue-dark f5 lh-solid nowrap pv2';
+
+  const isActive = ({ isPartiallyCurrent }) => {
+    return isPartiallyCurrent
+      ? { className: `${linkCombo} bb b--blue-dark bw1` }
+      : { className: linkCombo };
+  };
+
+  const getUserLinks = (role) => {
+    return [
+      { label: <FormattedMessage {...messages.settings} />, url: '/settings' },
+      { label: <FormattedMessage {...messages.logout} />, url: '/logout' },
+    ];
+  };
+
+  const renderMenuItems = () => {
+    let filteredMenuItems = getMenuItemsForUser(userDetails, organisations);
+
+    return (
+      <nav className="navigation-items-container flex overflow-x-auto" ref={menuItemsContainerRef}>
+        {filteredMenuItems.map((item) => (
+          <Fragment key={item.label.id}>
+            {!item.serviceDesk ? (
+              <TopNavLink to={item.link} isActive={isActive} style={{ outlineOffset: '-1px' }}>
+                <FormattedMessage {...item.label} />
+              </TopNavLink>
+            ) : (
+              <a href={item.link} target="_blank" rel="noreferrer" className={linkCombo}>
+                <FormattedMessage {...item.label} />
+                <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
+              </a>
+            )}
+          </Fragment>
+        ))}
+      </nav>
+    );
+  };
+
+  const onUserMenuSelect = (arr) => {
+    if (arr[0].url === '/logout') {
+      dispatch(logout());
+    } else {
+      navigate(arr[0].url);
+    }
+  };
+
+  const checkUserEmail = () =>
+    userDetails.hasOwnProperty('emailAddress') && !userDetails.emailAddress ? (
+      <Popup modal open closeOnEscape={false} closeOnDocumentClick={false}>
+        {(close) => <UpdateEmail closeModal={close} />}
+      </Popup>
+    ) : null;
+
+  return (
+    <header id="top-header" className="w-100 bb b--grey-light">
+      <UpdateDialog />
+      {checkUserEmail()}
+      {showOrgBar && (
+        <div className="cf ph2 red pt3 pb2 bb b--grey-light">
+          <div className="fl w-50">
+            <span className="barlow-condensed f5 ml2 ">
+              <FormattedMessage {...messages.slogan} />
+            </span>
+          </div>
+          <div className="tr red">
+            <a className="link red f6 mr2" href={`${ORG_URL}`} target="_blank" rel="noreferrer">
+              {ORG_NAME} Website
+              <ExternalLinkIcon
+                title="externalLink"
+                className="pl2 v-btm"
+                style={{ height: '15px' }}
+              />
+            </a>
+          </div>
+        </div>
+      )}
+      <div className="pv2 ph2 dib w-100 flex justify-between items-center">
+        <Link to={'/'} className="link mv-1 flex flex-nowrap items-center">
+          <img
+            src={ORG_LOGO || logo}
+            alt={`${ORG_NAME} logo`}
+            className="h2 ml2 v-mid main-logo"
+            onError={({ currentTarget }) => {
+              // fallback to HOT logo if ORG_LOGO is broken
+              currentTarget.onerror = null;
+              currentTarget.src = logo;
+            }}
+          />
+          <div className="wordmark barlow-condensed f4 ml2 blue-dark nowrap">
+            <span className="fw6">OpenStreetMap US</span>
+            <span className="">Tasking Manager</span>
+          </div>
+        </Link>
+        <HorizontalScroll
+          className={'dn dib-l ml5-l mr4-l pl6-xl'}
+          style={{ flexGrow: 1 }}
+          menuItemsContainerRef={menuItemsContainerRef}
+          containerClass=".navigation-items-container"
+        >
+          {renderMenuItems()}
+        </HorizontalScroll>
+
+        <div className="flex items-center nowrap">
+          <ActionItems
+            userDetails={userDetails}
+            onUserMenuSelect={onUserMenuSelect}
+            location={location}
+            getUserLinks={getUserLinks}
+          />
+          <div className="dib v-mid dn-l">
+            <Popup trigger={(open) => <BurgerMenu open={open} />} modal closeOnDocumentClick>
+              {(close) => (
+                <div>
+                  <PopupItems
+                    userDetails={userDetails}
+                    menuItems={getMenuItemsForUser(userDetails)}
+                    linkCombo={linkCombo}
+                    location={location}
+                    close={close}
+                  />
+                </div>
+              )}
+            </Popup>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export function getMenuItemsForUser(userDetails, organisations) {
   const menuItems = [
     { label: messages.exploreProjects, link: 'explore', showAlways: true },
     {
@@ -34,6 +177,7 @@ function getMenuItensForUser(userDetails, organisations) {
     { label: messages.learn, link: 'learn/map', showAlways: true },
     { label: messages.about, link: 'about', showAlways: true },
   ];
+
   if (SERVICE_DESK) {
     menuItems.push({
       label: messages.support,
@@ -67,7 +211,25 @@ const UserDisplay = ({ username }) => {
   );
 };
 
-const AuthButtons = ({ logInStyle, signUpStyle, redirectTo, alternativeSignUpText = false }) => {
+const SignupTrigger = forwardRef((props, ref) => {
+  const { signUpStyle, alternativeSignUpText, ...remainingProps } = props;
+  return (
+    <Button className={signUpStyle} {...remainingProps}>
+      {alternativeSignUpText ? (
+        <FormattedMessage {...messages.createAccount} />
+      ) : (
+        <FormattedMessage {...messages.signUp} />
+      )}
+    </Button>
+  );
+});
+
+export const AuthButtons = ({
+  logInStyle,
+  signUpStyle,
+  redirectTo,
+  alternativeSignUpText = false,
+}) => {
   const [debouncedCreateLoginWindow] = useDebouncedCallback(
     (redirectToPass) => createLoginWindow(redirectToPass),
     3000,
@@ -81,13 +243,7 @@ const AuthButtons = ({ logInStyle, signUpStyle, redirectTo, alternativeSignUpTex
       </Button>
       <Popup
         trigger={
-          <Button className={signUpStyle}>
-            {alternativeSignUpText ? (
-              <FormattedMessage {...messages.createAccount} />
-            ) : (
-              <FormattedMessage {...messages.signUp} />
-            )}
-          </Button>
+          <SignupTrigger signUpStyle={signUpStyle} alternativeSignUpText={alternativeSignUpText} />
         }
         modal
         closeOnDocumentClick
@@ -98,7 +254,32 @@ const AuthButtons = ({ logInStyle, signUpStyle, redirectTo, alternativeSignUpTex
   );
 };
 
-const PopupItems = (props) => {
+export const ActionItems = ({ userDetails, onUserMenuSelect, location, getUserLinks }) =>
+  userDetails.username ? (
+    <>
+      <NotificationBell />
+      <Dropdown
+        onChange={onUserMenuSelect}
+        value={[]}
+        display={<UserDisplay username={userDetails.username} />}
+        options={getUserLinks(userDetails.role)}
+        className="blue-dark bg-white v-mid bn dn-sm"
+      />
+    </>
+  ) : (
+    <>
+      <LocaleSelector className="bn dn-sm" />
+      <AuthButtons
+        logInStyle="blue-dark bg-white dn-sm"
+        signUpStyle="bg-blue-dark white ml1 v-mid dn-sm"
+        redirectTo={location.pathname}
+      />
+    </>
+  );
+
+export const PopupItems = (props) => {
+  const dispatch = useDispatch();
+
   return (
     <div className="v-mid tc">
       {/* links that don't require authentication */}
@@ -124,209 +305,35 @@ const PopupItems = (props) => {
           </p>
         ))}
       <p className="bb b--grey-light"></p>
-      {/* links that require authentication */}
-      {props.userDetails.username &&
-        props.menuItems
-          .filter((item) => item.authenticated === true)
-          .map((item, n) => (
-            <p key={n}>
-              <Link to={item.link} className={props.linkCombo} onClick={props.close}>
-                <FormattedMessage {...item.label} />
-              </Link>
-            </p>
-          ))}
 
-      {/* user links */}
-      {props.userDetails.username && (
+      {/* authentication section */}
+      {props.userDetails.username ? (
         <>
+          {props.menuItems
+            .filter((item) => item.authenticated === true)
+            .map((item) => (
+              <p key={item.label.id}>
+                <Link to={item.link} className={props.linkCombo} onClick={props.close}>
+                  <FormattedMessage {...item.label} />
+                </Link>
+              </p>
+            ))}
           <p>
             <Link to={'/settings'} className={props.linkCombo} onClick={props.close}>
               <FormattedMessage {...messages.settings} />
             </Link>
           </p>
+          <Button className="bg-blue-dark white" onClick={() => dispatch(logout())}>
+            <FormattedMessage {...messages.logout} />
+          </Button>
         </>
-      )}
-      {/* authentication section */}
-      {props.userDetails.username ? (
-        <Button className="bg-blue-dark white" onClick={() => props.logout()}>
-          <FormattedMessage {...messages.logout} />
-        </Button>
       ) : (
-        <div>
-          <AuthButtons
-            logInStyle="bg-red white"
-            signUpStyle="bg-blue-dark white mh1 mv2 dib"
-            redirectTo={props.location.pathname}
-          />
-        </div>
+        <AuthButtons
+          logInStyle="bg-red white"
+          signUpStyle="bg-blue-dark white mh1 mv2 dib"
+          redirectTo={props.location.pathname}
+        />
       )}
     </div>
   );
 };
-
-class Header extends React.Component {
-  linkCombo = 'link mh3 blue-dark f5 fw6';
-  isActive = ({ isPartiallyCurrent }) => {
-    return isPartiallyCurrent
-      ? { className: `${this.linkCombo} bb b--blue-dark bw1 pv1` }
-      : { className: this.linkCombo };
-  };
-
-  getUserLinks = (role) => {
-    return [
-      { label: <FormattedMessage {...messages.settings} />, url: '/settings' },
-      { label: <FormattedMessage {...messages.logout} />, url: '/logout' },
-    ];
-  };
-
-  renderMenuItems() {
-    let filteredMenuItems = getMenuItensForUser(this.props.userDetails, this.props.organisations);
-
-    return (
-      <div className="v-mid">
-        {filteredMenuItems.map((item) => (
-          <Fragment key={item.label.id}>
-            {!item.serviceDesk ? (
-              <TopNavLink to={item.link} isActive={this.isActive}>
-                <FormattedMessage {...item.label} />
-              </TopNavLink>
-            ) : (
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noreferrer"
-                className="link mh3 blue-dark f5 ttu"
-              >
-                <FormattedMessage {...item.label} />
-                <ExternalLinkIcon className="pl2 v-cen" style={{ height: '15px' }} />
-              </a>
-            )}
-          </Fragment>
-        ))}
-      </div>
-    );
-  }
-
-  onUserMenuSelect = (arr) => {
-    if (arr.length === 1) {
-      if (arr[0].url === '/logout') {
-        this.props.logout();
-      } else {
-        console.log(this.props.push);
-        navigate(arr[0].url);
-      }
-    } else if (arr.length > 1) {
-      throw new Error('filter select array is big');
-    }
-  };
-
-  checkUserEmail() {
-    return this.props.userDetails.hasOwnProperty('emailAddress') &&
-      !this.props.userDetails.emailAddress ? (
-      <Popup modal open closeOnEscape={false} closeOnDocumentClick={false}>
-        {(close) => <UpdateEmail closeModal={close} />}
-      </Popup>
-    ) : null;
-  }
-
-  renderAuthenticationButtons() {
-    return this.props.userDetails.username ? (
-      <>
-        <NotificationBell />
-        <Dropdown
-          onChange={this.onUserMenuSelect}
-          value={[]}
-          display={<UserDisplay username={this.props.userDetails.username} />}
-          options={this.getUserLinks(this.props.userDetails.role)}
-          className="blue-dark bg-white mr1 v-mid dn dib-ns pv2 ph3 bn"
-        />
-      </>
-    ) : (
-      <div className="dib">
-        <LocaleSelector className="bn dn dib-66rem" />
-        <AuthButtons
-          logInStyle="blue-dark bg-white"
-          signUpStyle="bg-blue-dark white ml1 v-mid dn dib-ns"
-          redirectTo={this.props.location.pathname}
-        />
-      </div>
-    );
-  }
-
-  render() {
-    return (
-      // Validate that user has set is email.
-      <header className="w-100 bb b--grey-light">
-        <UpdateDialog />
-        {/*this.checkUserEmail()*/}
-        {/*this.props.showOrgBar && (
-          <div className="cf ph2 red pt3 pb2 bb b--grey-light">
-            <div className="fl w-50">
-              <span className="barlow-condensed f5 ml2 ">
-                <FormattedMessage {...messages.slogan} />
-              </span>
-            </div>
-            <div className="tr red">
-              <a className="link red f6 mr2" href={`http://${ORG_URL}`}>
-                {ORG_URL}
-                <ExternalLinkIcon className="pl2 v-btm" style={{ height: '15px' }} />
-              </a>
-            </div>
-          </div>
-        )*/}
-        <div className="mt2 pb2 pb2-ns ph2 dib w-100">
-          <div className="cf fl dib">
-            <Link to={'/'} className="link mv-1 dib">
-              <img
-                src={ORG_LOGO || logo}
-                alt={`${ORG_NAME} logo`}
-                className="main-logo ml2 v-mid"
-                onError={({ currentTarget }) => {
-                  // fallback to HOT logo if ORG_LOGO is broken
-                  currentTarget.onerror = null;
-                  currentTarget.src = logo;
-                }}
-              />
-              <div className="wordmark barlow-condensed f4 ml2 blue-dark">
-                <span className="fw6">OpenStreetMap US</span>
-                <span className="">Tasking Manager</span>
-              </div>
-            </Link>
-          </div>
-          <nav className="dn dib-l pl4-l pl6-xl pt1 mt2">{this.renderMenuItems()}</nav>
-
-          <div className="fr dib tr">
-            {this.renderAuthenticationButtons()}
-            <div className="dib v-mid dn-l">
-              <Popup trigger={(open) => <BurgerMenu open={open} />} modal closeOnDocumentClick>
-                {(close) => (
-                  <div>
-                    <PopupItems
-                      userDetails={this.props.userDetails}
-                      menuItems={getMenuItensForUser(this.props.userDetails)}
-                      linkCombo={this.linkCombo}
-                      logout={this.props.logout}
-                      location={this.props.location}
-                      close={close}
-                    />
-                  </div>
-                )}
-              </Popup>
-            </div>
-          </div>
-        </div>
-      </header>
-    );
-  }
-}
-
-const mapStateToProps = (state) => ({
-  userDetails: state.auth.userDetails,
-  organisations: state.auth.organisations,
-  token: state.auth.token,
-  showOrgBar: state.orgBarVisibility.isVisible,
-});
-
-Header = connect(mapStateToProps, { logout })(Header);
-
-export { Header, getMenuItensForUser, AuthButtons };

@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useLocation } from '@gatsbyjs/reach-router';
+import { Link } from 'react-router-dom';
 import { Form, Field } from 'react-final-form';
-import { useCopyClipboard } from '@lokibai/react-use-copy-clipboard';
 import Select from 'react-select';
 import ReactPlaceholder from 'react-placeholder';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -29,12 +28,12 @@ export function OrgsManagement({
   setUserOrgsOnly,
   isOrganisationsFetched,
 }: Object) {
-  const [query, setQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const onSearchInputChange = (e) => setQuery(e.target.value);
+  const onSearchInputChange = (e) => setSearchQuery(e.target.value);
 
   const filteredOrganisations = organisations?.filter((organisation) =>
-    organisation.name.toLowerCase().includes(query.toLowerCase()),
+    organisation.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -60,10 +59,10 @@ export function OrgsManagement({
       >
         <div className="w-20-l w-25-m">
           <TextField
-            value={query}
+            value={searchQuery}
             placeholderMsg={messages.searchOrganisations}
             onChange={onSearchInputChange}
-            onCloseIconClick={() => setQuery('')}
+            onCloseIconClick={() => setSearchQuery('')}
           />
         </div>
         {isOrgManager ? (
@@ -99,7 +98,7 @@ export function OrganisationCard({ details }: Object) {
           </div>
           <div className="w-100 dib pt2 fl">
             <h4 className="ttu blue-grey f6">
-              <FormattedMessage {...messages.administrators} />
+              <FormattedMessage {...messages.managers} />
             </h4>
             <div className="dib">
               <UserAvatarList
@@ -198,10 +197,8 @@ export function OrgInformation({ hasSlug, formState }) {
   const token = useSelector((state) => state.auth.token);
   const userDetails = useSelector((state) => state.auth.userDetails);
   const [uploadError, uploading, uploadImg] = useUploadImage();
-  const location = useLocation();
   const intl = useIntl();
   //eslint-disable-next-line
-  const [isCopied, setCopied] = useCopyClipboard();
   const labelClasses = 'db pt3 pb2';
   const fieldClasses = 'blue-grey w-100 pv3 ph2 input-reset ba b--grey-light bg-transparent';
 
@@ -217,6 +214,8 @@ export function OrgInformation({ hasSlug, formState }) {
 
   const validateRequired = (value) =>
     value ? undefined : <FormattedMessage {...messages.requiredField} />;
+
+  const handleCopyToClipboard = (text) => navigator.clipboard.writeText(text);
 
   return (
     <>
@@ -246,9 +245,12 @@ export function OrgInformation({ hasSlug, formState }) {
                   title={intl.formatMessage(messages.copyPublicUrl)}
                 >
                   <ClipboardIcon
+                    role="button"
                     className="h1 w1 ph1 v-mid"
                     onClick={() =>
-                      setCopied(`${location.origin}/organisations/${props.input.value}/`)
+                      handleCopyToClipboard(
+                        `${window.location.origin}/organisations/${props.input.value}/`,
+                      )
                     }
                   />
                 </span>

@@ -1,20 +1,66 @@
-FROM tiangolo/node-frontend:10 as build
+FROM node:18.19.1 as build
+
+# Copy environment variables from Digital Ocean
+ARG ENABLE_PROXYFIX
+ARG OSM_SERVER_URL
+ARG OSM_NOMINATIM_SERVER_URL
+ARG OSM_REGISTER_URL
+ARG PD_CLIENT_ID
+ARG PD_CLIENT_SECRET
+ARG PD_SERVER_URL
+ARG POSTGRES_DB
+ARG POSTGRES_USER
+ARG POSTGRES_PASSWORD
+ARG POSTGRES_ENDPOINT
+ARG POSTGRES_PORT
+ARG TM_APP_API_URL
+ARG TM_APP_API_VERSION
+ARG TM_APP_BASE_URL
+ARG TM_CLIENT_ID
+ARG TM_CLIENT_SECRET
+ARG TM_EMAIL_CONTACT_ADDRESS
+ARG TM_EMAIL_FROM_ADDRESS
+ARG TM_ENV
+ARG TM_LOG_LEVEL
+ARG TM_ORG_NAME
+ARG TM_ORG_CODE
+ARG TM_ORG_LOGO
+ARG TM_ORG_URL
+ARG TM_ORG_PRIVACY_POLICY_URL
+ARG TM_ORG_TWITTER
+ARG TM_ORG_FB
+ARG TM_ORG_INSTAGRAM
+ARG TM_ORG_YOUTUBE
+ARG TM_ORG_GITHUB
+ARG TM_REDIRECT_URI
+ARG TM_SCOPE
+ARG TM_SECRET
+ARG TM_SMTP_HOST
+ARG TM_SMTP_PASSWORD
+ARG TM_SMTP_USER
+ARG TM_USER_STATS_API_URL
+ARG TM_HOMEPAGE_STATS_API_URL
+ARG TM_DEFAULT_CHANGESET_COMMENT
+ARG TM_DEFAULT_LOCALE
+ARG TM_IMPORT_MAX_FILESIZE
+ARG TZ
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
-
-## SETUP
-RUN npm install
-
-# SERVE
 # create env file if it doesn't exist
 RUN touch tasking-manager.env
-COPY tasking-manager.env ..
+COPY example.env tasking-manager.en[v] ../
+
+## SETUP
+RUN git config --global url.https://github.com/.insteadOf git@github.com: \
+    && yarn
+
+# SERVE
 RUN npm run build
 
 FROM nginx:stable-alpine
 COPY --from=build /usr/src/app/frontend/build /usr/share/nginx/html
-COPY --from=build /nginx.conf /etc/nginx/conf.d/default.conf
+COPY scripts/docker/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]

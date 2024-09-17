@@ -1,15 +1,17 @@
-import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
 
 import { UserAvatar, UserAvatarList } from '../avatar';
 import { CloseIcon } from '../../svgIcons';
+import { MemoryRouter } from 'react-router-dom';
 
 describe('UserAvatar', () => {
   it('with picture url and default size', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar username={'Mary'} picture={'http://image.xyz/photo.jpg'} colorClasses="red" />,
+        <MemoryRouter>
+          <UserAvatar username={'Mary'} picture={'http://image.xyz/photo.jpg'} colorClasses="red" />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -18,7 +20,7 @@ describe('UserAvatar', () => {
       'url("http://image.xyz/photo.jpg")',
     );
     expect(elementInstance.findByProps({ title: 'Mary' }).props.className).toBe(
-      'dib mh1 br-100 tc v-mid cover red h2 w2 f5',
+      'dib mh1 br-100 tc v-mid cover red user-picture-medium f5',
     );
   });
 
@@ -26,12 +28,14 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar
-          username={'Mary'}
-          colorClasses="orange"
-          size="large"
-          picture={'http://image.xyz/photo2.jpg'}
-        />,
+        <MemoryRouter>
+          <UserAvatar
+            username={'Mary'}
+            colorClasses="orange"
+            size="large"
+            picture={'http://image.xyz/photo2.jpg'}
+          />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -47,7 +51,9 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar username={'Mary'} size="large" colorClasses="white bg-red" />,
+        <MemoryRouter>
+          <UserAvatar username={'Mary'} size="large" colorClasses="white bg-red" />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -64,12 +70,14 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar username={'Mary'} name={'Mary Poppins'} colorClasses="white bg-red" />,
+        <MemoryRouter>
+          <UserAvatar username={'Mary'} name={'Mary Poppins'} colorClasses="white bg-red" />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
     expect(elementInstance.findByType('div').props.className).toBe(
-      'dib mh1 br-100 tc v-mid cover white bg-red h2 w2 f5',
+      'dib mh1 br-100 tc v-mid cover white bg-red user-picture-medium f5',
     );
     expect(elementInstance.findByType('span').props.children).toContain('MP');
     expect(elementInstance.findByType('span').props.style).toStrictEqual({
@@ -81,11 +89,13 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar
-          username={'Mary'}
-          name={'Mary Poppins Long Name'}
-          colorClasses="white bg-red"
-        />,
+        <MemoryRouter>
+          <UserAvatar
+            username={'Mary'}
+            name={'Mary Poppins Long Name'}
+            colorClasses="white bg-red"
+          />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -96,7 +106,9 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar username={'Mary Poppins Long Name'} colorClasses="white bg-red" />,
+        <MemoryRouter>
+          <UserAvatar username={'Mary Poppins Long Name'} colorClasses="white bg-red" />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -110,11 +122,13 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar
-          username={'Mary Poppins Long Name'}
-          colorClasses="white bg-red"
-          editMode={true}
-        />,
+        <MemoryRouter>
+          <UserAvatar
+            username={'Mary Poppins Long Name'}
+            colorClasses="white bg-red"
+            editMode={true}
+          />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -128,11 +142,13 @@ describe('UserAvatar', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatar
-          username={'Mary Poppins Long Name'}
-          colorClasses="white bg-red"
-          removeFn={() => console.log('no')}
-        />,
+        <MemoryRouter>
+          <UserAvatar
+            username={'Mary Poppins Long Name'}
+            colorClasses="white bg-red"
+            removeFn={() => console.log('no')}
+          />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -145,12 +161,14 @@ describe('UserAvatar', () => {
   it('with removeFn and editMode TRUE has a CloseIcon', () => {
     let value = 0;
     const element = TestRenderer.create(
-      <UserAvatar
-        username={'Mary'}
-        colorClasses="white bg-red"
-        removeFn={() => (value = 1)}
-        editMode={true}
-      />,
+      <MemoryRouter>
+        <UserAvatar
+          username={'Mary'}
+          colorClasses="white bg-red"
+          removeFn={() => (value = 1)}
+          editMode={true}
+        />
+      </MemoryRouter>,
     );
     const elementInstance = element.root;
     expect(element.toJSON().type).toBe('div');
@@ -166,7 +184,9 @@ describe('UserAvatar', () => {
 
   it('without disableLink prop has a link', () => {
     const element = TestRenderer.create(
-      <UserAvatar username={'jean'} colorClasses="white bg-red" />,
+      <MemoryRouter>
+        <UserAvatar username={'jean'} colorClasses="white bg-red" />
+      </MemoryRouter>,
     );
     const elementInstance = element.root;
 
@@ -176,7 +196,9 @@ describe('UserAvatar', () => {
 
   it('without disableLink, but with editMode prop, has a link', () => {
     const element = TestRenderer.create(
-      <UserAvatar username={'jean'} colorClasses="white bg-red" editMode={true} />,
+      <MemoryRouter>
+        <UserAvatar username={'jean'} colorClasses="white bg-red" editMode={true} />
+      </MemoryRouter>,
     );
     const elementInstance = element.root;
 
@@ -186,7 +208,9 @@ describe('UserAvatar', () => {
 
   it('without disableLink, but with removeFn prop, has a link', () => {
     const element = TestRenderer.create(
-      <UserAvatar username={'jean'} colorClasses="white bg-red" removeFn={() => 123} />,
+      <MemoryRouter>
+        <UserAvatar username={'jean'} colorClasses="white bg-red" removeFn={() => 123} />
+      </MemoryRouter>,
     );
     const elementInstance = element.root;
 
@@ -196,7 +220,9 @@ describe('UserAvatar', () => {
 
   it('with disableLink prop has not a link', () => {
     const element = TestRenderer.create(
-      <UserAvatar username={'jean'} colorClasses="white bg-red" disableLink={true} />,
+      <MemoryRouter>
+        <UserAvatar username={'jean'} colorClasses="white bg-red" disableLink={true} />
+      </MemoryRouter>,
     );
     const json_element = element.toJSON();
     expect(json_element.type).toBe('div');
@@ -218,7 +244,11 @@ describe('UserAvatarList', () => {
   it('large size, with a defined bgColor and without maxLength', () => {
     let element;
     act(() => {
-      element = TestRenderer.create(<UserAvatarList users={users} bgColor="bg-red" size="large" />);
+      element = TestRenderer.create(
+        <MemoryRouter>
+          <UserAvatarList users={users} bgColor="bg-red" size="large" />
+        </MemoryRouter>,
+      );
     });
     const elementInstance = element.root;
     expect(elementInstance.findAllByType(UserAvatar).length).toBe(users.length);
@@ -236,7 +266,9 @@ describe('UserAvatarList', () => {
     let element;
     act(() => {
       element = TestRenderer.create(
-        <UserAvatarList users={users} bgColor="bg-white" textColor="black" size="small" />,
+        <MemoryRouter>
+          <UserAvatarList users={users} bgColor="bg-white" textColor="black" size="small" />
+        </MemoryRouter>,
       );
     });
     const elementInstance = element.root;
@@ -248,7 +280,11 @@ describe('UserAvatarList', () => {
     });
   });
   it('default size, without bgColor and with maxLength = 5', () => {
-    const element = TestRenderer.create(<UserAvatarList users={users} maxLength={5} />);
+    const element = TestRenderer.create(
+      <MemoryRouter>
+        <UserAvatarList users={users} maxLength={5} />
+      </MemoryRouter>,
+    );
     const elementInstance = element.root;
     expect(elementInstance.findAllByType(UserAvatar).length).toBe(6);
     expect(elementInstance.findAllByType(UserAvatar)[0].props.size).toBe(undefined);
@@ -267,10 +303,12 @@ describe('UserAvatarList', () => {
   });
   it('with more than 999 users not shown render +999 as label', () => {
     const element = TestRenderer.create(
-      <UserAvatarList
-        users={[...Array(1020).keys()].map((i) => ({ username: `user_${i}` }))}
-        maxLength={15}
-      />,
+      <MemoryRouter>
+        <UserAvatarList
+          users={[...Array(1020).keys()].map((i) => ({ username: `user_${i}` }))}
+          maxLength={15}
+        />
+      </MemoryRouter>,
     );
     const elementInstance = element.root;
     expect(elementInstance.findAllByType(UserAvatar).length).toBe(16);

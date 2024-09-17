@@ -1,5 +1,4 @@
-import React from 'react';
-import { Link } from '@gatsbyjs/reach-router';
+import { Link } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
@@ -7,7 +6,7 @@ import { useTaskContributionQueryParams, stringify } from '../../hooks/UseTaskCo
 import MyTasksOrderDropdown from './myTasksOrderDropdown';
 import MyProjectsDropdown from './myProjectsDropdown';
 
-const isActiveButton = (buttonName, contributionQuery) => {
+export const isActiveButton = (buttonName, contributionQuery) => {
   let isActive = false;
   try {
     if (contributionQuery.status.includes(buttonName)) {
@@ -94,7 +93,6 @@ export const MyTasksNav = (props) => {
           <FormattedMessage {...messages.archived} />
         </Link>
       </div>
-      {props.children}
     </header>
   );
 };

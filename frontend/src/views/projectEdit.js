@@ -1,6 +1,6 @@
-import React, { useState, useLayoutEffect } from 'react';
+import { createContext, useState, useLayoutEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect } from '@gatsbyjs/reach-router';
+import { useParams } from 'react-router-dom';
 import ReactPlaceholder from 'react-placeholder';
 import { FormattedMessage } from 'react-intl';
 
@@ -24,7 +24,7 @@ import { useFetch } from '../hooks/UseFetch';
 import { useAsync } from '../hooks/UseAsync';
 import { useEditProjectAllowed } from '../hooks/UsePermissions';
 
-export const StateContext = React.createContext();
+export const StateContext = createContext();
 
 export const styleClasses = {
   divClass: 'w-70-l w-100 pb4 mb3',
@@ -62,7 +62,8 @@ const doesValidationTeamNotExist = (teams, validationPermission) =>
   teams.filter((team) => team.role === 'VALIDATOR').length === 0 &&
   teams.filter((team) => team.role === 'PROJECT_MANAGER').length === 0;
 
-export default function ProjectEdit({ id }) {
+export function ProjectEdit() {
+  const { id } = useParams();
   useSetTitleTag(`Edit project #${id}`);
   const [errorLanguages, loadingLanguages, languages] = useFetch('system/languages/');
   const mandatoryFields = ['name', 'shortDescription', 'description', 'instructions'];
@@ -120,7 +121,9 @@ export default function ProjectEdit({ id }) {
       });
     } else {
       const mandatoryFieldsMissing = mandatoryFields.filter(
-        (m) => Object.keys(defaultLocaleInfo).includes(m) === false || defaultLocaleInfo[m] === '',
+        (m) =>
+          Object.keys(defaultLocaleInfo).includes(m) === false ||
+          defaultLocaleInfo[m].trim() === '',
       );
       if (mandatoryFieldsMissing.length) {
         missingFields.push({
@@ -129,7 +132,6 @@ export default function ProjectEdit({ id }) {
         });
       }
     }
-
     const nonLocaleMissingFields = [];
     if (projectInfo.mappingTypes.length === 0) nonLocaleMissingFields.push('mappingTypes');
     const { mappingEditors, validationEditors, customEditor } = projectInfo;
@@ -159,7 +161,17 @@ export default function ProjectEdit({ id }) {
     ) {
       missingFields.push({ type: 'noTeamsAssigned' });
     }
-
+    // validate name
+    if (!missingFields?.[0]?.fields?.includes('name')) {
+      const projectName = defaultLocaleInfo.name;
+      if (!/^[a-zA-Z]/.test(projectName)) {
+        missingFields.push({
+          locale: projectInfo.defaultLocale,
+          fields: ['projectNameValidationError'],
+          type: 'nameValidationError',
+        });
+      }
+    }
     if (missingFields.length > 0) {
       setError(missingFields);
       return new Promise((resolve, reject) => reject());
@@ -173,10 +185,6 @@ export default function ProjectEdit({ id }) {
     }
   };
   const saveChangesAsync = useAsync(saveChanges);
-
-  if (!token) {
-    return <Redirect to={'/login'} noThrow />;
-  }
 
   if (projectInfo.projectId && !userCanEditProject) {
     return (
@@ -350,6 +358,14 @@ const ErrorTitle = ({ locale, numberOfMissingFields, type, projectInfo }) => {
           mapping: doesMappingTeamNotExist(teams, mappingPermission),
           validation: doesValidationTeamNotExist(teams, validationPermission),
         }}
+      />
+    );
+  }
+  if (type === 'nameValidationError') {
+    return (
+      <FormattedMessage
+        id="management.projects.create.errors.project_name_validation_error"
+        defaultMessage="Project Name Validation Error"
       />
     );
   }

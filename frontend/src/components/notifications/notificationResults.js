@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactPlaceholder from 'react-placeholder';
-import 'react-placeholder/lib/reactPlaceholder.css';
 import { FormattedMessage, FormattedNumber } from 'react-intl';
+import 'react-placeholder/lib/reactPlaceholder.css';
 
 import messages from './messages';
 import { NotificationCard, NotificationCardMini } from './notificationCard';
 import NotificationPlaceholder from './notificationPlaceholder';
-import { DeleteNotificationsButton } from './deleteNotificationsButton';
 import { RefreshIcon } from '../svgIcons';
 import { SelectAll } from '../formInputs';
+import { SelectAllNotifications } from './selectAllNotifications';
+import { ActionButtons } from './actionButtons';
 
 export const NotificationResultsMini = (props) => {
   return <NotificationResults {...props} useMiniCard={true} />;
@@ -16,34 +17,33 @@ export const NotificationResultsMini = (props) => {
 
 export const NotificationResults = ({
   className,
-  error,
-  loading,
-  state,
+  isError,
+  isLoading,
   notifications,
   retryFn,
   useMiniCard,
   liveUnreadCount,
   setPopoutFocus,
+  inboxQuery,
+  setInboxQuery,
 }) => {
-  const stateNotifications = !useMiniCard
-    ? notifications.userMessages
-    : state.unreadNotificationsMini;
+  const stateNotifications = notifications.userMessages;
 
   const showRefreshButton =
     useMiniCard &&
-    !state.isError &&
-    state.unreadNotificationsMini &&
-    liveUnreadCount !== state.unreadNotificationsMini.filter((n) => !n.read).length;
+    !isError &&
+    notifications.userMessages &&
+    liveUnreadCount !== notifications.userMessages.filter((n) => !n.read).length;
 
   return (
     <div className={className || ''}>
       {!stateNotifications && <span>&nbsp;</span>}
-      {notifications?.userMessages && !error && (
+      {notifications?.userMessages && !isError && !useMiniCard && (
         <p className="blue-grey pt2 f7">
           <FormattedMessage
             {...messages.paginationCount}
             values={{
-              number: stateNotifications && stateNotifications.length,
+              number: stateNotifications?.length,
               total: (
                 <FormattedNumber
                   value={
@@ -58,25 +58,19 @@ export const NotificationResults = ({
         </p>
       )}
 
-      {error ? (
+      {isError && (
         <div className="bg-tan pa4 mt3">
-          <FormattedMessage
-            {...messages.errorLoadingTheXForY}
-            values={{
-              xWord: <FormattedMessage {...messages.projects} />,
-              yWord: 'Notifications',
-            }}
-          />
+          <FormattedMessage {...messages.errorLoadingNotifications} />
           <div className="pa2">
             <button className="pa1" onClick={() => retryFn()}>
               <FormattedMessage {...messages.notificationsRetry} />
             </button>
           </div>
         </div>
-      ) : null}
+      )}
       <div className={`cf`}>
         <ReactPlaceholder
-          ready={!loading && stateNotifications}
+          ready={!isLoading && stateNotifications}
           customPlaceholder={<NotificationPlaceholder />}
           type="media"
           rows={10}
@@ -86,6 +80,10 @@ export const NotificationResults = ({
             useMiniCard={useMiniCard}
             retryFn={retryFn}
             setPopoutFocus={setPopoutFocus}
+            totalNotifications={notifications.pagination?.total}
+            totalPages={notifications.pagination?.pages}
+            inboxQuery={inboxQuery}
+            setInboxQuery={setInboxQuery}
           />
         </ReactPlaceholder>
       </div>
@@ -100,38 +98,78 @@ export const NotificationResults = ({
   );
 };
 
-const NotificationCards = ({ pageOfCards, useMiniCard, retryFn, setPopoutFocus }) => {
+const NotificationCards = ({
+  pageOfCards,
+  useMiniCard,
+  retryFn,
+  setPopoutFocus,
+  totalNotifications,
+  totalPages,
+  inboxQuery,
+  setInboxQuery,
+}) => {
   const [selected, setSelected] = useState([]);
+  const [isAllSelected, setIsAllSelected] = useState(false);
+
+  useEffect(() => {
+    setSelected([]);
+    setIsAllSelected(false);
+  }, [inboxQuery?.types]);
+
+  useEffect(() => {
+    if (selected.length !== 10) {
+      setIsAllSelected(false);
+    }
+  }, [selected]);
 
   if (pageOfCards.length === 0) {
     return (
-      <div className="mb3 blue-grey">
+      <div className={`mb3 ${useMiniCard ? 'ph3 ml2' : ''} blue-grey`}>
         <FormattedMessage {...messages[useMiniCard ? 'noUnreadMessages' : 'noMessages']} />
       </div>
     );
   }
 
+  const unreadCountInSelected = pageOfCards.reduce((acc, msg) => {
+    return !msg.read && selected.includes(msg.messageId) ? acc + 1 : acc;
+  }, 0);
+
   return (
     <>
       {!useMiniCard && (
         <>
-          <div className="mb2 ph3">
+          <div className="mb2 ph3 flex gap-1 items-center">
             <SelectAll
               allItems={pageOfCards.map((message) => message.messageId)}
               setSelected={setSelected}
               selected={selected}
               className="dib v-mid mv3 ml2"
             />
-            <DeleteNotificationsButton
+            <ActionButtons
               selected={selected}
               setSelected={setSelected}
               retryFn={retryFn}
+              unreadCountInSelected={unreadCountInSelected}
+              isAllSelected={isAllSelected}
+              inboxQuery={inboxQuery}
+              setInboxQuery={setInboxQuery}
+              pageOfCards={pageOfCards}
+              totalPages={totalPages}
             />
           </div>
-          {pageOfCards.map((card, n) => (
+          {selected.length === 10 && totalNotifications > 10 && !inboxQuery.project && (
+            <SelectAllNotifications
+              inboxQuery={inboxQuery}
+              totalNotifications={totalNotifications}
+              setSelected={setSelected}
+              isAllSelected={isAllSelected}
+              setIsAllSelected={setIsAllSelected}
+            />
+          )}
+          {pageOfCards.map((card) => (
             <NotificationCard
               {...card}
-              key={n}
+              key={card.messageId}
               retryFn={retryFn}
               selected={selected}
               setSelected={setSelected}
@@ -145,7 +183,7 @@ const NotificationCards = ({ pageOfCards, useMiniCard, retryFn, setPopoutFocus }
           .map((card, n) => (
             <NotificationCardMini
               {...card}
-              key={n}
+              key={card.messageId}
               setPopoutFocus={setPopoutFocus}
               retryFn={retryFn}
             />

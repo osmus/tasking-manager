@@ -1,5 +1,4 @@
-import React from 'react';
-import { navigate } from '@gatsbyjs/reach-router';
+import { useNavigate } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
@@ -7,6 +6,8 @@ import { LockIcon } from '../svgIcons';
 import { Button } from '../button';
 
 const PrivateProjectError = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="cf w-100 pv5">
       <div className="tc">

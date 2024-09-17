@@ -1,9 +1,9 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import { IntlProviders } from '../../../utils/testWithIntl';
+import { IntlProviders, renderWithRouter } from '../../../utils/testWithIntl';
 import { LicenseCard, LicensesManagement, LicenseForm } from '../index';
+import userEvent from '@testing-library/user-event';
 
 const license = {
   licenseId: 1,
@@ -29,7 +29,7 @@ const licenses = [
 
 describe('License Card', () => {
   it('renders a license card given valid license information', () => {
-    const { container } = render(<LicenseCard license={license} />);
+    const { container } = renderWithRouter(<LicenseCard license={license} />);
     expect(screen.getByText('HOT Licence')).toBeInTheDocument();
     expect(container.querySelector('a').href).toContain('/1');
     expect(container.querySelectorAll('svg').length).toBe(1); //copyright icon
@@ -38,7 +38,7 @@ describe('License Card', () => {
 
 describe('Licenses Management', () => {
   it('renders all licenses and button to add a new license', () => {
-    const { container } = render(
+    const { container } = renderWithRouter(
       <IntlProviders>
         <LicensesManagement licenses={licenses} isLicensesFetched={true} />
       </IntlProviders>,
@@ -55,7 +55,7 @@ describe('Licenses Management', () => {
   });
 
   it('renders placeholder and not licenses when API is being fetched', () => {
-    const { container } = render(
+    const { container } = renderWithRouter(
       <IntlProviders>
         <LicensesManagement licenses={licenses} isLicensesFetched={false} />
       </IntlProviders>,
@@ -68,8 +68,9 @@ describe('Licenses Management', () => {
 });
 
 describe('LicenseForm', () => {
-  it('renders a form containing different editable license fields for a given license', () => {
+  it('renders a form containing different editable license fields for a given license', async () => {
     const updateLicense = jest.fn();
+    const user = userEvent.setup();
     render(
       <IntlProviders>
         <LicenseForm license={license} updateLicense={updateLicense} />
@@ -96,7 +97,8 @@ describe('LicenseForm', () => {
     expect(inputs[2].value).toBe('HOT is allowing access to this imagery for creating data in OSM');
 
     // change license name
-    fireEvent.change(inputs[0], { target: { value: 'license A' } });
+    await user.clear(inputs[0]);
+    await user.type(inputs[0], 'license A');
 
     const saveBtn = screen.getByText('Save');
     const cancelBtn = screen.getByText('Cancel');
@@ -104,7 +106,7 @@ describe('LicenseForm', () => {
     expect(cancelBtn).toBeInTheDocument();
 
     // save license name
-    fireEvent.click(saveBtn);
+    await user.click(saveBtn);
     expect(inputs[0].value).toBe('license A');
     expect(updateLicense).toHaveBeenCalledWith({ ...license, name: 'license A' });
   });
@@ -125,7 +127,7 @@ describe('LicenseForm', () => {
   });
 
   it('filters interests list by the search query', async () => {
-    render(
+    const { user } = renderWithRouter(
       <IntlProviders>
         <LicensesManagement licenses={licenses} isLicensesFetched={true} />
       </IntlProviders>,
@@ -133,18 +135,12 @@ describe('LicenseForm', () => {
     const textField = screen.getByRole('textbox');
 
     expect(textField).toBeInTheDocument();
-    fireEvent.change(textField, {
-      target: {
-        value: 'HOT',
-      },
-    });
+    await user.clear(textField);
+    await user.type(textField, 'HOT');
     expect(screen.getByText(/HOT Licence/i)).toBeInTheDocument();
     expect(screen.queryByText(/NextView 1/i)).not.toBeInTheDocument();
-    fireEvent.change(textField, {
-      target: {
-        value: 'not HOT',
-      },
-    });
+    await user.clear(textField);
+    await user.type(textField, 'not HOT');
     expect(screen.queryByText('There are no licenses yet.')).toBeInTheDocument();
   });
 });

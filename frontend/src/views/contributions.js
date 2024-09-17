@@ -1,9 +1,8 @@
-import React from 'react';
+import { useEffect } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import ReactPlaceholder from 'react-placeholder';
 
 import useForceUpdate from '../hooks/UseForceUpdate';
-// import { useInboxQueryAPI, useInboxQueryParams } from '../hooks/UseInboxQueryAPI';
 import {
   useTaskContributionAPI,
   useTaskContributionQueryParams,
@@ -15,8 +14,9 @@ import { HeaderProfile } from '../components/userDetail/headerProfile';
 import { UserDetail } from './userDetail';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
 
-export const ContributionsPage = (props) => {
+export const ContributionsPage = () => {
   useSetTitleTag('My tasks');
+  const navigate = useNavigate();
   const initialData = {
     mapResults: {
       features: [],
@@ -26,33 +26,33 @@ export const ContributionsPage = (props) => {
     pagination: { hasNext: false, hasPrev: false, page: 1 },
   };
 
+  const location = useLocation();
   const userToken = useSelector((state) => state.auth.token);
   //eslint-disable-next-line
   const [contributionsQuery, setContributionsQuery] = useTaskContributionQueryParams();
   const [forceUpdated, forceUpdate] = useForceUpdate();
   const [state] = useTaskContributionAPI(initialData, contributionsQuery, forceUpdated);
 
-  if (!userToken) {
-    /* use replace to so the back button does not get interrupted */
-    props.navigate('/login', { replace: true });
-  }
+  useEffect(() => {
+    if (!userToken) {
+      navigate('/login', {
+        replace: true,
+        state: { from: location.pathname },
+      });
+    }
+  }, [location.pathname, navigate, userToken]);
 
   return (
-    <>
-      <div className="pb5 pt180 pull-center">
-        {
-          props.children
-          /* This is where the full task body component is rendered
-        using the router, as a child route.
-        */
-        }
-        <section className="cf">
-          <MyTasksNav />
-          <TaskResults retryFn={forceUpdate} state={state} />
-          <ProjectCardPaginator projectAPIstate={state} setQueryParam={setContributionsQuery} />
-        </section>
-      </div>
-    </>
+    <section className="pb5 pt180 pull-center">
+      <MyTasksNav />
+      <TaskResults retryFn={forceUpdate} state={state} />
+      <ProjectCardPaginator
+        projectAPIstate={state}
+        status={state.isLoading ? 'pending' : 'success'}
+        pagination={state?.pagination}
+        setQueryParam={setContributionsQuery}
+      />
+    </section>
   );
 };
 
@@ -62,22 +62,16 @@ export const ContributionsPageIndex = (props) => {
       <div className="w-100 cf">
         <HeaderProfile selfProfile={true} />
       </div>
-      <div className="w-100 ph5-l ph2 cf pb6">{props.children}</div>
+      <div className="w-100 ph5-l ph2 cf pb6">
+        <Outlet />
+      </div>
     </div>
   );
 };
 
-export const UserStats = (props) => {
+export const UserStats = () => {
   useSetTitleTag('My stats');
   const userDetails = useSelector((state) => state.auth.userDetails);
-  return (
-    <ReactPlaceholder
-      type="media"
-      showLoadingAnimation={true}
-      rows={5}
-      ready={userDetails !== undefined}
-    >
-      <UserDetail username={userDetails.username} withHeader={false} />
-    </ReactPlaceholder>
-  );
+
+  return <UserDetail username={userDetails.username} withHeader={false} />;
 };

@@ -1,6 +1,10 @@
 import threading
 from cachetools import TTLCache, cached
 from flask import current_app
+import geojson
+from datetime import datetime, timedelta
+
+from backend.exceptions import NotFound
 
 from backend.models.dtos.mapping_dto import TaskDTOs
 from backend.models.dtos.project_dto import (
@@ -12,6 +16,7 @@ from backend.models.dtos.project_dto import (
     ProjectContribDTO,
     ProjectSearchResultsDTO,
 )
+from backend.models.postgis.project_chat import ProjectChat
 from backend.models.postgis.organisation import Organisation
 from backend.models.postgis.project_info import ProjectInfo
 from backend.models.postgis.project import Project, ProjectStatus
@@ -25,7 +30,6 @@ from backend.models.postgis.statuses import (
     MappingLevel,
 )
 from backend.models.postgis.task import Task, TaskHistory
-from backend.models.postgis.utils import NotFound
 from backend.services.messaging.smtp_service import SMTPService
 from backend.services.users.user_service import UserService
 from backend.services.project_search_service import ProjectSearchService
@@ -50,7 +54,7 @@ class ProjectService:
     def get_project_by_id(project_id: int) -> Project:
         project = Project.get(project_id)
         if project is None:
-            raise NotFound()
+            raise NotFound(sub_code="PROJECT_NOT_FOUND", project_id=project_id)
 
         return project
 
@@ -58,14 +62,14 @@ class ProjectService:
     def exists(project_id: int) -> bool:
         project = Project.exists(project_id)
         if project is None:
-            raise NotFound()
+            raise NotFound(sub_code="PROJECT_NOT_FOUND", project_id=project_id)
         return True
 
     @staticmethod
     def get_project_by_name(project_id: int) -> Project:
         project = Project.get(project_id)
         if project is None:
-            raise NotFound()
+            raise NotFound(sub_code="PROJECT_NOT_FOUND", project_id=project_id)
 
         return project
 
@@ -78,14 +82,14 @@ class ProjectService:
         # Validate project exists.
         project = Project.get(project_id)
         if project is None:
-            raise NotFound({"project": project_id})
+            raise NotFound(sub_code="PROJECT_NOT_FOUND", project_id=project_id)
 
         tasks = [{"id": i, "obj": Task.get(i, project_id)} for i in tasks_ids]
 
         # In case a task is not found.
         not_found = [t["id"] for t in tasks if t["obj"] is None]
         if len(not_found) > 0:
-            raise NotFound({"tasks": not_found})
+            raise NotFound(sub_code="TASK_NOT_FOUND", tasks=not_found)
 
         # Delete task one by one.
         [t["obj"].delete() for t in tasks]
@@ -292,7 +296,7 @@ class ProjectService:
         tasks = Task.get_locked_tasks_details_for_user(user_id)
 
         if len(tasks) == 0:
-            raise NotFound()
+            raise NotFound(sub_code="TASK_NOT_FOUND")
 
         # TODO put the task details in to a DTO
         dtos = []
@@ -479,12 +483,28 @@ class ProjectService:
 
     @staticmethod
     @cached(summary_cache)
+    def get_cached_project_summary(
+        project_id: int, preferred_locale: str = "en"
+    ) -> ProjectSummary:
+        """Gets the project summary DTO"""
+        project = ProjectService.get_project_by_id(project_id)
+        # We don't want to cache the project stats, so we set calculate_completion to False
+        return project.get_project_summary(preferred_locale, calculate_completion=False)
+
+    @staticmethod
     def get_project_summary(
         project_id: int, preferred_locale: str = "en"
     ) -> ProjectSummary:
         """Gets the project summary DTO"""
         project = ProjectService.get_project_by_id(project_id)
-        return project.get_project_summary(preferred_locale)
+        summary = ProjectService.get_cached_project_summary(
+            project_id, preferred_locale
+        )
+        # Since we don't want to cache the project stats, we need to update them
+        summary.percent_mapped = project.calculate_tasks_percent("mapped")
+        summary.percent_validated = project.calculate_tasks_percent("validated")
+        summary.percent_bad_imagery = project.calculate_tasks_percent("bad_imagery")
+        return summary
 
     @staticmethod
     def set_project_as_featured(project_id: int):
@@ -556,7 +576,7 @@ class ProjectService:
         project = ProjectService.get_project_by_id(project_id)
 
         if project is None:
-            raise NotFound()
+            raise NotFound(sub_code="PROJECT_NOT_FOUND", project_id=project_id)
 
         return project.teams
 
@@ -565,24 +585,18 @@ class ProjectService:
         project = ProjectService.get_project_by_id(project_id)
 
         if project is None:
-            raise NotFound()
+            raise NotFound(sub_code="PROJECT_NOT_FOUND", project_id=project_id)
 
         return project.organisation
 
     @staticmethod
     def send_email_on_project_progress(project_id):
-        """ Send email to all contributors on project progress """
+        """Send email to all contributors on project progress"""
         if not current_app.config["SEND_PROJECT_EMAIL_UPDATES"]:
             return
         project = ProjectService.get_project_by_id(project_id)
 
-        project_completion = Project.calculate_tasks_percent(
-            "project_completion",
-            project.total_tasks,
-            project.tasks_mapped,
-            project.tasks_validated,
-            project.tasks_bad_imagery,
-        )
+        project_completion = project.calculate_tasks_percent("project_completion")
         if project_completion == 50 and project.progress_email_sent:
             return  # Don't send progress email if it's already sent
         if project_completion in [50, 100]:
@@ -595,6 +609,7 @@ class ProjectService:
                 project_id, project.default_locale
             ).name
             project.progress_email_sent = True
+            project.save()
             threading.Thread(
                 target=SMTPService.send_email_to_contributors_on_project_progress,
                 args=(
@@ -604,3 +619,45 @@ class ProjectService:
                     project_completion,
                 ),
             ).start()
+
+    @staticmethod
+    def get_active_projects(interval):
+        action_date = datetime.utcnow() - timedelta(hours=interval)
+        history_result = (
+            TaskHistory.query.with_entities(TaskHistory.project_id)
+            .distinct()
+            .filter((TaskHistory.action_date) >= action_date)
+            .all()
+        )
+        project_ids = [row.project_id for row in history_result]
+        chat_result = (
+            ProjectChat.query.with_entities(ProjectChat.project_id)
+            .distinct()
+            .filter((ProjectChat.time_stamp) >= action_date)
+            .all()
+        )
+        chat_project_ids = [row.project_id for row in chat_result]
+        project_ids.extend(chat_project_ids)
+        project_ids = list(set(project_ids))
+        projects = (
+            Project.query.with_entities(
+                Project.id,
+                Project.mapping_types,
+                Project.geometry.ST_AsGeoJSON().label("geometry"),
+            )
+            .filter(
+                Project.id.in_(project_ids),
+            )
+            .all()
+        )
+        features = []
+        for project in projects:
+            properties = {
+                "project_id": project.id,
+                "mapping_types": project.mapping_types,
+            }
+            feature = geojson.Feature(
+                geometry=geojson.loads(project.geometry), properties=properties
+            )
+            features.append(feature)
+        return geojson.FeatureCollection(features)

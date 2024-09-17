@@ -1,12 +1,11 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import { ReduxIntlProviders } from '../../utils/testWithIntl';
+import { ReduxIntlProviders, renderWithRouter } from '../../utils/testWithIntl';
 import { Login } from '../login';
 
-test('Login component renders the elements correctly formatted', () => {
-  render(
+test('Login component renders the elements correctly formatted', async () => {
+  const { user } = renderWithRouter(
     <ReduxIntlProviders>
       <Login redirectTo={'/welcome'} />
     </ReduxIntlProviders>,
@@ -16,7 +15,7 @@ test('Login component renders the elements correctly formatted', () => {
   expect(screen.getByText('Create an account').className).toContain('bg-blue-dark white ml1 v-mid');
   expect(screen.queryByText('Sign up')).not.toBeInTheDocument();
   expect(screen.queryByText('Name')).not.toBeInTheDocument();
-  fireEvent.click(screen.getByText('Create an account'));
+  await user.click(screen.getByText('Create an account'));
   expect(screen.getByText('Name')).toBeInTheDocument();
   expect(screen.getByText('Email')).toBeInTheDocument();
   expect(screen.getByText('Next')).toBeInTheDocument();

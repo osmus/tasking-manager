@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Popup from 'reactjs-popup';
-import ReactTooltip from 'react-tooltip';
+import { Tooltip } from 'react-tooltip';
 import DOMPurify from 'dompurify';
 import { FormattedMessage } from 'react-intl';
 
@@ -29,7 +29,7 @@ export const MessageAvatar = ({ messageType, fromUsername, displayPictureUrl, si
   const checkIsSystem = typesThatUseSystemAvatar.indexOf(messageType) !== -1;
 
   if (!fromUsername && !checkIsSystem) {
-    return <div>&nbsp;</div>;
+    return null;
   }
 
   return (
@@ -69,6 +69,7 @@ export function NotificationCard({
   selected,
   setSelected,
 }: Object) {
+  const dispatch = useDispatch();
   const token = useSelector((state) => state.auth.token);
   const ref = useRef();
   const replacedSubject = subject.replace('task=', 'search=');
@@ -77,6 +78,9 @@ export function NotificationCard({
     !read &&
       fetchLocalJSONAPI(`notifications/${messageId}/`, token).then(() => {
         retryFn();
+        dispatch({
+          type: 'DECREMENT_UNREAD_COUNT',
+        });
       });
   };
 
@@ -85,6 +89,9 @@ export function NotificationCard({
       .then(() => {
         setSelected(selected.filter((i) => i !== id));
         retryFn();
+        dispatch({
+          type: 'DECREMENT_UNREAD_COUNT',
+        });
       })
       .catch((e) => {
         console.log(e.message);
@@ -148,22 +155,25 @@ export function NotificationCard({
                   <FormattedMessage {...messages.markAsRead}>
                     {(msg) => (
                       <EyeIcon
+                        role="button"
                         onClick={() => setMessageAsRead()}
                         style={{ width: '20px', height: '20px' }}
                         className={`dn dib-ns h1 w1 pr1 nr4 mv1 pv1 hover-red blue-light ml3`}
-                        data-tip={msg}
+                        data-tooltip-id={'setMessageAsReadTooltip'}
+                        data-tooltip-content={msg}
+                        aria-label="Mark notification as read"
                       />
                     )}
                   </FormattedMessage>
-                  <ReactTooltip />
+                  <Tooltip id={'setMessageAsReadTooltip'} />
                 </>
               )}
             </div>
-            {messageType !== null ? (
+            {messageType !== null && (
               <div className={`di-l dn f7 truncate w4 lh-solid`} title={messageType}>
                 <FormattedMessage {...messages[messageType]} />
               </div>
-            ) : null}
+            )}
             <DeleteButton
               className={`bg-transparent bw0 w2 h2 lh-copy overflow-hidden blue-light p0 mb1 hover-red`}
               showText={false}
@@ -190,11 +200,24 @@ export function NotificationCardMini({
   sentDate,
   setPopoutFocus,
   retryFn,
+  read,
 }: Object) {
+  const dispatch = useDispatch();
+
+  const setMessageAsRead = () => {
+    if (!read) {
+      retryFn();
+      dispatch({
+        type: 'DECREMENT_UNREAD_COUNT',
+      });
+    }
+  };
+
   return (
     <Popup
       modal
       nested
+      onClose={setMessageAsRead}
       trigger={
         <article
           className="db base-font w-100 hover-red blue-dark pointer"
@@ -211,7 +234,7 @@ export function NotificationCardMini({
             </div>
             <div>
               <div
-                className="f7 messageSubjectLinks"
+                className="f7 messageSubjectLinks ws-normal"
                 style={{ lineHeight: 1.21 }}
                 dangerouslySetInnerHTML={rawHtmlNotification(subject)}
               />

@@ -1,33 +1,46 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { PersistGate } from 'redux-persist/integration/react';
 import { Provider } from 'react-redux';
-import WebFont from 'webfontloader';
-import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
+import { load } from 'webfontloader';
+import { init, BrowserTracing, Replay } from '@sentry/react';
+import 'react-tooltip/dist/react-tooltip.css'; // Needed by for { Tooltip } from 'react-tooltip' to work properly
 
 import App from './App';
 import { store, persistor } from './store';
 import { ConnectedIntl } from './utils/internationalization';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import { register, unregister, onServiceWorkerUpdate } from './serviceWorkerRegistration';
 import { ENABLE_SERVICEWORKER, SENTRY_FRONTEND_DSN, ENVIRONMENT } from './config';
 
 if (SENTRY_FRONTEND_DSN) {
-  Sentry.init({
+  init({
     dsn: SENTRY_FRONTEND_DSN,
     environment: ENVIRONMENT,
-    integrations: [new BrowserTracing()],
+    integrations: [
+      new BrowserTracing(),
+      new Replay({
+        // Additional SDK configuration goes in here, for example:
+        maskAllText: true,
+        blockAllMedia: true,
+      }),
+    ],
     tracesSampleRate: 0.1,
+
+    // Session Replays integration
+    replaysSessionSampleRate: 1.0,
+    // If the entire session is not sampled, use the below sample rate to sample
+    // sessions when an error occurs.
+    replaysOnErrorSampleRate: 1.0,
   });
 }
 
-WebFont.load({
+load({
   google: {
     families: ['Zilla Slab:400,500,600,700', 'Source Sans Pro:400,500,600,700', 'sans-serif'],
   },
 });
 
-const root = createRoot(document.getElementById('root'));
+const container = document.getElementById('root');
+const root = createRoot(container);
 root.render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
@@ -35,7 +48,7 @@ root.render(
         <App />
       </ConnectedIntl>
     </PersistGate>
-  </Provider>
+  </Provider>,
 );
 
 // If you want your app to work offline and load faster, you can change
@@ -47,7 +60,7 @@ if (
   ENABLE_SERVICEWORKER === 'true' ||
   ENABLE_SERVICEWORKER === true
 ) {
-  serviceWorkerRegistration.register({ onUpdate: serviceWorkerRegistration.onServiceWorkerUpdate });
+  register({ onUpdate: onServiceWorkerUpdate });
 } else {
-  serviceWorkerRegistration.unregister();
+  unregister();
 }

@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import messages from '../user/messages';
-import { TwitterIconNoBg, FacebookIcon, LinkedinIcon, ProfilePictureIcon } from '../svgIcons';
+import { TwitterIcon, FacebookIcon, LinkedinIcon, ProfilePictureIcon } from '../svgIcons';
 import { MappingLevelMessage } from '../mappingLevel';
 import { NextMappingLevel } from '../user/topBar';
 import { UserOrganisations } from './userTeamsOrgs';
 import { SectionMenu } from '../menu';
 import OsmLogo from '../../assets/img/osm_logo.png';
-import MissingMapsLogo from '../../assets/img/organizations/missingmaps.png';
 import SlackLogo from '../../assets/img/icons/slack.png';
 import OsmChaLogo from '../../assets/img/icons/osm-cha.png';
+import HdycNeisOneLogo from '../../assets/img/icons/hdyc-neis-one.png';
 import { OSM_SERVER_URL, ORG_CODE } from '../../config';
 
 export const SocialMedia = ({ data }) => {
@@ -26,7 +26,7 @@ export const SocialMedia = ({ data }) => {
 
     switch (field) {
       case 'twitterId':
-        return <TwitterIconNoBg style={iconStyle} className="light-blue v-mid" />;
+        return <TwitterIcon style={iconStyle} className="light-blue v-mid" />;
       case 'facebookId':
         return <FacebookIcon style={iconStyle} className="dark-blue v-mid" />;
       case 'linkedinId':
@@ -44,6 +44,7 @@ export const SocialMedia = ({ data }) => {
       osm: `${OSM_SERVER_URL}/user/${value}`,
       missingmaps: `https://www.missingmaps.org/users/#/${value}`,
       osmcha: `https://osmcha.org/?filters={"users":[{"label":"${value}","value":"${value}"}]}`,
+      hdycNeisOne: `https://hdyc.neis-one.org/?${value}`,
     };
 
     return (
@@ -66,16 +67,16 @@ export const SocialMedia = ({ data }) => {
           {createLink('osm', data.username)}
         </div>
       </li>
-      <li className="dib mr4-ns mr2 cf f6">
-        <div className="mr2 h2">
-          <img className="h1 v-mid" src={MissingMapsLogo} alt="Missing Maps" />{' '}
-          {createLink('missingmaps', data.username)}
-        </div>
-      </li>
-      <li className="dib mr4-ns mr2 cf f6" title={intl.formatMessage(messages.osmChaUsername)}>
+      <li className="dib mr4-ns mr2 cf f7" title={intl.formatMessage(messages.osmChaUsername)}>
         <div className="mr2 h2">
           <img className="h1 v-mid" src={OsmChaLogo} alt="OSM Cha Logo" />{' '}
           {createLink('osmcha', data.username)}
+        </div>
+      </li>
+      <li className="dib mr4-ns mr2 cf f7">
+        <div className="mr2 h2">
+          <img className="h1 v-mid" src={HdycNeisOneLogo} alt="HDYC Neis One Favicon" />{' '}
+          {createLink('hdycNeisOne', data.username)}
         </div>
       </li>
       {data.slackId && (
@@ -105,11 +106,11 @@ export const SocialMedia = ({ data }) => {
   );
 };
 
-const MyContributionsNav = ({ username, authUser }) => {
+export const MyContributionsNav = ({ username, authUser }) => {
   const items = [
     { url: `/contributions`, label: <FormattedMessage {...messages.myStats} /> },
     {
-      url: '/contributions/projects?mappedByMe=1&action=any',
+      url: '/contributions/projects/?mappedByMe=1&action=any',
       label: <FormattedMessage {...messages.myProjects} />,
     },
     { url: '/contributions/tasks', label: <FormattedMessage {...messages.myTasks} /> },
@@ -155,7 +156,7 @@ export const HeaderProfile = ({ userDetails, changesets, selfProfile }) => {
         </div>
         <div className="w-70-ns w-100 fl dib tc tl-ns">
           <div className="pl2 dib w-50-l fl w-100">
-            <p className="barlow-condensed f2 ttu fw5 ma0 mb3">
+            <p className="barlow-condensed f2 ttu fw5 ma0 mb3" style={{ letterSpacing: '1.25px' }}>
               {user.name || user.username}
             </p>
             <p className="f125 ma0 mb2 fw5">

@@ -7,7 +7,7 @@ import {
   NumberParam,
   BooleanParam,
 } from 'use-query-params';
-import { stringify as stringifyUQP } from 'query-string';
+import queryString from 'query-string';
 import axios from 'axios';
 import { subMonths, format } from 'date-fns';
 
@@ -38,6 +38,8 @@ const projectQueryAllSpecification = {
   action: StringParam,
   stale: BooleanParam,
   createdFrom: StringParam,
+  basedOnMyInterests: BooleanParam,
+  omitMapResults: BooleanParam,
 };
 
 /* This can be passed into project API or used independently */
@@ -70,6 +72,8 @@ const backendToQueryConversion = {
   action: 'action',
   stale: 'lastUpdatedTo',
   createdFrom: 'createdFrom',
+  basedOnMyInterests: 'basedOnMyInterests',
+  omitMapResults: 'omitMapResults',
 };
 
 const dataFetchReducer = (state, action) => {
@@ -177,7 +181,6 @@ export const useProjectsQueryAPI = (
           if (result && result.headers && result.headers['content-type'].indexOf('json') !== -1) {
             dispatch({ type: 'FETCH_SUCCESS', payload: result.data });
           } else {
-            console.error('Invalid return type for project search');
             dispatch({ type: 'FETCH_FAILURE' });
           }
         } else {
@@ -200,25 +203,16 @@ export const useProjectsQueryAPI = (
           const errorResPayload = Object.assign(defaultInitialData, { error: error.response });
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
-          console.log(
-            'Response failure',
-            error.response.data,
-            error.response.status,
-            error.response.headers,
-            errorResPayload,
-          );
           dispatch({ type: 'FETCH_FAILURE', payload: errorResPayload });
         } else if (!didCancel && error.request) {
           const errorReqPayload = Object.assign(defaultInitialData, { error: error.request });
           // The request was made but no response was received
           // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
           // http.ClientRequest in node.js
-          console.log('Request failure', error.request, errorReqPayload);
           dispatch({ type: 'FETCH_FAILURE', payload: errorReqPayload });
         } else if (!didCancel) {
           dispatch({ type: 'FETCH_FAILURE' });
         } else {
-          console.log('tried to cancel on failure', cancel && cancel.params);
           cancel && cancel.end();
         }
       }
@@ -227,7 +221,6 @@ export const useProjectsQueryAPI = (
     fetchData();
     return () => {
       didCancel = true;
-      console.log('tried to cancel on effect cleanup ', cancel && cancel.params);
       cancel && cancel.end();
     };
   }, [throttledExternalQueryParamsState, forceUpdate, token, locale, action]);
@@ -237,5 +230,5 @@ export const useProjectsQueryAPI = (
 
 export const stringify = (obj) => {
   const encodedQuery = encodeQueryParams(projectQueryAllSpecification, obj);
-  return stringifyUQP(encodedQuery);
+  return queryString.stringify(encodedQuery);
 };

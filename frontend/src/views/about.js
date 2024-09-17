@@ -1,10 +1,10 @@
-import React from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import osiLogoSrc from '../assets/img/osi-badge-dark.svg';
 
 import messages from './messages';
 import { TopBar } from '../components/header/topBar';
+import osiStandardLogo from '../assets/img/osi_standard_logo_0.png';
 import { useSetTitleTag } from '../hooks/UseMetaTags';
 
 export function AboutPage() {
@@ -61,30 +61,7 @@ export function AboutPage() {
           <FormattedMessage {...messages.floss} />
         </h1>
         <div className="w-60-l cf flex items-center">
-          <img
-            className="mw3 mr2"
-            src={osiLogoSrc}
-            alt="OSI aproved license"
-          />
-          <div className="v-mid pl3">
-            <p className="ma0">
-              <FormattedMessage
-                {...messages.flossDescription}
-                values={{
-                  hotLink: (
-                    <a className="link red fw5" href="https://hotosm.org">
-                      Humanitarian OpenStreetMap Team
-                    </a>
-                  ),
-                  code: (
-                    <a className="link red fw5" href="https://github.com/hotosm/tasking-manager">
-                      GitHub
-                    </a>
-                  ),
-                }}
-              />
-            </p>
-          </div>
+          <img className="mw3 mr2" src={osiStandardLogo} alt="OSI aproved license" />
         </div>
       </div>
     </div>
