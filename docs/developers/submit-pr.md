@@ -37,7 +37,7 @@ production server.
 * Are changes made to the frontend? Walk through them logged in and
   logged out (if possible).
 * Are changes made to the API? Check you can poll it at
-  `http://localhost:5000/api-docs` if you have Tasking Manager running
+  `http://localhost:8000/api-docs` if you have Tasking Manager running
   in a docker container.
 * Do changes touch messaging? Try logging in with two separate
   accounts in two browsers (e.g. one open with private browsing) and

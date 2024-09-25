@@ -58,7 +58,7 @@ LABEL org.hotosm.tasks.app-version="${APP_VERSION}" \
       org.hotosm.tasks.python-img-tag="${PYTHON_IMG_TAG}" \
       org.hotosm.tasks.dockerfile-version="${DOCKERFILE_VERSION}" \
       org.hotosm.tasks.maintainer="${MAINTAINER}" \
-      org.hotosm.tasks.api-port="5000"
+      org.hotosm.tasks.api-port="8000"
 # Fix timezone (do not change - see issue #3638)
 ENV TZ UTC
 # Add non-root user, permissions, init log dir
@@ -147,7 +147,7 @@ RUN apt-get update && \
 # Pre-compile packages to .pyc (init speed gains)
 RUN python -c "import compileall; compileall.compile_path(maxlevels=10, quiet=1)"
 RUN python -m compileall .
-EXPOSE 5000/tcp
+EXPOSE 8000/tcp
 USER appuser:appuser
 CMD ["gunicorn", "-c", "python:backend.gunicorn", "manage:application", \
     "--workers", "1", "--log-level", "error"]

@@ -140,7 +140,7 @@ docker compose up -d
 If you are looking to deploy only Frontend service with docker, You will need to make sure the following env vars are corrent in `tasking-manager.env`
 
 ```
-TM_APP_API_URL=http://127.0.0.1:5000
+TM_APP_API_URL=http://127.0.0.1:8000
 ```
 This refers to the backend service that you are going to consume, If you don't have a Tasking Manager backend instance you can use the staging server hosted by hotosm.
 ```
@@ -361,7 +361,7 @@ pdm run flask run --debug --reload
 ```
 
 You can access the API documentation on
-[http://localhost:5000/api-docs](http://localhost:5000/api-docs), it
+[http://localhost:8000/api-docs](http://localhost:8000/api-docs), it
 also allows you to execute requests on your local TM instance. The API
 docs is also available on our
 [production](https://tasks.hotosm.org/api-docs) and
