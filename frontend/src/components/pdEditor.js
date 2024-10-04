@@ -92,7 +92,7 @@ export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl
         url: PD_SERVER_URL,
         client_id: PD_CLIENT_ID,
         client_secret: PD_CLIENT_SECRET,
-        redirect_uri: BASE_URL + '/static/id/land.html',
+        //redirect_uri: BASE_URL + '/static/id/land.html',
       });
 
       const thereAreChanges = (changes) =>
