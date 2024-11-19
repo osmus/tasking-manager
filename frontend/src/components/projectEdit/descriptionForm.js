@@ -41,18 +41,20 @@ export const DescriptionForm = ({ languages }) => {
               disabled
               value={option.value}
               checked={option.value === (projectInfo.database === '' ? 'OSM' : 'PDMAP')}
-              onChange={() =>
-                setProjectInfo({
-                  ...projectInfo,
-                  database: option.value,
-                })
-              }
               type="radio"
-              className={`radio-input input-reset pointer v-mid dib h2 w2 mr2 br-100 ba b--blue-light`}
+              className={`radio-input input-reset v-mid dib h2 w2 mr2 br-100 ba b--blue-light`}
             />
             <MapDatabaseMessage db={option.label} />
           </label>
         ))}
+        {projectInfo.database !== '' ?
+          <input
+            disabled
+            value={projectInfo.database + '.boxes.osmsandbox.us'}
+            type="text"
+            className="w-50 pa2 mt3 db mb2 ba b--grey-light"
+          />
+        : ''}
         <p className="pt2">
           <FormattedMessage {...messages.databaseInfo} />
         </p>
