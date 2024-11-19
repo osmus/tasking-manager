@@ -3,9 +3,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as iD from '@osm-sandbox/public-domain-id';
 import '@osm-sandbox/public-domain-id/dist/iD.css';
 
-import { PD_CLIENT_ID, PD_CLIENT_SECRET, PD_SERVER_URL, BASE_URL } from '../config';
+import { PD_CLIENT_ID, PD_CLIENT_SECRET, BASE_URL } from '../config';
 
-export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl }) {
+export default function PDEditor({ setDisable, comment, presets, imagery, apiUrl, gpxUrl }) {
 
   const dispatch = useDispatch();
   const session = useSelector((state) => state.auth.session);
@@ -89,7 +89,7 @@ export default function PDEditor({ setDisable, comment, presets, imagery, gpxUrl
       }
 
       iDContext.connection().switch({
-        url: PD_SERVER_URL,
+        url: apiUrl,
         client_id: PD_CLIENT_ID,
         client_secret: PD_CLIENT_SECRET,
         //redirect_uri: BASE_URL + '/static/id/land.html',

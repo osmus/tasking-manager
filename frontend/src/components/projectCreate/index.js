@@ -207,6 +207,10 @@ const ProjectCreate = () => {
           throw new Error('Project name validation error.');
         }
       }
+      if (metadata.database === 'PDMAP') {
+        setErr({ error: true, message: intl.formatMessage(messages.noBox) });
+        throw new Error('Missing database.');
+      }
       if (!metadata.geom) {
         setErr({ error: true, message: intl.formatMessage(messages.noGeometry) });
         throw new Error('Missing geom.');
@@ -221,7 +225,7 @@ const ProjectCreate = () => {
         areaOfInterest: truncate(metadata.geom, { precision: 6 }),
         projectName: metadata.projectName,
         organisation: metadata.organisation || cloneProjectData.organisation,
-        database: metadata.database,
+        database: metadata.database === 'OSM' ? '' : metadata.database,
         tasks: truncate(metadata.taskGrid, { precision: 6 }),
         arbitraryTasks: metadata.arbitraryTasks,
       };

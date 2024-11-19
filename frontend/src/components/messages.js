@@ -12,6 +12,10 @@ export default defineMessages({
     id: 'formInputs.organisation.select',
     defaultMessage: 'Select organization',
   },
+  selectBox: {
+    id: 'formInputs.box.select',
+    defaultMessage: 'Select box…',
+  },
   country: {
     id: 'formInputs.country.select',
     defaultMessage: 'Country',

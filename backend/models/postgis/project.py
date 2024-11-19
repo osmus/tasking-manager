@@ -38,7 +38,6 @@ from backend.models.postgis.priority_area import PriorityArea, project_priority_
 from backend.models.postgis.project_info import ProjectInfo
 from backend.models.postgis.project_chat import ProjectChat
 from backend.models.postgis.statuses import (
-    ProjectDatabase,
     ProjectStatus,
     ProjectPriority,
     TaskStatus,
@@ -121,7 +120,7 @@ class Project(db.Model):
 
     # Columns
     id = db.Column(db.Integer, primary_key=True)
-    database = db.Column(db.Integer, default=ProjectDatabase.OSM.value, nullable=False)
+    database = db.Column(db.String, nullable=False)
     status = db.Column(db.Integer, default=ProjectStatus.DRAFT.value, nullable=False)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     priority = db.Column(db.Integer, default=ProjectPriority.MEDIUM.value)
@@ -240,7 +239,7 @@ class Project(db.Model):
         self.organisation = draft_project_dto.organisation
 
         if draft_project_dto.database is not None:
-            self.database = ProjectDatabase[draft_project_dto.database].value
+            self.database = draft_project_dto.database
 
         self.status = ProjectStatus.DRAFT.value
         self.author_id = draft_project_dto.user_id
@@ -395,7 +394,7 @@ class Project(db.Model):
 
     def update(self, project_dto: ProjectDTO):
         """Updates project from DTO"""
-        self.database = ProjectDatabase[project_dto.database].value
+        self.database = project_dto.database
         self.status = ProjectStatus[project_dto.project_status].value
         self.priority = ProjectPriority[project_dto.project_priority].value
         locales = [i.locale for i in project_dto.project_info_locales]
@@ -871,7 +870,7 @@ class Project(db.Model):
         summary.random_task_selection_enforced = self.enforce_random_task_selection
         summary.private = self.private
         summary.license_id = self.license_id
-        summary.database = ProjectDatabase(self.database).name
+        summary.database = self.database
         summary.status = ProjectStatus(self.status).name
         summary.id_presets = self.id_presets
         summary.extra_id_params = self.extra_id_params
@@ -1005,7 +1004,7 @@ class Project(db.Model):
         """Populates a project DTO with properties common to all roles"""
         base_dto = ProjectDTO()
         base_dto.project_id = self.id
-        base_dto.database= ProjectDatabase(self.database).name
+        base_dto.database= self.database
         base_dto.project_status = ProjectStatus(self.status).name
         base_dto.default_locale = self.default_locale
         base_dto.project_priority = ProjectPriority(self.priority).name

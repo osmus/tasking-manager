@@ -40,7 +40,7 @@ export const DescriptionForm = ({ languages }) => {
             <input
               disabled
               value={option.value}
-              checked={projectInfo.database === option.value}
+              checked={option.value === (projectInfo.database === '' ? 'OSM' : 'PDMAP')}
               onChange={() =>
                 setProjectInfo({
                   ...projectInfo,

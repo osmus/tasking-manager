@@ -289,7 +289,7 @@ class ProjectsRestAPI(Resource):
                 properties:
                     projectDatabase:
                         type: string
-                        default: OSM
+                        default: 
                     projectStatus:
                         type: string
                         default: DRAFT

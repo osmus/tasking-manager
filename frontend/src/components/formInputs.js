@@ -93,6 +93,42 @@ export function OrganisationSelectInput({ className }) {
   );
 }
 
+export const SandboxBoxSelect = ({ className, boxId, onChange }) => {
+  const [boxes, setBoxes] = useState([]);
+
+  useEffect(() => {
+    fetch(`https://dashboard.osmsandbox.us/v1/boxes`)
+      .then(response => response.json())
+      .then(result => {
+        /*result.push({
+          name: "✦ New Box ✦"
+        });*/
+        setBoxes(result);
+      })
+      .catch(error => {
+        console.error('Error initializing session:', error);
+      });
+  });
+
+  const getBoxPlaceholder = (id) => {
+    const orgs = boxes.filter((org) => org.organisationId === id);
+    return orgs.length ? orgs[0].name : <FormattedMessage {...messages.selectBox} />;
+  };
+
+  return (
+    <Select
+      classNamePrefix="react-select"
+      isClearable={false}
+      getOptionLabel={(option) => option.name}
+      getOptionValue={(option) => option.name}
+      options={boxes}
+      placeholder={getBoxPlaceholder(boxId)}
+      onChange={onChange}
+      className={className}
+    />
+  );
+};
+
 export function UserCountrySelect({ className, isDisabled = false }: Object) {
   const locale = useSelector((state) => state.preferences.locale);
   const [options, setOptions] = useState([]);

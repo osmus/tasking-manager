@@ -12,21 +12,18 @@ import { BigProjectTeaser } from './bigProjectTeaser';
 import { useComputeCompleteness } from '../../hooks/UseProjectCompletenessCalc';
 
 const ProjectDatabaseInfo = (props) => {
-  //if (props.db === 'OSM') {
-    //<FormattedMessage {...messages.database} />
-    return (
-      <div className="cf">
-        <div className="w-50-ns w-70 fl">
-          <h3 className='db ttu f6 blue-light mb2'>
-            <FormattedMessage {...messages.database} />
-          </h3>
-          <div className="db fl pt1">
-            <a target="_blank" href={ props.db === 'PDMAP' ? 'https://publicdomainmap.org/' : 'https://www.openstreetmap.org/about'}><MapDatabaseMessage db={props.db} /></a>
-          </div>
+  return (
+    <div className="cf">
+      <div className="w-50-ns w-70 fl">
+        <h3 className='db ttu f6 blue-light mb2'>
+          <FormattedMessage {...messages.database} />
+        </h3>
+        <div className="db fl pt1">
+          <a target="_blank" href={ props.db === '' ? 'https://www.openstreetmap.org/about' : 'https://publicdomainmap.org/' }><MapDatabaseMessage db={props.db} /></a>
         </div>
       </div>
-    );
-  //}
+    </div>
+  );
 };
 
 const ProjectDetailTypeBar = (props) => {

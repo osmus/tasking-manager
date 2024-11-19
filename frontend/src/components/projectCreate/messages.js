@@ -143,6 +143,10 @@ export default defineMessages({
     id: 'management.projects.create.errors.project_name_validation_error',
     defaultMessage: 'Project name should start with an alphabet.',
   },
+  noBox: {
+    id: 'management.projects.create.errors.nobox',
+    defaultMessage: "You need to select the project's box.",
+  },
   noGeometry: {
     id: 'management.projects.create.errors.no_geometry',
     defaultMessage: "You need to define the project's area of interest.",

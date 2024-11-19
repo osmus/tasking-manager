@@ -15,7 +15,6 @@ from backend.models.dtos.stats_dto import Pagination
 from backend.models.dtos.team_dto import ProjectTeamDTO
 from backend.models.dtos.interests_dto import InterestDTO
 from backend.models.postgis.statuses import (
-    ProjectDatabase,
     ProjectStatus,
     ProjectPriority,
     MappingTypes,
@@ -26,22 +25,6 @@ from backend.models.postgis.statuses import (
     ProjectDifficulty,
 )
 from backend.models.dtos.campaign_dto import CampaignDTO
-
-def is_known_project_database(value):
-    """ Validates that Project Database is known value """
-    if value.upper() == "ALL":
-        return True
-        
-    if type(value) == list:
-        return  # Don't validate the entire list, just the individual values
-
-    try:
-        ProjectDatabase[value.upper()]
-    except KeyError:
-        raise ValidationError(
-            f"Unknown projectDatabase: {value} Valid values are {ProjectDatabase.OSM.name}, "
-            f"{ProjectDatabase.PDMAP.name}"
-        )
 
 
 def is_known_project_status(value):
@@ -160,7 +143,6 @@ class DraftProjectDTO(Model):
     database = StringType(
         required=True,
         serialized_name="database",
-        validators=[is_known_project_database],
         serialize_when_none=False,
     )
     area_of_interest = BaseType(required=True, serialized_name="areaOfInterest")
@@ -197,7 +179,6 @@ class ProjectDTO(Model):
     database = StringType(
         required=True,
         serialized_name="database",
-        validators=[is_known_project_database],
         serialize_when_none=False,
     )
     project_status = StringType(
@@ -332,7 +313,7 @@ class ProjectSearchDTO(Model):
 
     preferred_locale = StringType(default="en")
     difficulty = StringType(validators=[is_known_project_difficulty])
-    database = StringType(validators=[is_known_project_database])
+    database = StringType()
     action = StringType()
     mapping_types = ListType(StringType, validators=[is_known_mapping_type])
     mapping_types_exact = BooleanType(required=False)

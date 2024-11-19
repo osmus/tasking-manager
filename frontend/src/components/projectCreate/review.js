@@ -5,7 +5,10 @@ import messages from './messages';
 import { MapDatabaseMessage } from '../mapDatabase';
 import { Alert } from '../alert';
 
-import { OrganisationSelect } from '../formInputs';
+import {
+  OrganisationSelect,
+  SandboxBoxSelect,
+} from '../formInputs';
 
 export default function Review({ metadata, updateMetadata, selectedOrgObj, updateSelectedOrgObj, token, projectId, cloneProjectData }) {
   const [error, setError] = useState(null);
@@ -76,7 +79,7 @@ export default function Review({ metadata, updateMetadata, selectedOrgObj, updat
               <input
                 disabled={selectedOrgObj.databases.length < 2}
                 value={option.value}
-                checked={metadata.database === option.value}
+                checked={option.value === (metadata.database === 'OSM' ? 'OSM' : 'PDMAP')}
                 onChange={() =>
                   updateMetadata({
                     ...metadata,
@@ -91,6 +94,19 @@ export default function Review({ metadata, updateMetadata, selectedOrgObj, updat
           ))}
         </>
       ) : null}
+
+      {metadata.database !== "OSM" ? (
+        <SandboxBoxSelect
+          boxId={metadata.database}
+          onChange={(option) => {
+            setError(null);
+            var updatedMeta = { ...metadata, database: option.name || '' };
+            updateMetadata(updatedMeta);
+          }}
+          className="z-5 w-75 pt3"
+        />
+      ) : null}
+
       {selectedOrgObj.databases && selectedOrgObj.databases.length === 1 ? (
         <p className="pt2">
           <FormattedMessage {...messages[`limitedOrgDatabases${selectedOrgObj.databases[0]}`]} />

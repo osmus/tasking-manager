@@ -91,7 +91,7 @@ export function ProjectCard({
     <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative blue-dark db-${database}`}
+      className={`relative blue-dark db-${database === '' ? 'OSM' : 'PDMAP'}`}
     >
       <Link className="no-underline color-inherit" to={`/projects/${projectId}`}>
         <div
@@ -122,7 +122,7 @@ export function ProjectCard({
               <div className="pt2 truncate flex justify-between items-center">
                 <div className="f6 blue-grey">#{projectId}</div>
                 <span>
-                  <img src={database === 'OSM' ? ("/osm-logo-mono.svg") : ("/pdmap-logo-mono.svg")} className="h1 v-mid mr1"/>
+                  <img src={database === '' ? ("/osm-logo-mono.svg") : ("/pdmap-logo-mono.svg")} className="h1 v-mid mr1"/>
                   <MapDatabaseMessage
                     db={database}
                     className="blue-grey db-label f6 ttc fw5 truncate"
