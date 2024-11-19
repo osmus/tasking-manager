@@ -15,7 +15,7 @@ Depending on how you use the Services and its features, we or third parties work
 We may collect this information when you: 
 
 * Use OSMUS Tasking Manager websites or applications;
-* Import OpenStreetsMap content to OSMUS Services;
+* Import OpenStreetMap content to OSMUS Services;
 * Register an account with us;
 * Create a profile;
 * Contact us through the website or email; 
