@@ -92,7 +92,7 @@ export default function PDEditor({ setDisable, comment, presets, imagery, apiUrl
         url: apiUrl,
         client_id: PD_CLIENT_ID,
         client_secret: PD_CLIENT_SECRET,
-        //redirect_uri: BASE_URL + '/static/id/land.html',
+        redirect_uri_base: BASE_URL + '/static/pdeditor/',
       });
 
       const thereAreChanges = (changes) =>
