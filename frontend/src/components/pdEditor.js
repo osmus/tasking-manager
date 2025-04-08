@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import * as iD from '@osm-sandbox/public-domain-id';
-import '@osm-sandbox/public-domain-id/dist/iD.css';
+import * as iD from '@osm-sandbox/sandbox-id';
+import '@osm-sandbox/sandbox-id/dist/iD.css';
 
 import { PD_CLIENT_ID, PD_CLIENT_SECRET, BASE_URL } from '../config';
 
