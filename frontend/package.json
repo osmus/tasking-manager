@@ -10,7 +10,7 @@
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@mapbox/mapbox-gl-geocoder": "^5.0.2",
     "@mapbox/mapbox-gl-language": "^0.10.1",
-    "@osm-sandbox/public-domain-id": "file:pd-editor",
+    "@osm-sandbox/sandbox-id": "file:sandbox-id",
     "@placemarkio/geo-viewport": "^1.0.2",
     "@rapideditor/rapid": "^2.3.1",
     "@sentry/react": "^7.102.0",
