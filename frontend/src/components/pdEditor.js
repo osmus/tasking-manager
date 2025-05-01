@@ -73,7 +73,7 @@ export default function PDEditor({ setDisable, comment, presets, imagery, apiUrl
       // setup the context
       iDContext
         .embed(true)
-        .assetPath('/static/pdeditor/')
+        .assetPath('/static/sandbox-id/')
         .locale(locale)
         .setsDocumentTitle(false)
         .containerNode(document.getElementById('id-container'));
@@ -92,7 +92,7 @@ export default function PDEditor({ setDisable, comment, presets, imagery, apiUrl
         url: apiUrl,
         client_id: PD_CLIENT_ID,
         client_secret: PD_CLIENT_SECRET,
-        redirect_uri_base: BASE_URL + '/static/pdeditor/',
+        redirect_uri_base: BASE_URL + '/static/sandbox-id/',
       });
 
       const thereAreChanges = (changes) =>

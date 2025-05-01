@@ -81,8 +81,8 @@
   },
   "scripts": {
     "build-locales": "combine-messages -i './src/**/messages.js' -o './src/locales/en.json'",
-    "copy-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/pdeditor; if ! (test -a public/static/id/index.js); then cp -R node_modules/@hotosm/id/dist/* public/static/id; fi; if ! (test -a public/static/rapid/rapid.js); then cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; fi; if ! (test -a public/static/pdeditor/index.js); then cp -R node_modules/@osm-sandbox/sandbox-id/dist/* public/static/pdeditor; fi\"",
-    "update-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/pdeditor; cp -R node_modules/@hotosm/id/dist/* public/static/id; cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; cp -R node_modules/@osm-sandbox/sandbox-id/dist/* public/static/pdeditor;\"",
+    "copy-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/sandbox-id; if ! (test -a public/static/id/index.js); then cp -R node_modules/@hotosm/id/dist/* public/static/id; fi; if ! (test -a public/static/rapid/rapid.js); then cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; fi; if ! (test -a public/static/sandbox-id/index.js); then cp -R node_modules/@osm-sandbox/sandbox-id/dist/* public/static/sandbox-id; fi\"",
+    "update-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/sandbox-id; cp -R node_modules/@hotosm/id/dist/* public/static/id; cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; cp -R node_modules/@osm-sandbox/sandbox-id/dist/* public/static/sandbox-id;\"",
     "patch-id": "bash -c \"cp patch/imagery.min.json public/static/id/data\"",
     "patch-rapid": "bash -c \"cp patch/rapid-imagery.min.json public/static/rapid/data/imagery.min.json\"",
     "preparation": "bash -c \"if (test -a ../tasking-manager.env); then grep -hs ^ ../tasking-manager.env .env.expand > .env; else cp .env.expand .env; fi\"",
