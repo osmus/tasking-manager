@@ -1,3 +1,6 @@
 [submodule "frontend/sandbox-id"]
 	path = frontend/sandbox-id
 	url = https://github.com/osm-sandbox/sandbox-id.git
+[submodule "frontend/sandbox-rapid"]
+	path = frontend/sandbox-rapid
+	url = https://github.com/osm-sandbox/sandbox-rapid.git
