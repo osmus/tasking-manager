@@ -1,7 +1,7 @@
 ARG DEBIAN_IMG_TAG=slim-bookworm
 ARG PYTHON_IMG_TAG=3.10
 
-FROM docker.io/python:${PYTHON_IMG_TAG}-${DEBIAN_IMG_TAG} as base
+FROM docker.io/python:${PYTHON_IMG_TAG}-${DEBIAN_IMG_TAG} AS base
 
 # Copy environment variables from Digital Ocean
 ARG ENABLE_PROXYFIX
@@ -60,14 +60,14 @@ LABEL org.hotosm.tasks.app-version="${APP_VERSION}" \
       org.hotosm.tasks.maintainer="${MAINTAINER}" \
       org.hotosm.tasks.api-port="8000"
 # Fix timezone (do not change - see issue #3638)
-ENV TZ UTC
+ENV TZ=UTC
 # Add non-root user, permissions, init log dir
 RUN useradd --uid 9000 --create-home --home /home/appuser --shell /bin/false appuser
 
 
 
 
-FROM base as extract-deps
+FROM base AS extract-deps
 RUN pip install --no-cache-dir --upgrade pip
 WORKDIR /opt/python
 COPY pyproject.toml pdm.lock README.md /opt/python/
@@ -77,7 +77,7 @@ RUN pdm export --without-hashes > requirements.txt
 
 
 
-FROM base as build
+FROM base AS build
 RUN pip install --no-cache-dir --upgrade pip
 WORKDIR /opt/python
 # Setup backend build-time dependencies
@@ -97,11 +97,11 @@ RUN pip install --user --no-warn-script-location \
 
 
 # run migrations every time
-FROM base as migrations
+FROM base AS migrations
 CMD ["python", "manage.py", "db", "upgrade"]
 
 
-FROM base as runtime
+FROM base AS runtime
 ARG PYTHON_IMG_TAG
 WORKDIR /usr/src/app
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -128,7 +128,7 @@ COPY manage.py .
 
 
 
-FROM runtime as debug
+FROM runtime AS debug
 RUN pip install --user --no-warn-script-location \
     --no-cache-dir debugpy==1.6.7
 EXPOSE 5678/tcp
@@ -138,7 +138,7 @@ CMD ["python", "-m", "debugpy", "--wait-for-client", "--listen", "0.0.0.0:5678",
 
 
 
-FROM runtime as prod
+FROM runtime AS prod
 USER root
 RUN apt-get update && \
 	apt-get install -y curl && \
