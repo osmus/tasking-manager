@@ -91,7 +91,7 @@ export function ProjectCard({
     <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative blue-dark db-${database === '' ? 'OSM' : 'PDMAP'}`}
+      className={`relative blue-dark db-${database ? 'PDMAP' : 'OSM'}`}
     >
       <Link className="no-underline color-inherit" to={`/projects/${projectId}`}>
         <div

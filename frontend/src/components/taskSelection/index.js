@@ -243,7 +243,7 @@ export function TaskSelection({ project }: Object) {
       : randomTask;
 
   return (
-    <div className={`cf vh-minus-200-ns db-${project.database === '' ? 'OSM' : 'PDMAP'}`}>
+    <div className={`cf vh-minus-200-ns db-${project.database ? 'PDMAP' : 'OSM'}`}>
       <div className="cf vh-minus-200-ns">
         {!isUserTeamsLoading &&
           ['mappingIsComplete', 'selectAnotherProject'].includes(taskAction) && (
