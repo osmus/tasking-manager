@@ -119,7 +119,7 @@ export const SandboxBoxSelect = ({ className, boxId, onChange }) => {
     <Select
       classNamePrefix="react-select"
       isClearable={false}
-      getOptionLabel={(option) => option.name}
+      getOptionLabel={(option) => `${option.name} (${option.license})`}
       getOptionValue={(option) => option.name}
       options={boxes}
       placeholder={getBoxPlaceholder(boxId)}

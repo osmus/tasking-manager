@@ -38,7 +38,7 @@ import { usePriorityAreasQuery, useTaskDetail } from '../../api/projects';
 
 const Editor = lazy(() => import('../editor'));
 const RapiDEditor = lazy(() => import('../rapidEditor'));
-const PDEditor = lazy(() => import('../pdEditor'));
+const SandboxEditor = lazy(() => import('../sandboxEditor'));
 
 const MINUTES_BEFORE_DIALOG = 5;
 
@@ -241,12 +241,12 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
                     />
                   )
                 ) : (
-                  <PDEditor
+                  <SandboxEditor
                     setDisable={setDisable}
                     comment={project.changesetComment}
                     presets={project.idPresets}
                     imagery={formatImageryUrlCallback(project.imagery)}
-                    apiUrl={`https://api.${project.database}.boxes.osmsandbox.us`}
+                    database={project.database}
                     gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
                   />
                 )
