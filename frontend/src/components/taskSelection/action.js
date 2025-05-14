@@ -246,7 +246,7 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
                     comment={project.changesetComment}
                     presets={project.idPresets}
                     imagery={formatImageryUrlCallback(project.imagery)}
-                    database={project.database}
+                    sandboxId={project.database}
                     gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
                   />
                 )
