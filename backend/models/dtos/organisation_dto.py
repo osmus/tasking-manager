@@ -36,7 +36,7 @@ def is_known_database_type(value):
     except KeyError:
         raise ValidationError(
             f"Unknown database: {value} Valid values are {ProjectDatabase.OSM.name}, "
-            f"{ProjectDatabase.PDMAP.name}"
+            f"{ProjectDatabase.SANDBOX.name}"
         )
 
 

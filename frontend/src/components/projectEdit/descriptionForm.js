@@ -13,7 +13,7 @@ export const DescriptionForm = ({ languages }) => {
 
   const projectDatabaseOptions = [
     { value: 'OSM', label: 'OSM' },
-    { value: 'PDMAP', label: 'PDMAP' },
+    { value: 'SANDBOX', label: 'SANDBOX' },
   ];
 
   const projectStatusOptions = [
@@ -40,7 +40,7 @@ export const DescriptionForm = ({ languages }) => {
             <input
               disabled
               value={option.value}
-              checked={option.value === (projectInfo.database === '' ? 'OSM' : 'PDMAP')}
+              checked={option.value === (projectInfo.database === '' ? 'OSM' : 'SANDBOX')}
               type="radio"
               className={`radio-input input-reset v-mid dib h2 w2 mr2 br-100 ba b--blue-light`}
             />

@@ -273,7 +273,7 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
             )}
           </div>
           {showSidebar ? (
-            <div className={`w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white db-${project.database ? 'PDMAP' : 'OSM'}`}>
+            <div className={`w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white db-${project.database ? 'SANDBOX' : 'OSM'}`}>
               <ReactPlaceholder
                 showLoadingAnimation={true}
                 rows={3}

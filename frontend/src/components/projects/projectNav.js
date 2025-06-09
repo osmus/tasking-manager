@@ -97,7 +97,7 @@ const DatabaseDropdown = (props) => {
       options={[
         { label: <MapDatabaseMessage db="ALL" className="" />, value: 'ALL' },
         { label: <MapDatabaseMessage db="OSM" className="" />, value: 'OSM' },
-        { label: <MapDatabaseMessage db="PDMAP" className="" />, value: 'PDMAP' },
+        { label: <MapDatabaseMessage db="SANDBOX" className="" />, value: 'SANDBOX' },
       ]}
       display={<FormattedMessage {...messages.database} />}
       className={'ba b--tan bg-white mr3 f6 v-mid dn dib-ns pv2 br1 pl3 fw5 blue-dark'}

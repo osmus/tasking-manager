@@ -71,9 +71,9 @@ export default defineMessages({
     id: 'project.formInputs.database.options.osm',
     defaultMessage: 'OpenStreetMap',
   },
-  databasePDMAP: {
-    id: 'project.formInputs.database.options.pdmap',
-    defaultMessage: 'Public Domain Map',
+  databaseSANDBOX: {
+    id: 'project.formInputs.database.options.sandbox',
+    defaultMessage: 'Sandbox',
   },
   difficultyALL: {
     id: 'mapping.difficulty.all',

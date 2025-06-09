@@ -1,4 +1,4 @@
-"""add databases (OSM vs. PDMAP) column to orgs table
+"""add databases (OSM vs. SANDBOX) column to orgs table
 
 Revision ID: osmus2
 Revises: osmus1

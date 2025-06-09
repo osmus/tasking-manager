@@ -5,7 +5,7 @@ This is the [OpenStreetMap US](https://openstreetmap.us) (OSM US) fork of [hotos
 * https://tasks.openstreetmap.us
 * https://tasks.teachosm.org
 
-This fork incorporates a number of changes to better serve mapping efforts in the United States (though it's also open to the global community). Notably, OSM Sandbox and Public Domain Map projects are integrated alongside OpenStreetMap projects, allowing mappers to browse and contribute to government mapping campaigns. Public Domain Map contributions are subject to the license specified at [publicdomainmap.org/license](https://publicdomainmap.org/license/).
+This fork incorporates a number of changes to better serve mapping efforts in the United States (though it's also open to the global community). Notably, OSM Sandbox projects are integrated alongside OpenStreetMap projects, allowing mappers to browse and contribute to government mapping campaigns. Public Domain Map contributions are subject to the license specified at [publicdomainmap.org/license](https://publicdomainmap.org/license/).
 
 The original Tasking Manager is a project of the [Humanitarian OpenStreetMap Team](https://www.hotosm.org) and is Free and Open Source Software.
 

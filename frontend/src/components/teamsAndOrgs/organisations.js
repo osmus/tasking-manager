@@ -331,7 +331,7 @@ export function OrgInformation({ hasSlug, formState }) {
               <Field name="databases" className={fieldClasses}>
                 {(props) => (
                   <>
-                    {['OSM', 'PDMAP'].map((opt) => (
+                    {['OSM', 'SANDBOX'].map((opt) => (
                       <div className="pr3" aria-label="databases" key={opt}>
                         <div className="ph0 pt1 fl" aria-labelledby={opt}>
                           <CheckBox

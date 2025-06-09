@@ -57,12 +57,12 @@ export default defineMessages({
     defaultMessage: 'Database',
   },
   limitedOrgDatabasesOSM: {
-    id: 'management.projects.create.limited_org_databasesOSM',
-    defaultMessage: 'This organization is limited to OpenStreetMap. Contact info@publicdomainmap.org for greater access.',
+    id: 'management.projects.create.limited_org_databases.osm',
+    defaultMessage: 'This organization is limited to OpenStreetMap projects. Contact team@openstreetmap.us for greater access.',
   },
-  limitedOrgDatabasesPDMAP: {
-    id: 'management.projects.create.limited_org_databasesPDMAP',
-    defaultMessage: 'This organization is limited to Public Domain Map. Contact info@publicdomainmap.org for greater access.',
+  limitedOrgDatabasesSANDBOX: {
+    id: 'management.projects.create.limited_org_databases.sandbox',
+    defaultMessage: 'This organization is limited to Sandbox projects. Contact team@openstreetmap.us for greater access.',
   },
   creationFailed: {
     id: 'management.projects.create.review_tasks.failure.message',

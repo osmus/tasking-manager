@@ -298,7 +298,7 @@ export const ProjectDetailPage = () => {
   }
   return (
     <ProjectDetail
-      className={`db-${project.data.database ? 'PDMAP' : 'OSM'}`}
+      className={`db-${project.data.database ? 'SANDBOX' : 'OSM'}`}
       project={project.data}
       projectLoading={false}
       tasksError={false}

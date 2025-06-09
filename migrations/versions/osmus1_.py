@@ -1,4 +1,4 @@
-"""add database (OSM vs. PDMAP) column to projects table
+"""add database (OSM vs. SANDBOX) column to projects table
 
 Revision ID: osmus1
 Revises: a9cbd2c6c213

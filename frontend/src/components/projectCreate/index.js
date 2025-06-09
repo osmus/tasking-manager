@@ -207,7 +207,7 @@ const ProjectCreate = () => {
           throw new Error('Project name validation error.');
         }
       }
-      if (metadata.database === 'PDMAP') {
+      if (metadata.database === 'SANDBOX') {
         setErr({ error: true, message: intl.formatMessage(messages.noBox) });
         throw new Error('Missing database.');
       }

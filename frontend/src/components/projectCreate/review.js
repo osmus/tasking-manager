@@ -15,7 +15,7 @@ export default function Review({ metadata, updateMetadata, selectedOrgObj, updat
 
   const projectDatabaseOptions = [
     { value: 'OSM', label: 'OSM' },
-    { value: 'PDMAP', label: 'PDMAP' },
+    { value: 'SANDBOX', label: 'SANDBOX' },
   ];
 
   const setProjectName = (event) => {
@@ -60,8 +60,8 @@ export default function Review({ metadata, updateMetadata, selectedOrgObj, updat
               setError(null);
               updateSelectedOrgObj(value);
               var updatedMeta = { ...metadata, organisation: value.organisationId || '' };
-              if (!value.databases.includes('OSM')) updatedMeta.database = 'PDMAP';
-              if (!value.databases.includes('PDMAP')) updatedMeta.database = 'OSM';
+              if (!value.databases.includes('OSM')) updatedMeta.database = 'SANDBOX';
+              if (!value.databases.includes('SANDBOX')) updatedMeta.database = 'OSM';
               updateMetadata(updatedMeta);
             }}
             className="z-5 w-75"
@@ -79,7 +79,7 @@ export default function Review({ metadata, updateMetadata, selectedOrgObj, updat
               <input
                 disabled={selectedOrgObj.databases.length < 2}
                 value={option.value}
-                checked={option.value === (metadata.database === 'OSM' ? 'OSM' : 'PDMAP')}
+                checked={option.value === (metadata.database === 'OSM' ? 'OSM' : 'SANDBOX')}
                 onChange={() =>
                   updateMetadata({
                     ...metadata,

@@ -17,7 +17,7 @@ $pdmap: #5451C5;
     }
 }
 
-.db-PDMAP {
+.db-SANDBOX {
     .project-card,
     .project-card-with-btn {
         border-top: 4px solid $pdmap;
@@ -36,10 +36,10 @@ $pdmap: #5451C5;
         background-color: $pdmap;
     }
 }
-.radio-input:checked[value="PDMAP"] {
+.radio-input:checked[value="SANDBOX"] {
     background-color: $pdmap;
 }
-[aria-labelledby="PDMAP"] {
+[aria-labelledby="SANDBOX"] {
     .b--red[role="checkbox"] {
         border-color: $pdmap;
     }
