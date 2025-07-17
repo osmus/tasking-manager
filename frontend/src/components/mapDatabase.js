@@ -5,6 +5,15 @@ import messages from './messages';
 
 export const MapDatabaseMessage = (props) => {
   const { db, ...otherProps } = props;
-  const message = <FormattedMessage {...messages[`database${db}`]} />;
-  return <span {...otherProps}>{message}</span>;
+
+  let message;
+  if (db === 'ALL') {
+    message = messages.databaseALL;
+  } else if (db === 'OSM' || db === '') {
+    message = messages.databaseOSM;
+  } else {
+    message = messages.databaseSANDBOX;
+  }
+
+  return <span {...otherProps}><FormattedMessage {...message}/></span>;
 };
