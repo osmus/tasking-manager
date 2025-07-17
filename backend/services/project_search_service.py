@@ -258,9 +258,12 @@ class ProjectSearchService:
                 Project.id.in_([project.id for project in projects_favorited])
             )
         if search_dto.database and search_dto.database.upper() != "ALL":
-            query = query.filter(
-                Project.database == search_dto.database
-            )
+            if search_dto.database == "OSM":
+                query = query.filter(Project.database == "")
+            elif search_dto.database == "SANDBOX":
+                query = query.filter(Project.database != "")
+            else:
+                query = query.filter(Project.database == search_dto.database)
         if search_dto.difficulty and search_dto.difficulty.upper() != "ALL":
             query = query.filter(
                 Project.difficulty == ProjectDifficulty[search_dto.difficulty].value

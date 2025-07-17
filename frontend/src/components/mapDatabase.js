@@ -5,7 +5,6 @@ import messages from './messages';
 
 export const MapDatabaseMessage = (props) => {
   const { db, ...otherProps } = props;
-  const id = ['OSM', ''].includes(db) ? 'OSM' : 'SANDBOX';
-  const message = <FormattedMessage {...messages[`database${id}`]} />;
+  const message = <FormattedMessage {...messages[`database${db}`]} />;
   return <span {...otherProps}>{message}</span>;
 };
