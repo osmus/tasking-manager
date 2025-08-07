@@ -1,5 +1,11 @@
 import { setItem, removeItem, getItem } from '../../utils/safe_storage';
 import { pushToLocalJSONAPI, fetchLocalJSONAPI } from '../../network/genericJSONRequest';
+import {
+  createSandboxSession,
+  getOSMAuthorizationUrl,
+  getSandboxToken,
+  isTokenValid,
+} from '../../utils/sandboxUtils';
 import { setLoader } from './loader';
 
 export const types = {
@@ -13,6 +19,10 @@ export const types = {
   SET_TOKEN: 'SET_TOKEN',
   SET_SESSION: 'SET_SESSION',
   CLEAR_SESSION: 'CLEAR_SESSION',
+  SET_SANDBOX_TOKEN: 'SET_SANDBOX_TOKEN',
+  CLEAR_SANDBOX_TOKEN: 'CLEAR_SANDBOX_TOKEN',
+  SET_SANDBOX_AUTH_ERROR: 'SET_SANDBOX_AUTH_ERROR',
+  CLEAR_SANDBOX_AUTH_ERROR: 'CLEAR_SANDBOX_AUTH_ERROR',
 };
 
 export function clearUserDetails() {
@@ -44,6 +54,14 @@ export const logout = () => (dispatch) => {
   removeItem('action');
   removeItem('osm_oauth_token');
   removeItem('tasksSortOrder');
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('sandbox_token_')) {
+      keys.push(key);
+    }
+  }
+  keys.forEach((key) => removeItem(key));
   dispatch(clearUserDetails());
 };
 
@@ -155,3 +173,101 @@ export const pushUserDetails =
       dispatch(setUserDetails(getItem('username'), token, update)),
     );
   };
+
+// Sandbox token management actions
+export function setSandboxToken(sandbox, tokenData) {
+  return { type: types.SET_SANDBOX_TOKEN, sandbox, tokenData };
+}
+
+export function clearSandboxToken(sandbox) {
+  return { type: types.CLEAR_SANDBOX_TOKEN, sandbox };
+}
+
+export function setSandboxAuthError(error) {
+  return { type: types.SET_SANDBOX_AUTH_ERROR, error };
+}
+
+// Helper for consistent error handling
+const handleSandboxAuthError = (dispatch, error, showLoader = true) => {
+  dispatch(setSandboxAuthError(error.message ?? 'Something went wrong'));
+  if (showLoader) {
+    dispatch(setLoader(false));
+  }
+};
+
+/**
+ * Initiate sandbox authentication flow
+ */
+export const initiateSandboxAuth = (sandbox, callbackUrl) => async (dispatch) => {
+  try {
+    dispatch(setLoader(true));
+
+    const session = await createSandboxSession(sandbox, callbackUrl);
+    const authUrl = getOSMAuthorizationUrl(session.id);
+    window.location.href = authUrl;
+
+    return session.id;
+  } catch (error) {
+    handleSandboxAuthError(dispatch, error);
+    return null;
+  }
+};
+
+/**
+ * Complete sandbox authentication by retrieving the token
+ */
+export const completeSandboxAuth = (sessionId, sandbox) => async (dispatch) => {
+  try {
+    dispatch(setLoader(true));
+
+    const tokenData = await getSandboxToken(sessionId);
+
+    if (!tokenData.access_token) {
+      throw new Error('No access token in response');
+    }
+
+    // Store token in localStorage and Redux
+    const storageKey = `sandbox_token_${sandbox}`;
+    const tokenWithExpiry = {
+      ...tokenData,
+      expires_at: Date.now() + tokenData.expires_in * 1000,
+    };
+
+    setItem(storageKey, JSON.stringify(tokenWithExpiry));
+    dispatch(setSandboxToken(sandbox, tokenWithExpiry));
+    dispatch(setLoader(false));
+
+    return tokenWithExpiry;
+  } catch (error) {
+    handleSandboxAuthError(dispatch, error);
+    throw error;
+  }
+};
+
+/**
+ * Get existing sandbox token from storage or initiate auth if needed
+ */
+export const getSandboxAuthToken = (sandbox, callbackUrl) => async (dispatch) => {
+  const storageKey = `sandbox_token_${sandbox}`;
+  const storedToken = getItem(storageKey);
+
+  if (storedToken) {
+    try {
+      const tokenData = JSON.parse(storedToken);
+
+      if (isTokenValid(tokenData)) {
+        dispatch(setSandboxToken(sandbox, tokenData));
+        return tokenData;
+      } else {
+        // Token expired, remove it
+        removeItem(storageKey);
+        dispatch(clearSandboxToken(sandbox));
+      }
+    } catch (error) {
+      removeItem(storageKey);
+    }
+  }
+
+  // No valid token found, initiate auth
+  return dispatch(initiateSandboxAuth(sandbox, callbackUrl));
+};

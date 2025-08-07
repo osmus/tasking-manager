@@ -7,6 +7,8 @@ const initialState = {
   osm: {},
   organisations: [],
   pmTeams: [],
+  sandboxTokens: {}, // { sandbox_name: tokenData }
+  sandboxAuthError: null,
 };
 
 export function authorizationReducer(state = initialState, action) {
@@ -31,6 +33,23 @@ export function authorizationReducer(state = initialState, action) {
     }
     case types.CLEAR_SESSION: {
       return initialState;
+    }
+    case types.SET_SANDBOX_TOKEN: {
+      return {
+        ...state,
+        sandboxTokens: { ...state.sandboxTokens, [action.sandbox]: action.tokenData },
+        sandboxAuthError: null,
+      };
+    }
+    case types.CLEAR_SANDBOX_TOKEN: {
+      const { [action.sandbox]: removed, ...remainingTokens } = state.sandboxTokens;
+      return { ...state, sandboxTokens: remainingTokens };
+    }
+    case types.SET_SANDBOX_AUTH_ERROR: {
+      return { ...state, sandboxAuthError: action.error };
+    }
+    case types.CLEAR_SANDBOX_AUTH_ERROR: {
+      return { ...state, sandboxAuthError: null };
     }
     default:
       return state;
