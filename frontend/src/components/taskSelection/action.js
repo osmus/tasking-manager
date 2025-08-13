@@ -39,6 +39,7 @@ import { usePriorityAreasQuery, useTaskDetail } from '../../api/projects';
 const Editor = lazy(() => import('../editor'));
 const RapiDEditor = lazy(() => import('../rapidEditor'));
 const SandboxEditor = lazy(() => import('../sandboxEditor'));
+const SandboxRapidEditor = lazy(() => import('../sandboxRapidEditor'));
 
 const MINUTES_BEFORE_DIALOG = 5;
 
@@ -241,14 +242,27 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
                     />
                   )
                 ) : (
-                  <SandboxEditor
-                    setDisable={setDisable}
-                    comment={project.changesetComment}
-                    presets={project.idPresets}
-                    imagery={formatImageryUrlCallback(project.imagery)}
-                    sandboxId={project.database}
-                    gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                  />
+                  editor === 'ID' ? (
+                    <SandboxEditor
+                      setDisable={setDisable}
+                      comment={project.changesetComment}
+                      presets={project.idPresets}
+                      imagery={formatImageryUrlCallback(project.imagery)}
+                      sandboxId={project.database}
+                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                    />
+                  ) : (
+                    <SandboxRapidEditor
+                      setDisable={setDisable}
+                      comment={project.changesetComment}
+                      presets={project.idPresets}
+                      imagery={formatImageryUrlCallback(project.imagery)}
+                      sandboxId={project.database}
+                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                      powerUser={project.rapidPowerUser}
+                      showSidebar={showSidebar}
+                    />
+                  )
                 )
               }
               </Suspense>

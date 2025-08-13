@@ -39,13 +39,6 @@ export default function SandboxEditor({ setDisable, comment, presets, imagery, s
   }, [customImageryIsSet, imagery, iDContext, customSource]);
 
   useEffect(() => {
-    return () => {
-      dispatch({ type: 'SET_VISIBILITY', isVisible: true });
-    };
-  }, []);
-
-  useEffect(() => {
-    dispatch({ type: 'SET_VISIBILITY', isVisible: false });
     if (iDContext === null) {
       // we need to keep iD context on redux store because iD works better if
       // the context is not restarted while running in the same browser session
@@ -142,7 +135,7 @@ export default function SandboxEditor({ setDisable, comment, presets, imagery, s
   // Show error message if authentication failed
   if (sandboxAuthError) {
     return (
-      <div className="w-100 vh-minus-77-ns flex items-center justify-center">
+      <div className="w-100 vh-minus-69-ns flex items-center justify-center">
         <div className="bg-washed-red pa4 br2 ma3">
           <h3 className="red mt0">Sandbox Connection Error</h3>
           <p className="mt2 mb3">
@@ -162,5 +155,5 @@ export default function SandboxEditor({ setDisable, comment, presets, imagery, s
     );
   }
 
-  return <div className="w-100 vh-minus-77-ns" id="id-container"></div>;
+  return <div className="w-100 vh-minus-69-ns" id="id-container"></div>;
 }
