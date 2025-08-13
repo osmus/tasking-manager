@@ -49,7 +49,7 @@ WORKDIR /usr/src/app/frontend
 COPY frontend .
 
 RUN npm install --legacy-peer-deps
-RUN npm run build
+RUN NODE_OPTIONS="--max-old-space-size=8192" npm run build
 
 FROM nginx:stable-alpine
 COPY --from=build /usr/src/app/frontend/build /usr/share/nginx/html
