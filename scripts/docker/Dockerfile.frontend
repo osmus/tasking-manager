@@ -47,7 +47,6 @@ ARG TZ
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
-COPY example.env tasking-manager.env ../
 
 RUN npm install --legacy-peer-deps
 RUN npm run build
