@@ -47,15 +47,9 @@ ARG TZ
 
 WORKDIR /usr/src/app/frontend
 COPY frontend .
-# create env file if it doesn't exist
-RUN touch tasking-manager.env
-COPY example.env tasking-manager.en[v] ../
+COPY example.env tasking-manager.env ../
 
-## SETUP
-RUN git config --global url.https://github.com/.insteadOf git@github.com: \
-    && yarn
-
-# SERVE
+RUN npm install --legacy-peer-deps
 RUN npm run build
 
 FROM nginx:stable-alpine
