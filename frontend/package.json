@@ -4,7 +4,7 @@
   "license": "BSD-2-Clause",
   "private": false,
   "dependencies": {
-    "@hotosm/id": "^2.21.1",
+    "@hotosm/id": "^2.34.0",
     "@hotosm/iso-countries-languages": "^1.1.2",
     "@hotosm/underpass-ui": "^0.0.4",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
@@ -82,7 +82,7 @@
   },
   "scripts": {
     "build-locales": "combine-messages -i './src/**/messages.js' -o './src/locales/en.json'",
-    "copy-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/sandbox-id; mkdir -p public/static/sandbox-rapid; if ! (test -a public/static/id/index.js); then cp -R node_modules/@hotosm/id/dist/* public/static/id; fi; if ! (test -a public/static/rapid/rapid.js); then cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; fi; if ! (test -a public/static/sandbox-id/iD.js); then cp -R sandbox-id/dist/* public/static/sandbox-id; fi; if ! (test -a public/static/sandbox-rapid/rapid.js); then cp -R sandbox-rapid/dist/* public/static/sandbox-rapid; fi\"",
+    "copy-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/sandbox-id; mkdir -p public/static/sandbox-rapid; if ! (test -a public/static/id/iD.js); then cp -R node_modules/@hotosm/id/dist/* public/static/id; fi; if ! (test -a public/static/rapid/rapid.js); then cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; fi; if ! (test -a public/static/sandbox-id/iD.js); then cp -R sandbox-id/dist/* public/static/sandbox-id; fi; if ! (test -a public/static/sandbox-rapid/rapid.js); then cp -R sandbox-rapid/dist/* public/static/sandbox-rapid; fi\"",
     "update-static": "bash -c \"mkdir -p public/static/id; mkdir -p public/static/rapid; mkdir -p public/static/sandbox-id; mkdir -p public/static/sandbox-rapid; cp -R node_modules/@hotosm/id/dist/* public/static/id; cp -R node_modules/@rapideditor/rapid/dist/* public/static/rapid; cp -R sandbox-id/dist/* public/static/sandbox-id; cp -R sandbox-rapid/dist/* public/static/sandbox-rapid;\"",
     "build-sandbox-editors": "npm run build-sandbox-id && npm run build-sandbox-rapid",
     "build-sandbox-id": "cd sandbox-id && npm install && npm run all",

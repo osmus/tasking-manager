@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useIntl } from 'react-intl';
 import { gpx } from '@tmcw/togeojson';
-import * as iD from '@hotosm/id';
-import '@hotosm/id/dist/iD.css';
 
 import { OSM_CLIENT_ID, OSM_CLIENT_SECRET, OSM_REDIRECT_URI, OSM_SERVER_URL } from '../config';
 import messages from './messages';
@@ -16,6 +14,7 @@ export default function Editor({ setDisable, comment, presets, imagery, gpxUrl }
   const locale = useSelector((state) => state.preferences.locale);
   const [customImageryIsSet, setCustomImageryIsSet] = useState(false);
   const windowInit = typeof window !== 'undefined';
+  const [iDLoaded, setIDLoaded] = useState(false);
   const customSource =
     iDContext && iDContext.background() && iDContext.background().findSource('custom');
 
@@ -35,15 +34,33 @@ export default function Editor({ setDisable, comment, presets, imagery, gpxUrl }
     }
   }, [customImageryIsSet, imagery, iDContext, customSource]);
 
+  // Load iD from static assets
   useEffect(() => {
-    if (windowInit) {
+    if (windowInit && !iDLoaded && !window.iD) {
+      const style = document.createElement('link');
+      style.setAttribute('type', 'text/css');
+      style.setAttribute('rel', 'stylesheet');
+      style.setAttribute('href', '/static/id/iD.css');
+      document.head.appendChild(style);
+      
+      const script = document.createElement('script');
+      script.src = '/static/id/iD.min.js';
+      script.onload = () => setIDLoaded(true);
+      document.body.appendChild(script);
+    } else if (window.iD) {
+      setIDLoaded(true);
+    }
+  }, [windowInit, iDLoaded]);
+
+  useEffect(() => {
+    if (windowInit && iDLoaded) {
       if (iDContext === null) {
         // we need to keep iD context on redux store because iD works better if
         // the context is not restarted while running in the same browser session
         dispatch({ type: 'SET_EDITOR', context: window.iD.coreContext() });
       }
     }
-  }, [windowInit, iDContext, dispatch]);
+  }, [windowInit, iDLoaded, iDContext, dispatch]);
 
   useEffect(() => {
     if (iDContext && comment) {
@@ -52,7 +69,7 @@ export default function Editor({ setDisable, comment, presets, imagery, gpxUrl }
   }, [comment, iDContext]);
 
   useEffect(() => {
-    if (session && locale && iD && iDContext) {
+    if (session && locale && iDLoaded && window.iD && iDContext) {
       // if presets is not a populated list we need to set it as null
       try {
         if (presets.length) {
@@ -115,7 +132,7 @@ export default function Editor({ setDisable, comment, presets, imagery, gpxUrl }
         }
       });
     }
-  }, [session, iDContext, setDisable, presets, locale, gpxUrl, intl]);
+  }, [session, iDLoaded, iDContext, setDisable, presets, locale, gpxUrl, intl]);
 
   return <div className="w-100 vh-minus-69-ns" id="id-container"></div>;
 }
