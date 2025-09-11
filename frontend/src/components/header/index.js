@@ -124,7 +124,7 @@ export const Header = () => {
             }}
           />
           <div className="wordmark barlow-condensed f4 ml2 blue-dark nowrap">
-            <span className="fw6">OpenStreetMap US</span>
+            <span className="fw6">{ORG_NAME}</span>
             <span className="">Tasking Manager</span>
           </div>
         </Link>
