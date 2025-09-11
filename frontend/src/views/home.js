@@ -14,20 +14,6 @@ export function Home() {
   return (
     <div className="pull-center">
       <Jumbotron />
-      <ErrorBoundary
-        fallback={
-          <div className="pt5 pb2 ph6-l ph4">
-            <Alert type="error">
-              <FormattedMessage {...homeMessages.statsLoadingError} />
-            </Alert>
-          </div>
-        }
-      >
-        <StatsSection />
-        <div class="cf w-100 relative tr pt3 pr3">
-          <StatsTimestamp messageType="generic" />
-        </div>
-      </ErrorBoundary>
       <MappingFlow />
       <WhoIsMapping />
       <Testimonials />
