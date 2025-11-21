@@ -35,7 +35,12 @@ function equalsUrlParameters(first, second) {
  */
 function updateUrl(hashParams) {
   const oldUrl = window.location.href;
-  const newUrl = window.location.pathname + window.location.search + "#" + hashParams.toString();
+  // URLSearchParams.toString() encodes spaces as '+', not '%20' (it's application/x-www-form-urlencoded).
+  // Rapid uses decodeURIComponent which does NOT convert '+' back to ' ' though. So to make roundtripping
+  // work as expected, we'll replace '+' with '%20' in the encodeded output. This is safe because literal
+  // plus characters will have been encoded to '%2B'.
+  const hashString = hashParams.toString().replace(/\+/g, '%20');
+  const newUrl = window.location.pathname + window.location.search + "#" + hashString;
   window.history.pushState(null, "", newUrl);
   window.dispatchEvent(
     new HashChangeEvent("hashchange", {
