@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 
 import {
   OSM_CLIENT_ID,
-  OSM_CLIENT_SECRET,
   OSM_REDIRECT_URI,
   OSM_SERVER_API_URL,
   OSM_SERVER_URL,
@@ -203,7 +202,6 @@ function RapidEditor({
           url: OSM_SERVER_URL,
           apiUrl: OSM_SERVER_API_URL,
           client_id: OSM_CLIENT_ID,
-          client_secret: OSM_CLIENT_SECRET,
           redirect_uri: OSM_REDIRECT_URI,
         },
       ];
@@ -284,7 +282,6 @@ function RapidEditor({
         url: OSM_SERVER_URL,
         apiUrl: OSM_SERVER_API_URL,
         client_id: OSM_CLIENT_ID,
-        client_secret: OSM_CLIENT_SECRET,
         redirect_uri: OSM_REDIRECT_URI,
         access_token: session.osm_oauth_token,
       };
