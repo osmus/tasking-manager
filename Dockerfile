@@ -147,4 +147,4 @@ RUN python -m compileall .
 EXPOSE 8000/tcp
 USER appuser:appuser
 CMD ["gunicorn", "-c", "python:backend.gunicorn", "manage:application", \
-    "--workers", "1", "--log-level", "error"]
+    "--workers", "1", "--access-logfile", "-", "--log-level", "warning"]
