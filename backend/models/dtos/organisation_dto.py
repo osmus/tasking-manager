@@ -10,10 +10,7 @@ from schematics.types import (
 )
 
 from backend.models.dtos.stats_dto import OrganizationStatsDTO
-from backend.models.postgis.statuses import (
-    OrganisationType,
-    ProjectDatabase
-)
+from backend.models.postgis.statuses import OrganisationType
 
 
 def is_known_organisation_type(value):
@@ -24,19 +21,6 @@ def is_known_organisation_type(value):
         raise ValidationError(
             f"Unknown organisationType: {value}. Valid values are {OrganisationType.FREE.name}, "
             f"{OrganisationType.DISCOUNTED.name}, {OrganisationType.FULL_FEE.name}"
-        )
-
-def is_known_database_type(value):
-    """ Validates database is known value"""
-    if type(value) == list:
-        return  # Don't validate the entire list, just the individual values
-
-    try:
-        ProjectDatabase[value.upper()]
-    except KeyError:
-        raise ValidationError(
-            f"Unknown database: {value} Valid values are {ProjectDatabase.OSM.name}, "
-            f"{ProjectDatabase.SANDBOX.name}"
         )
 
 
@@ -75,12 +59,6 @@ class OrganisationDTO(Model):
     stats = ModelType(OrganizationStatsDTO, serialize_when_none=False)
     type = StringType(validators=[is_known_organisation_type])
     subscription_tier = IntType(serialized_name="subscriptionTier")
-    databases = ListType(
-        StringType,
-        serialized_name="databases",
-        default=[],
-        validators=[is_known_database_type],
-    )
 
 
 class ListOrganisationsDTO(Model):
@@ -103,12 +81,6 @@ class NewOrganisationDTO(Model):
     url = StringType()
     type = StringType(default=OrganisationType.FREE.name, validators=[is_known_organisation_type])
     subscription_tier = IntType(serialized_name="subscriptionTier")
-    databases = ListType(
-        StringType,
-        serialized_name="databases",
-        default=[],
-        validators=[is_known_database_type],
-    )
 
 
 class UpdateOrganisationDTO(OrganisationDTO):
@@ -120,5 +92,3 @@ class UpdateOrganisationDTO(OrganisationDTO):
     description = StringType()
     url = StringType()
     type = StringType(validators=[is_known_organisation_type])
-    databases = ListType(StringType, validators=[is_known_database_type])
-

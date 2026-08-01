@@ -6,7 +6,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import messages from './messages';
 import { useExploreProjectsQueryParams, stringify } from '../../hooks/UseProjectsQueryAPI';
 import { DifficultyMessage } from '../mappingLevel';
-import { MapDatabaseMessage } from '../mapDatabase';
 import { Dropdown } from '../dropdown';
 import { ProjectSearchBox } from './projectSearchBox';
 import ClearFilters from './clearFilters';
@@ -79,32 +78,6 @@ const DifficultyDropdown = (props) => {
   );
 };
 
-const DatabaseDropdown = (props) => {
-  return (
-    <Dropdown
-      onChange={(n) => {
-        const value = n && n[0] && n[0].value;
-        props.setQuery(
-          {
-            ...props.fullProjectsQuery,
-            page: undefined,
-            database: value,
-          },
-          'pushIn',
-        );
-      }}
-      value={props.fullProjectsQuery.database || []}
-      options={[
-        { label: <MapDatabaseMessage db="ALL" className="" />, value: 'ALL' },
-        { label: <MapDatabaseMessage db="OSM" className="" />, value: 'OSM' },
-        { label: <MapDatabaseMessage db="SANDBOX" className="" />, value: 'SANDBOX' },
-      ]}
-      display={<FormattedMessage {...messages.database} />}
-      className={'ba b--tan bg-white mr3 f6 v-mid dn dib-ns pv2 br1 pl3 fw5 blue-dark'}
-    />
-  );
-};
-
 export const ProjectNav = (props) => {
   const location = useLocation();
   const [fullProjectsQuery, setQuery] = useExploreProjectsQueryParams();
@@ -146,9 +119,6 @@ export const ProjectNav = (props) => {
       <div className="mt2 mb1 ph3 dib lh-copy w-100 cf">
         <div className="w-80-l w-90-m w-100 fl dib">
           <div className="dib">
-          <div className="mv2 dib">
-              <DatabaseDropdown setQuery={setQuery} fullProjectsQuery={fullProjectsQuery} />
-            </div>
             <div className="mv2 dib">
               <DifficultyDropdown setQuery={setQuery} fullProjectsQuery={fullProjectsQuery} />
             </div>

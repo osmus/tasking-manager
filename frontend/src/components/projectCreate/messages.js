@@ -52,18 +52,6 @@ export default defineMessages({
     id: 'management.projects.create.review_tasks.organization',
     defaultMessage: 'Organization',
   },
-  database: {
-    id: 'management.projects.create.review_tasks',
-    defaultMessage: 'Database',
-  },
-  limitedOrgDatabasesOSM: {
-    id: 'management.projects.create.limited_org_databases.osm',
-    defaultMessage: 'This organization is limited to OpenStreetMap projects. Contact team@openstreetmap.us for greater access.',
-  },
-  limitedOrgDatabasesSANDBOX: {
-    id: 'management.projects.create.limited_org_databases.sandbox',
-    defaultMessage: 'This organization is limited to Sandbox projects. Contact team@openstreetmap.us for greater access.',
-  },
   creationFailed: {
     id: 'management.projects.create.review_tasks.failure.message',
     defaultMessage: 'It was not possible to save your project due to an error: {error}',
@@ -142,10 +130,6 @@ export default defineMessages({
   projectNameValidationError: {
     id: 'management.projects.create.errors.project_name_validation_error',
     defaultMessage: 'Project name should start with an alphabet.',
-  },
-  noBox: {
-    id: 'management.projects.create.errors.nobox',
-    defaultMessage: "You need to select the project's box.",
   },
   noGeometry: {
     id: 'management.projects.create.errors.no_geometry',

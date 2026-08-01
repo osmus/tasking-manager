@@ -14,6 +14,7 @@ import { Button } from '../button';
 import { Imagery } from './imagery';
 import { MappingTypes } from '../mappingTypes';
 import { LockedTaskModalContent } from './lockedTasks';
+import { isSandboxProject } from '../sandboxRetired';
 
 const TaskSelectionFooter = ({
   defaultUserEditor,
@@ -68,7 +69,8 @@ const TaskSelectionFooter = ({
     // if user can not map or validate the project, lead him to the explore projects page
     if (
       ['selectAnotherProject', 'mappingIsComplete', 'projectIsComplete'].includes(taskAction) ||
-      project.status === 'ARCHIVED'
+      project.status === 'ARCHIVED' ||
+      isSandboxProject(project)
     ) {
       navigate(`/explore/`);
       return;
@@ -143,14 +145,14 @@ const TaskSelectionFooter = ({
       project.mappingEditors &&
       (taskAction.startsWith('validate') || taskAction === 'resumeValidation')
     ) {
-      const validationEditorOptions = getEditors(project.database, project.validationEditors, project.customEditor);
+      const validationEditorOptions = getEditors(project.validationEditors, project.customEditor);
       setEditorOptions(validationEditorOptions);
       // activate defaultUserEditor if it's allowed. If not, use the first allowed editor for validation
       if (!project.validationEditors.includes(editor)) {
         updateEditor(validationEditorOptions);
       }
     } else {
-      const mappingEditorOptions = getEditors(project.database, project.mappingEditors, project.customEditor);
+      const mappingEditorOptions = getEditors(project.mappingEditors, project.customEditor);
       setEditorOptions(mappingEditorOptions);
       // activate defaultUserEditor if it's allowed. If not, use the first allowed editor
       if (!project.mappingEditors.includes(editor)) {
@@ -224,7 +226,9 @@ const TaskSelectionFooter = ({
           <Button className="white bg-red fw5" onClick={() => lockTasks()} loading={isPending}>
             {['selectAnotherProject', 'mappingIsComplete', 'projectIsComplete'].includes(
               taskAction,
-            ) || project.status === 'ARCHIVED' ? (
+            ) ||
+            project.status === 'ARCHIVED' ||
+            isSandboxProject(project) ? (
               <FormattedMessage {...messages.selectAnotherProject} />
             ) : (
               <FormattedMessage
