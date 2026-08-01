@@ -17,8 +17,7 @@ import { Button } from '../button';
 import { UserAvatarList } from '../user/avatar';
 import { nCardPlaceholders } from './organisationsPlaceholder';
 import { Alert } from '../alert';
-import { CheckBox, TextField } from '../formInputs';
-import { MapDatabaseMessage } from '../mapDatabase';
+import { TextField } from '../formInputs';
 
 export function OrgsManagement({
   organisations,
@@ -324,31 +323,6 @@ export function OrgInformation({ hasSlug, formState }) {
                 </Field>
               </div>
             )*/}
-            <div className="cf">
-              <label className={labelClasses}>
-                <FormattedMessage {...messages.databases} />
-              </label>
-              <Field name="databases" className={fieldClasses}>
-                {(props) => (
-                  <>
-                    {['OSM', 'SANDBOX'].map((opt) => (
-                      <div className="pr3" aria-label="databases" key={opt}>
-                        <div className="ph0 pt1 fl" aria-labelledby={opt}>
-                          <CheckBox
-                            activeItems={formState.databases}
-                            toggleFn={(value) => props.input.onChange(value)}
-                            itemId={opt}
-                          />
-                        </div>
-                        <span className="fl pt2 mr1 ph2" id={opt}>
-                          <MapDatabaseMessage db={opt} />
-                        </span>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </Field>
-            </div>
           </>
         )}
       <div className="cf">

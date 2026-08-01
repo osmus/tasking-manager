@@ -70,7 +70,6 @@ class ProjectSearchService:
         query = (
             db.session.query(
                 Project.id.label("id"),
-                Project.database,
                 Project.difficulty,
                 Project.priority,
                 Project.default_locale,
@@ -127,7 +126,6 @@ class ProjectSearchService:
         list_dto.locale = project_info_dto.locale
         list_dto.name = project_info_dto.name
         list_dto.priority = ProjectPriority(project.priority).name
-        list_dto.database = project.database
         list_dto.difficulty = ProjectDifficulty(project.difficulty).name
         list_dto.short_description = project_info_dto.short_description
         list_dto.last_updated = project.last_updated
@@ -257,13 +255,6 @@ class ProjectSearchService:
             query = query.filter(
                 Project.id.in_([project.id for project in projects_favorited])
             )
-        if search_dto.database and search_dto.database.upper() != "ALL":
-            if search_dto.database == "OSM":
-                query = query.filter(Project.database == "")
-            elif search_dto.database == "SANDBOX":
-                query = query.filter(Project.database != "")
-            else:
-                query = query.filter(Project.database == search_dto.database)
         if search_dto.difficulty and search_dto.difficulty.upper() != "ALL":
             query = query.filter(
                 Project.difficulty == ProjectDifficulty[search_dto.difficulty].value

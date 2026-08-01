@@ -20,6 +20,7 @@ import { SimilarProjects } from './similarProjects';
 import { PermissionBox } from './permissionBox';
 import { CustomButton } from '../button';
 import { ProjectInfoPanel } from './infoPanel';
+import { isSandboxProject, SandboxRetiredNotice } from '../sandboxRetired';
 import { OSMChaButton } from './osmchaButton';
 import { LiveViewButton } from './liveViewButton';
 import { useSetProjectPageTitleTag } from '../../hooks/UseMetaTags';
@@ -112,6 +113,11 @@ export const ProjectDetailLeft = ({ project, contributors, className, type }) =>
         ready={typeof project.projectId === 'number'}
       >
         <ProjectHeader project={project} showEditLink={true} />
+        {isSandboxProject(project) && (
+          <div className="pt3">
+            <SandboxRetiredNotice />
+          </div>
+        )}
         <section className="lh-title h5 overflow-y-auto mt3 mb3" style={{ flexGrow: 1 }}>
           <div
             className="pr2 blue-dark-abbey markdown-content"

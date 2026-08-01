@@ -11,7 +11,6 @@ import { PROJECTCARD_CONTRIBUTION_SHOWN_THRESHOLD } from '../../config/index';
 import { PriorityBox } from './priorityBox';
 import { DueDateBox } from './dueDateBox';
 import './styles.scss';
-import { MapDatabaseMessage } from '../mapDatabase';
 
 export function ProjectTeaser({
   lastUpdated,
@@ -59,7 +58,6 @@ export function ProjectCard({
   priority,
   status,
   difficulty,
-  database,
   campaignTag,
   percentMapped,
   percentValidated,
@@ -91,7 +89,7 @@ export function ProjectCard({
     <article
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative blue-dark db-${database ? 'SANDBOX' : 'OSM'}`}
+      className={`relative blue-dark`}
     >
       <Link className="no-underline color-inherit" to={`/projects/${projectId}`}>
         <div
@@ -119,16 +117,7 @@ export function ProjectCard({
               </div>
             </div>
             <div className="mt4 w-100">
-              <div className="pt2 truncate flex justify-between items-center">
-                <div className="f6 blue-grey">#{projectId}</div>
-                <span>
-                  <img src={database === '' ? ("/osm-logo-mono.svg") : ("/pdmap-logo-mono.svg")} className="h1 v-mid mr1"/>
-                  <MapDatabaseMessage
-                    db={database}
-                    className="blue-grey db-label f6 ttc fw5 truncate"
-                  />
-                </span>
-              </div>
+              <div className="f6 blue-grey">#{projectId}</div>
               <h3
                 title={name}
                 className="mt3 f125 fw7 lh-title overflow-y-hidden pr4 project-title"

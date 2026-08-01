@@ -21,7 +21,7 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
     setProjectInfo({ ...projectInfo, defaultLocale: event.target.value });
   };
 
-  const editors = getEditors(projectInfo.database);
+  const editors = getEditors();
   return (
     <div className="w-100">
       <div className={styleClasses.divClass}>
@@ -41,7 +41,6 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           ))}
         </select>
       </div>
-      <>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.mappingEditors} />
@@ -110,7 +109,6 @@ export const SettingsForm = ({ languages, defaultLocale }) => {
           </div>
         )}
       </div>
-      </>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.randomTaskSelection} />

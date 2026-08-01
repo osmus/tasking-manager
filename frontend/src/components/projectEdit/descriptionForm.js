@@ -4,17 +4,11 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { FormattedMessage } from 'react-intl';
 
 import messages from './messages';
-import { MapDatabaseMessage } from '../mapDatabase';
 import { StateContext, styleClasses } from '../../views/projectEdit';
 import { InputLocale } from './inputLocale';
 
 export const DescriptionForm = ({ languages }) => {
   const { projectInfo, setProjectInfo } = useContext(StateContext);
-
-  const projectDatabaseOptions = [
-    { value: 'OSM', label: 'OSM' },
-    { value: 'SANDBOX', label: 'SANDBOX' },
-  ];
 
   const projectStatusOptions = [
     { value: 'PUBLISHED', label: 'PUBLISHED' },
@@ -31,34 +25,6 @@ export const DescriptionForm = ({ languages }) => {
 
   return (
     <div className="w-100">
-      <div className={styleClasses.divClass}>
-        <label className={styleClasses.labelClass}>
-          <FormattedMessage {...messages.database} />
-        </label>
-        {projectDatabaseOptions.map((option) => (
-          <label className="dib pr5" key={option.value}>
-            <input
-              disabled
-              value={option.value}
-              checked={option.value === (projectInfo.database === '' ? 'OSM' : 'SANDBOX')}
-              type="radio"
-              className={`radio-input input-reset v-mid dib h2 w2 mr2 br-100 ba b--blue-light`}
-            />
-            <MapDatabaseMessage db={option.label} />
-          </label>
-        ))}
-        {projectInfo.database !== '' ?
-          <input
-            disabled
-            value={projectInfo.database + '.boxes.osmsandbox.us'}
-            type="text"
-            className="w-50 pa2 mt3 db mb2 ba b--grey-light"
-          />
-        : ''}
-        <p className="pt2">
-          <FormattedMessage {...messages.databaseInfo} />
-        </p>
-      </div>
       <div className={styleClasses.divClass}>
         <label className={styleClasses.labelClass}>
           <FormattedMessage {...messages.status} />

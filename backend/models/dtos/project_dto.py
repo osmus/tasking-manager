@@ -140,11 +140,6 @@ class DraftProjectDTO(Model):
     cloneFromProjectId = IntType(serialized_name="cloneFromProjectId")
     project_name = StringType(required=True, serialized_name="projectName")
     organisation = IntType(required=True)
-    database = StringType(
-        required=True,
-        serialized_name="database",
-        serialize_when_none=False,
-    )
     area_of_interest = BaseType(required=True, serialized_name="areaOfInterest")
     tasks = BaseType(required=False)
     has_arbitrary_tasks = BooleanType(required=True, serialized_name="arbitraryTasks")
@@ -176,11 +171,10 @@ class ProjectDTO(Model):
     """Describes JSON model for a tasking manager project"""
 
     project_id = IntType(serialized_name="projectId")
-    database = StringType(
-        required=True,
-        serialized_name="database",
-        serialize_when_none=False,
-    )
+    # FIXME: field is kept for now but is read-only (so legacy sandbox projects
+    # can be labeled as such in the UI). Once these projects are archived we
+    # can drop this column altogether.
+    database = StringType(serialized_name="database", serialize_when_none=False)
     project_status = StringType(
         required=True,
         serialized_name="status",
@@ -313,7 +307,6 @@ class ProjectSearchDTO(Model):
 
     preferred_locale = StringType(default="en")
     difficulty = StringType(validators=[is_known_project_difficulty])
-    database = StringType()
     action = StringType()
     mapping_types = ListType(StringType, validators=[is_known_mapping_type])
     mapping_types_exact = BooleanType(required=False)
@@ -370,7 +363,6 @@ class ProjectSearchDTO(Model):
         return hash(
             (
                 self.preferred_locale,
-                self.database,
                 self.difficulty,
                 hashable_mapping_types,
                 hashable_project_statuses,
@@ -400,7 +392,6 @@ class ListSearchResultDTO(Model):
     locale = StringType(required=True)
     name = StringType(default="")
     short_description = StringType(serialized_name="shortDescription", default="")
-    database = StringType(required=True, serialized_name="database")
     difficulty = StringType(required=True, serialized_name="difficulty")
     priority = StringType(required=True)
     organisation_name = StringType(serialized_name="organisationName")

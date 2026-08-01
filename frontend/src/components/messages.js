@@ -12,10 +12,6 @@ export default defineMessages({
     id: 'formInputs.organisation.select',
     defaultMessage: 'Select organization',
   },
-  selectBox: {
-    id: 'formInputs.box.select',
-    defaultMessage: 'Select box…',
-  },
   country: {
     id: 'formInputs.country.select',
     defaultMessage: 'Country',
@@ -58,22 +54,6 @@ export default defineMessages({
   mappingLevelBEGINNER: {
     id: 'mapping.level.beginner',
     defaultMessage: 'Beginner mapper',
-  },
-  database: {
-    id: 'projects.formInputs.database',
-    defaultMessage: 'Database',
-  },
-  databaseALL: {
-    id: 'project.formInputs.database.options.all',
-    defaultMessage: 'All',
-  },
-  databaseOSM: {
-    id: 'project.formInputs.database.options.osm',
-    defaultMessage: 'OpenStreetMap',
-  },
-  databaseSANDBOX: {
-    id: 'project.formInputs.database.options.sandbox',
-    defaultMessage: 'Sandbox',
   },
   difficultyALL: {
     id: 'mapping.difficulty.all',

@@ -35,11 +35,10 @@ import { LockedTaskModalContent } from './lockedTasks';
 import { SessionAboutToExpire, SessionExpired } from './extendSession';
 import { MappingTypes } from '../mappingTypes';
 import { usePriorityAreasQuery, useTaskDetail } from '../../api/projects';
+import { isSandboxProject, SandboxRetiredNotice } from '../sandboxRetired';
 
 const Editor = lazy(() => import('../editor'));
 const RapiDEditor = lazy(() => import('../rapidEditor'));
-const SandboxEditor = lazy(() => import('../sandboxEditor'));
-const SandboxRapidEditor = lazy(() => import('../sandboxRapidEditor'));
 
 const MINUTES_BEFORE_DIALOG = 5;
 
@@ -208,7 +207,11 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
       <Portal>
         <div className="cf w-100 vh-minus-69-ns overflow-y-hidden">
           <div className={`fl h-100 relative ${showSidebar ? 'w-70' : 'w-100-minus-4rem'}`}>
-            {['ID', 'RAPID'].includes(editor) ? (
+            {isSandboxProject(project) ? (
+              <div className="pa3">
+                <SandboxRetiredNotice />
+              </div>
+            ) : ['ID', 'RAPID'].includes(editor) ? (
               <Suspense
                 fallback={
                   <div className={`w7 h5 center`}>
@@ -221,50 +224,25 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
                   </div>
                 }
               >
-                {project.database === '' ? (
-                  editor === 'ID' ? (
-                    <Editor
-                      setDisable={setDisable}
-                      comment={project.changesetComment}
-                      presets={project.idPresets}
-                      imagery={formatImageryUrlCallback(project.imagery)}
-                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                    />
-                  ) : (
-                    <RapiDEditor
-                      setDisable={setDisable}
-                      comment={project.changesetComment}
-                      presets={project.idPresets}
-                      imagery={formatImageryUrlCallback(project.imagery)}
-                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                      powerUser={project.rapidPowerUser}
-                      showSidebar={showSidebar}
-                    />
-                  )
+                {editor === 'ID' ? (
+                  <Editor
+                    setDisable={setDisable}
+                    comment={project.changesetComment}
+                    presets={project.idPresets}
+                    imagery={formatImageryUrlCallback(project.imagery)}
+                    gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                  />
                 ) : (
-                  editor === 'ID' ? (
-                    <SandboxEditor
-                      setDisable={setDisable}
-                      comment={project.changesetComment}
-                      presets={project.idPresets}
-                      imagery={formatImageryUrlCallback(project.imagery)}
-                      sandboxId={project.database}
-                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                    />
-                  ) : (
-                    <SandboxRapidEditor
-                      setDisable={setDisable}
-                      comment={project.changesetComment}
-                      presets={project.idPresets}
-                      imagery={formatImageryUrlCallback(project.imagery)}
-                      sandboxId={project.database}
-                      gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
-                      powerUser={project.rapidPowerUser}
-                      showSidebar={showSidebar}
-                    />
-                  )
-                )
-              }
+                  <RapiDEditor
+                    setDisable={setDisable}
+                    comment={project.changesetComment}
+                    presets={project.idPresets}
+                    imagery={formatImageryUrlCallback(project.imagery)}
+                    gpxUrl={getTaskGpxUrlCallback(project.projectId, tasksIds)}
+                    powerUser={project.rapidPowerUser}
+                    showSidebar={showSidebar}
+                  />
+                )}
               </Suspense>
             ) : (
               <ReactPlaceholder
@@ -287,7 +265,7 @@ export function TaskMapAction({ project, tasks, activeTasks, getTasks, action, e
             )}
           </div>
           {showSidebar ? (
-            <div className={`w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white db-${project.database ? 'SANDBOX' : 'OSM'}`}>
+            <div className="w-30 fr pt3 ph3 h-100 overflow-y-scroll base-font bg-white">
               <ReactPlaceholder
                 showLoadingAnimation={true}
                 rows={3}

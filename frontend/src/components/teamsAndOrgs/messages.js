@@ -271,10 +271,6 @@ export default defineMessages({
     id: 'management.organisations.type',
     defaultMessage: 'Type',
   },
-  databases: {
-    id: 'management.organisations.databases',
-    defaultMessage: 'Databases',
-  },
   publicUrl: {
     id: 'management.organisations.publicUrl',
     defaultMessage: 'Public URL',

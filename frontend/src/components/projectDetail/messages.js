@@ -64,10 +64,6 @@ export default defineMessages({
     id: 'project.detail.typesOfMapping',
     defaultMessage: 'Types of Mapping',
   },
-  database: {
-    id: 'project.detail.database',
-    defaultMessage: 'Database',
-  },
   private: {
     id: 'project.detail.private',
     defaultMessage: 'Private',

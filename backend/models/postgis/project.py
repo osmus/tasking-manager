@@ -120,7 +120,8 @@ class Project(db.Model):
 
     # Columns
     id = db.Column(db.Integer, primary_key=True)
-    database = db.Column(db.String, nullable=False)
+    # FIXME: read-only; nothing sets this any more. drop once sandbox projects are all archived.
+    database = db.Column(db.String, nullable=False, default="", server_default="")
     status = db.Column(db.Integer, default=ProjectStatus.DRAFT.value, nullable=False)
     created = db.Column(db.DateTime, default=timestamp, nullable=False)
     priority = db.Column(db.Integer, default=ProjectPriority.MEDIUM.value)
@@ -237,10 +238,6 @@ class Project(db.Model):
             ProjectInfo.create_from_name(draft_project_dto.project_name)
         )
         self.organisation = draft_project_dto.organisation
-
-        if draft_project_dto.database is not None:
-            self.database = draft_project_dto.database
-
         self.status = ProjectStatus.DRAFT.value
         self.author_id = draft_project_dto.user_id
         self.last_updated = timestamp()
@@ -394,7 +391,6 @@ class Project(db.Model):
 
     def update(self, project_dto: ProjectDTO):
         """Updates project from DTO"""
-        self.database = project_dto.database
         self.status = ProjectStatus[project_dto.project_status].value
         self.priority = ProjectPriority[project_dto.project_priority].value
         locales = [i.locale for i in project_dto.project_info_locales]
@@ -1004,7 +1000,7 @@ class Project(db.Model):
         """Populates a project DTO with properties common to all roles"""
         base_dto = ProjectDTO()
         base_dto.project_id = self.id
-        base_dto.database= self.database
+        base_dto.database = self.database
         base_dto.project_status = ProjectStatus(self.status).name
         base_dto.default_locale = self.default_locale
         base_dto.project_priority = ProjectPriority(self.priority).name
